@@ -1,0 +1,90 @@
+context:
+  build_number: '0'
+
+package:
+  name: r-designit
+  version: 0.5.0
+
+source:
+- url:
+  - https://cran.r-project.org/src/contrib/designit_0.5.0.tar.gz
+  - https://cran.r-project.org/src/contrib/Archive/designit_0.5.0.tar.gz
+  sha256: 6211cb7974ee4e45134bda5793f7c75e969463d0c7cc676a985fa4dffba33a40
+
+build:
+  number: ${{ build_number }}
+  skip: match(r_base, "<4.1")
+  script:
+    - if: win
+      then: R CMD INSTALL --build . %R_ARGS%
+      else: R CMD INSTALL --build . ${R_ARGS}
+  noarch: generic
+
+requirements:
+  host:
+  - r-base
+  - r-rlang >=0.4.0
+  - r-dplyr >=1.0.0
+  - r-purrr
+  - r-ggplot2
+  - r-scales
+  - r-tibble
+  - r-tidyr
+  - r-assertthat
+  - r-stringr
+  - r-r6
+  - r-data.table
+  run:
+  - r-base
+  - r-rlang >=0.4.0
+  - r-dplyr >=1.0.0
+  - r-purrr
+  - r-ggplot2
+  - r-scales
+  - r-tibble
+  - r-tidyr
+  - r-assertthat
+  - r-stringr
+  - r-r6
+  - r-data.table
+  # -  r-testthat  # suggested
+  # -  r-roxygen2  # suggested
+  # -  r-pkgdown  # suggested
+  # -  r-knitr  # suggested
+  # -  r-markdown  # suggested
+  # -  r-rmarkdown  # suggested
+  # -  r-gt  # suggested
+  # -  r-bench  # suggested
+  # -  r-osat  # suggested
+  # -  r-tidyverse  # suggested
+  # -  r-printr  # suggested
+  # -  r-devtools >=2.0.0  # suggested
+  # -  r-ggpattern  # suggested
+  # -  r-cowplot  # suggested
+  # -  r-bestnormalize  # suggested
+  # -  r-here  # suggested
+
+tests:
+- script:
+  - Rscript -e 'library("designit")'
+
+about:
+  homepage: https://bedapub.github.io/designit/
+  summary: Blocking and Randomization for Experimental Design
+  description: |-
+    Intelligently assign samples to batches in order to reduce
+    batch effects. Batch effects can have a significant impact on
+    data analysis, especially when the assignment of samples to
+    batches coincides with the contrast groups being studied. By
+    defining a batch container and a scoring function that reflects
+    the contrasts, this package allows users to assign samples in a
+    way that minimizes the potential impact of batch effects on the
+    comparison of interest. Among other functionality, we provide
+    an implementation for OSAT score by Yan et al. (2012,
+    <doi:10.1186/1471-2164-13-689>).
+  license: MIT
+  license_file:
+  - ${{ PREFIX }}/lib/R/share/licenses/MIT
+  - LICENSE
+  repository: https://github.com/cran/designit
+

@@ -1,0 +1,9 @@
+# Every package published to a community channel. The combination is not registered
+# with BioContainers, so the environment stops at L2 — see ../l3-combination.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+bamtools = "==2.5.2"
+samtools = "==1.17"

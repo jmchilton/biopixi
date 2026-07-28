@@ -1,0 +1,13 @@
+# designit is on CRAN and in no conda channel (verified: 404 on conda-forge and bioconda,
+# 2026-07-28). Its whole dependency tree is already in conda-forge, so exactly one package
+# needs a recipe we own. That one path dependency holds the environment at L1.
+[workspace]
+preview = ["pixi-build"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+r-base = "4.4.*"
+r-dplyr = ">=1.0.0"
+r-ggplot2 = "*"
+r-designit = { path = "./recipes/r-designit" }

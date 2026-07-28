@@ -1,0 +1,5 @@
+.pixi/
+__pycache__/
+*.pyc
+# rattler-build output — the L1 local channel is a build artifact, never committed
+output/

@@ -1,0 +1,9 @@
+# Identical to ../l2-published but for one patch version. This combination has a line in
+# BioContainers combinations/hash.tsv, so a mirrored image exists.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+bamtools = "==2.5.2"
+samtools = "==1.16.1"

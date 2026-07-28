@@ -1,0 +1,18 @@
+# Perfectly valid pixi — `pixi install` works. Out of profile on biopixi's terms only.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+samtools = "==1.17"
+
+# Out of profile: a second package universe with its own resolver, no conda identity, and
+# nothing for a recipe or a mulled target string to name.
+[pypi-dependencies]
+pysam = "==0.22.0"
+
+# Not a level input — grade flags this as a lint, not as evidence. It is the shape biopixi
+# exists to refuse: an install expressed as an instruction. It belongs in a recipe.
+[tasks]
+setup = "curl -sL https://example.org/legacy-caller.tar.gz | tar xz && cd legacy-caller && ./configure --prefix=$CONDA_PREFIX && make install"
