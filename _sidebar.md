@@ -1,0 +1,14 @@
+- [Home](README.md)
+- [Getting Started](getting-started.md)
+- **Architecture**
+  - [Profile and readiness](architecture/profile.md)
+- **Packages**
+  - [Core](packages/core.md)
+  - [CLI](packages/cli.md)
+- **API Reference**
+  - [Overview](api/README.md)
+  - [TypeDoc Reference](api/typedoc/index.html ":ignore")
+- **Development**
+  - [Contributing](development/contributing.md)
+  - [Building](development/building.md)
+  - [Testing](development/testing.md)

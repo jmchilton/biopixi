@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>biopixi</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta
+      name="description"
+      content="Portability readiness grading for bioinformatics Pixi environments"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/atkinson-hyperlegible@5/400.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@fontsource/atkinson-hyperlegible@5/700.min.css"
+    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/themes/vue.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-copy-code/styles.min.css" />
+    <link rel="stylesheet" href="styles/biopixi.css" />
+    <link rel="stylesheet" href="styles/prism-biopixi.css" />
+  </head>
+  <body>
+    <div id="app">Loading...</div>
+    <script>
+      window.$docsify = {
+        name: "biopixi",
+        repo: "jmchilton/biopixi",
+        homepage: "README.md",
+        loadSidebar: "_sidebar.md",
+        loadNavbar: "_navbar.md",
+        coverpage: "_coverpage.md",
+        autoHeader: true,
+        maxLevel: 3,
+        subMaxLevel: 2,
+        search: {
+          maxAge: 86400000,
+          paths: "auto",
+          placeholder: "Search documentation...",
+          noData: "No results found",
+        },
+        copyCode: {
+          buttonText: "Copy",
+          errorText: "Error",
+          successText: "Copied!",
+        },
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-toml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  </body>
+</html>
