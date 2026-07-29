@@ -18,8 +18,8 @@ level and identifies the next packaging or publication step.
 
 biopixi is not a package manager, solver, or container builder. Grading reads a project manifest,
 its lock, and versioned public metadata without installing or executing package code. The
-canonical policy is the repository's
-[`PROFILE.md`](https://github.com/jmchilton/biopixi/blob/main/PROFILE.md).
+canonical policy is the [normative biopixi profile](profile.md), rendered as part of this
+documentation.
 
 ## Quick start
 

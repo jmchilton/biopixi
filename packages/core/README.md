@@ -22,5 +22,5 @@ console.log(result.label, result.reasons);
 ```
 
 The normative policy is maintained in the repository's
-[`PROFILE.md`](https://github.com/jmchilton/biopixi/blob/main/PROFILE.md). The current
+[normative biopixi profile](https://jmchilton.github.io/biopixi/#/profile). The current
 implementation is still a prototype; known gaps are listed there.

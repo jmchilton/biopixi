@@ -34,8 +34,38 @@ body {
 }
 
 .markdown-section table {
-  display: table;
+  border-collapse: separate;
+  border-spacing: 0;
+  display: block;
+  font-size: 0.94rem;
+  line-height: 1.45;
+  overflow-x: auto;
   width: 100%;
+}
+
+.markdown-section th {
+  background: #edf2fb;
+  color: #17233a;
+  font-weight: 700;
+  text-align: left;
+}
+
+.markdown-section th,
+.markdown-section td {
+  border-color: #d8deea;
+  padding: 0.7rem 0.85rem;
+  vertical-align: top;
+}
+
+.markdown-section tr:nth-child(even) td {
+  background: #f8faff;
+}
+
+.markdown-section blockquote {
+  background: #f2f6fd;
+  border-left: 4px solid var(--theme-color);
+  color: #34435d;
+  padding: 0.8rem 1rem;
 }
 
 .sidebar {

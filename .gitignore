@@ -6,5 +6,7 @@ dist/
 .DS_Store
 docs/api/typedoc/
 docs/api/typedoc.json
+# Generated from the root normative source by scripts/sync-profile-doc.mjs
+docs/profile.md
 # rattler-build output — the L1 local channel is a build artifact, never committed
 output/

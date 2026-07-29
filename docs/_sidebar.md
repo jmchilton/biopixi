@@ -1,7 +1,8 @@
 - [Home](README.md)
 - [Getting Started](getting-started.md)
 - **Architecture**
-  - [Profile and readiness](architecture/profile.md)
+  - [Profile overview](architecture/profile.md)
+  - [Normative specification](profile.md)
 - **Packages**
   - [Core](packages/core.md)
   - [CLI](packages/cli.md)

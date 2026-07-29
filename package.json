@@ -15,15 +15,16 @@
     "lint:unused": "knip",
     "lint:unused:ci": "knip --include files,dependencies,unlisted,binaries,unresolved",
     "check:packages": "pnpm -r lint:pkg && pnpm -r check:types",
-    "format": "prettier --check --ignore-unknown README.md PROFILE.md package.json pnpm-workspace.yaml tsconfig.json eslint.config.js vitest.config.ts typedoc.json knip.json docs .github .changeset && pnpm -r format",
-    "format-fix": "prettier --write --ignore-unknown README.md PROFILE.md package.json pnpm-workspace.yaml tsconfig.json eslint.config.js vitest.config.ts typedoc.json knip.json docs .github .changeset && pnpm -r format-fix",
+    "format": "prettier --check --ignore-unknown README.md PROFILE.md package.json pnpm-workspace.yaml tsconfig.json eslint.config.js vitest.config.ts typedoc.json knip.json scripts docs .github .changeset && pnpm -r format",
+    "format-fix": "prettier --write --ignore-unknown README.md PROFILE.md package.json pnpm-workspace.yaml tsconfig.json eslint.config.js vitest.config.ts typedoc.json knip.json scripts docs .github .changeset && pnpm -r format-fix",
     "check": "pnpm build && pnpm lint && pnpm format && pnpm typecheck && pnpm test && pnpm lint:unused:ci && pnpm check:packages",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish",
     "docs:api": "typedoc",
-    "docs:dev": "docsify serve docs",
-    "docs:build": "pnpm build && pnpm docs:api"
+    "docs:profile": "node scripts/sync-profile-doc.mjs",
+    "docs:dev": "pnpm docs:profile && docsify serve docs",
+    "docs:build": "pnpm build && pnpm docs:profile && pnpm docs:api"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
