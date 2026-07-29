@@ -1,0 +1,9 @@
+# Identical to ../l3-ecosystem-ready but for one patch version. This exact combination has a line
+# in BioContainers combinations/hash.tsv, so its published container makes it L4.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+bamtools = "==2.5.2"
+samtools = "==1.16.1"

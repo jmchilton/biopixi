@@ -1,0 +1,10 @@
+# Every package is published to conda-forge or Bioconda, so community build and migration
+# infrastructure can carry the inputs. This exact combination is not registered with
+# BioContainers, so the environment is ecosystem-ready at L3 — see ../l4-combination.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+bamtools = "==2.5.2"
+samtools = "==1.17"

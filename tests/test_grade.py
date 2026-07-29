@@ -23,30 +23,30 @@ EXAMPLES = ROOT / "examples"
     [
         ("l0-out-of-profile", "L0"),
         ("l1-local-recipe", "L1"),
-        ("l2-published", "L2"),
-        ("l3-combination", "L3"),
-        ("l3-single", "L3"),
+        ("l3-ecosystem-ready", "L3"),
+        ("l4-combination", "L4"),
+        ("l4-single", "L4"),
     ],
 )
 def test_example_levels(name, expected):
     assert grade(EXAMPLES / name).label == expected
 
 
-def test_one_patch_version_separates_l2_from_l3():
+def test_one_patch_version_separates_l3_from_l4():
     """The only difference between these two manifests is samtools 1.17 vs 1.16.1. The level
     is a fact about what BioContainers has published, not about how the manifest is written."""
-    l2 = grade(EXAMPLES / "l2-published")
-    l3 = grade(EXAMPLES / "l3-combination")
-    assert (l2.level, l3.level) == (2, 3)
-    assert l2.target == "bamtools=2.5.2,samtools=1.17"
-    assert l3.target == "bamtools=2.5.2,samtools=1.16.1"
+    l3 = grade(EXAMPLES / "l3-ecosystem-ready")
+    l4 = grade(EXAMPLES / "l4-combination")
+    assert (l3.level, l4.level) == (3, 4)
+    assert l3.target == "bamtools=2.5.2,samtools=1.17"
+    assert l4.target == "bamtools=2.5.2,samtools=1.16.1"
 
 
 def test_adding_a_package_can_lower_the_level():
-    """samtools alone is L3; samtools plus bamtools is L2. L3 is a property of the
-    environment, not the minimum over its packages."""
-    assert grade(EXAMPLES / "l3-single").level == 3
-    assert grade(EXAMPLES / "l2-published").level == 2
+    """samtools alone is L4; samtools plus bamtools is L3. L4 is a property of the
+    assembled environment, not the minimum over its packages."""
+    assert grade(EXAMPLES / "l4-single").level == 4
+    assert grade(EXAMPLES / "l3-ecosystem-ready").level == 3
 
 
 def test_out_of_profile_still_reports_lints():
@@ -54,6 +54,65 @@ def test_out_of_profile_still_reports_lints():
     assert g.level is None
     assert any("pypi-dependencies" in r for r in g.reasons)
     assert any("install instruction" in lint for lint in g.lints)
+
+
+def test_public_noncommunity_channel_is_l2(tmp_path):
+    """L2 is public distribution without conda-forge/Bioconda community maintenance."""
+    (tmp_path / "pixi.toml").write_text(
+        """
+[workspace]
+channels = ["https://conda.anaconda.org/project"]
+platforms = ["linux-64"]
+
+[dependencies]
+custom-tool = "==1.0"
+""".lstrip()
+    )
+    (tmp_path / "pixi.lock").write_text(
+        """
+environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/project/linux-64/custom-tool-1.0-0.conda
+""".lstrip()
+    )
+
+    g = grade(tmp_path)
+    assert g.label == "L2"
+    assert g.target == "custom-tool=1.0"
+    assert any("non-community channels: project" in reason for reason in g.reasons)
+
+
+def test_registered_custom_channel_container_cannot_skip_l3(tmp_path):
+    """The historical OME combination is in hash.tsv, but L4 strictly requires L3 first."""
+    (tmp_path / "pixi.toml").write_text(
+        """
+[workspace]
+channels = ["conda-forge", "https://conda.anaconda.org/ome"]
+platforms = ["linux-64"]
+
+[dependencies]
+openjdk = "*"
+bioformats2raw = { version = "==0.7.0", channel = "ome" }
+""".lstrip()
+    )
+    (tmp_path / "pixi.lock").write_text(
+        """
+environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/openjdk-17.0.3-h1e1ecb3_1.tar.bz2
+        - conda: https://conda.anaconda.org/ome/linux-64/bioformats2raw-0.7.0-0.tar.bz2
+""".lstrip()
+    )
+
+    g = grade(tmp_path)
+    assert g.label == "L2"
+    assert g.target == "bioformats2raw=0.7.0,openjdk=17.0.3"
+    assert any("non-community channels: ome" in reason for reason in g.reasons)
+    assert g.evidence is None
 
 
 def test_grade_touches_no_network(monkeypatch):
@@ -64,5 +123,11 @@ def test_grade_touches_no_network(monkeypatch):
 
     monkeypatch.setattr(socket, "socket", forbidden)
     monkeypatch.setattr(socket, "create_connection", forbidden)
-    for name in ("l0-out-of-profile", "l1-local-recipe", "l2-published", "l3-combination", "l3-single"):
+    for name in (
+        "l0-out-of-profile",
+        "l1-local-recipe",
+        "l3-ecosystem-ready",
+        "l4-combination",
+        "l4-single",
+    ):
         grade(EXAMPLES / name)

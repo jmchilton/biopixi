@@ -1,5 +1,5 @@
 # One bioconda package. Bioconda auto-builds a BioContainers image per recipe build, so a
-# single-package environment reaches L3 with no combination line at all.
+# single-package environment reaches L4 with no combination line at all.
 [workspace]
 channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]

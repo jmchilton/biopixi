@@ -23,9 +23,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from biopixi.mulled import Target, pull_uri  # noqa: E402
 
 PUBLIC_CHANNEL_HOSTS = {"conda.anaconda.org", "repo.anaconda.com", "prefix.dev"}
+COMMUNITY_CHANNELS = {"conda-forge", "bioconda"}
 
 # Bioconda auto-builds a BioContainers image for every recipe build; conda-forge does not.
-# So a single-package environment reaches L3 iff that package resolved from bioconda.
+# So a single-package environment reaches L4 iff that package resolved from bioconda.
 AUTO_CONTAINER_CHANNELS = {"bioconda"}
 
 DATA_DIR = Path(__file__).resolve().parents[2] / "data"
@@ -206,22 +207,39 @@ def grade(directory: Path) -> Grade:
     target_str = ",".join(targets)
     mulled = [Target(d, by_name[d].version, by_name[d].build) for d in direct]
 
-    # L3, route A: a lone bioconda package is auto-containerized, one image per recipe build.
+    # L2: public, but outside the community channels whose feedstocks participate in the
+    # conda-forge/Bioconda migration machinery.
+    outside_community = sorted({p.channel for p in locked if p.channel not in COMMUNITY_CHANNELS})
+    if outside_community:
+        channels = ", ".join(outside_community)
+        return Grade(
+            level=2,
+            target=target_str,
+            lints=lints,
+            reasons=[
+                f"every package is public, but the resolved closure uses non-community channels: {channels}",
+                "L3 requires every package to resolve from conda-forge or bioconda",
+            ],
+        )
+
+    # L4, route A: a lone bioconda package is auto-containerized, one image per recipe build.
     if len(direct) == 1:
         pkg = by_name[direct[0]]
         if pkg.channel in AUTO_CONTAINER_CHANNELS:
             return Grade(
-                level=3, target=target_str, lints=lints,
+                level=4, target=target_str, lints=lints,
                 reasons=[f"single {pkg.channel} package — BioContainers builds one image per recipe build"],
                 evidence=pull_uri(mulled),
             )
         return Grade(
-            level=2, target=target_str, lints=lints,
-            reasons=[f"{pkg.name} is on {pkg.channel}, which does not auto-build containers"],
+            level=3, target=target_str, lints=lints,
+            reasons=[
+                f"{pkg.name} is ecosystem-ready on {pkg.channel}, which does not auto-build containers"
+            ],
             evidence=f"would be {pull_uri(mulled)} if registered",
         )
 
-    # L3, route B: the combination is registered with BioContainers. Build strings are not
+    # L4, route B: the combination is registered with BioContainers. Build strings are not
     # part of a multi-package name, so drop them before computing it.
     versions_only = [Target(t.package, t.version) for t in mulled]
     combos = load_combinations(DATA_DIR / "biocontainers-hash.tsv")
@@ -229,16 +247,16 @@ def grade(directory: Path) -> Grade:
     if key in combos:
         raw, image_build = combos[key]
         return Grade(
-            level=3, target=target_str, lints=lints,
+            level=4, target=target_str, lints=lints,
             reasons=[f"registered in BioContainers combinations/hash.tsv as: {raw}"],
             evidence=pull_uri(versions_only, image_build=image_build),
         )
 
     return Grade(
-        level=2, target=target_str, lints=lints,
+        level=3, target=target_str, lints=lints,
         reasons=[
-            "every package is public, but this combination has no hash.tsv line",
-            "L3 is one pull request away — add the target string above to combinations/hash.tsv",
+            "every package is ecosystem-ready, but this combination has no hash.tsv line",
+            "L4 is one pull request away — add the target string above to combinations/hash.tsv",
         ],
         evidence=f"would be {pull_uri(versions_only, image_build='0')} once built",
     )
@@ -250,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--min-level", type=int, default=None, help="exit nonzero below this level")
     args = ap.parse_args(argv)
 
-    worst = 3
+    worst = 4
     for d in args.dirs:
         g = grade(d)
         print(f"\n{g.label}  {d}")

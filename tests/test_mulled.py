@@ -4,7 +4,7 @@
 # ///
 """Vectors lifted verbatim from galaxy-tool-util's v2_image_name doctests, plus two verified
 live against quay.io on 2026-07-28. If these pass, the mulled name is offline-computable —
-which is the whole claim the L3 row rests on.
+which is part of the evidence behind an L4 grade.
 """
 
 import sys
@@ -67,8 +67,8 @@ def test_order_does_not_matter():
 
 def test_repo_hash_is_names_only():
     """Same packages, different versions -> same repository, different tag. This is why an
-    L2 manifest and its L3 neighbour share a repo name and differ only after the colon."""
-    l2 = v2_image_name([Target("bamtools", "2.5.2"), Target("samtools", "1.17")])
-    l3 = v2_image_name([Target("bamtools", "2.5.2"), Target("samtools", "1.16.1")])
-    assert l2.split(":")[0] == l3.split(":")[0]
-    assert l2.split(":")[1] != l3.split(":")[1]
+    L3 manifest and its L4 neighbour share a repo name and differ only after the colon."""
+    l3 = v2_image_name([Target("bamtools", "2.5.2"), Target("samtools", "1.17")])
+    l4 = v2_image_name([Target("bamtools", "2.5.2"), Target("samtools", "1.16.1")])
+    assert l3.split(":")[0] == l4.split(":")[0]
+    assert l3.split(":")[1] != l4.split(":")[1]
