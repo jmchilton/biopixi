@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -104,6 +104,22 @@ bioformats2raw = { version = "==0.7.0", channel = "ome" }
       true,
     );
     expect(result.evidence).toBeUndefined();
+  });
+
+  it("treats a dependency introduced only by a target table as a root", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-target-only-"));
+    const source = join(examples, "l4-single");
+    copyFileSync(join(source, "pixi.lock"), join(directory, "pixi.lock"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      readFileSync(join(source, "pixi.toml"), "utf8").replace(
+        "[dependencies]",
+        "[target.linux-64.dependencies]",
+      ),
+    );
+
+    const result = grade(directory);
+    expect([result.label, result.target]).toEqual(["L4", "samtools=1.17"]);
   });
 
   it("does not assign a definitive grade when the lock contains a PyPI artifact", () => {

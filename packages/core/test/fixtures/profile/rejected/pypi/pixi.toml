@@ -1,0 +1,10 @@
+# Pixi can solve this mixed environment; biopixi requires every dependency to have a Conda identity.
+[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+python = "3.12.*"
+
+[pypi-dependencies]
+cowsay = "==6.1"

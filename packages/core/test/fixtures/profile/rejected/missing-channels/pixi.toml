@@ -1,0 +1,7 @@
+# Pixi permits an empty channel list; biopixi cannot establish artifact provenance without one.
+[workspace]
+channels = []
+platforms = ["linux-64"]
+
+[dependencies]
+zlib = "1.3.*"

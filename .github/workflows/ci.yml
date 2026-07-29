@@ -21,6 +21,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
+      - uses: prefix-dev/setup-pixi@v0.10.0
+        with:
+          # There is no workspace-root pixi.toml to install; the fixtures are validated directly.
+          run-install: false
+          pixi-version: v0.75.0
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test

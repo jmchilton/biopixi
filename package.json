@@ -10,7 +10,8 @@
   "scripts": {
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
+    "test": "pnpm -r test && pnpm test:profile-fixtures",
+    "test:profile-fixtures": "node scripts/validate-profile-fixtures.mjs",
     "lint": "pnpm -r lint",
     "lint:unused": "knip",
     "lint:unused:ci": "knip --include files,dependencies,unlisted,binaries,unresolved",

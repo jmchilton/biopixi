@@ -14,6 +14,7 @@ const DEFAULT_COMBINATIONS_PATH = fileURLToPath(
   new URL("../data/biocontainers-hash.tsv", import.meta.url),
 );
 const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
+const CONDA_TABLE_KEYS = ["dependencies", "host-dependencies", "build-dependencies"];
 
 export type Manifest = Record<string, unknown>;
 
@@ -44,6 +45,25 @@ function record(value: unknown): Manifest {
     : {};
 }
 
+function hasOwn(value: Manifest, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+/**
+ * Read the workspace table under either spelling so a legacy manifest is rejected for its
+ * spelling alone rather than for everything the profile cannot see inside it.
+ */
+function workspaceTable(manifest: Manifest): Manifest {
+  return record(manifest.workspace ?? manifest.project);
+}
+
+function declaredPlatforms(manifest: Manifest): string[] {
+  const platforms = workspaceTable(manifest).platforms;
+  return Array.isArray(platforms)
+    ? platforms.filter((platform): platform is string => typeof platform === "string")
+    : [];
+}
+
 function makeGrade(level: number | null, options: Omit<Grade, "level" | "label">): Grade {
   return {
     level,
@@ -59,32 +79,58 @@ export function parseManifest(path: string): Manifest {
   return record(parseToml(readFileSync(path, "utf8")));
 }
 
-function dependencyTables(manifest: Manifest): Array<[string, Manifest]> {
+function dependencyTables(
+  manifest: Manifest,
+  platforms: readonly string[],
+): Array<[string, Manifest]> {
   const tables: Array<[string, Manifest]> = [];
-  for (const key of [
-    "dependencies",
-    "pypi-dependencies",
-    "host-dependencies",
-    "build-dependencies",
-  ]) {
+  for (const key of CONDA_TABLE_KEYS) {
     if (manifest[key] !== undefined) {
       tables.push([key, record(manifest[key])]);
     }
   }
 
-  for (const [featureName, featureValue] of Object.entries(record(manifest.feature))) {
-    const feature = record(featureValue);
-    for (const key of ["dependencies", "pypi-dependencies"]) {
-      if (feature[key] !== undefined) {
-        tables.push([`feature.${featureName}.${key}`, record(feature[key])]);
+  const targets = record(manifest.target);
+  for (const platform of platforms) {
+    const target = record(targets[platform]);
+    for (const key of CONDA_TABLE_KEYS) {
+      if (target[key] !== undefined) {
+        tables.push([`target.${platform}.${key}`, record(target[key])]);
       }
+    }
+  }
+
+  return tables;
+}
+
+function pypiDependencyTables(
+  manifest: Manifest,
+  platforms: readonly string[],
+): Array<[string, Manifest]> {
+  const tables: Array<[string, Manifest]> = [];
+  if (manifest["pypi-dependencies"] !== undefined) {
+    tables.push(["pypi-dependencies", record(manifest["pypi-dependencies"])]);
+  }
+
+  const targets = record(manifest.target);
+  for (const platform of platforms) {
+    const target = record(targets[platform]);
+    if (target["pypi-dependencies"] !== undefined) {
+      tables.push([`target.${platform}.pypi-dependencies`, record(target["pypi-dependencies"])]);
     }
   }
   return tables;
 }
 
+function effectiveCondaDependencies(manifest: Manifest, platform: string): Manifest {
+  return {
+    ...record(manifest.dependencies),
+    ...record(record(record(manifest.target)[platform]).dependencies),
+  };
+}
+
 /**
- * Run the prototype's mechanical profile checks without solving or executing tasks.
+ * Check whether a parsed Pixi manifest is inside the deliberately small profile-v0 boundary.
  */
 export function checkProfile(manifest: Manifest): {
   reasons: string[];
@@ -92,31 +138,112 @@ export function checkProfile(manifest: Manifest): {
 } {
   const reasons: string[] = [];
   const lints: string[] = [];
-  const workspace = record(manifest.workspace ?? manifest.project);
+  const workspace = workspaceTable(manifest);
 
+  if (manifest.workspace === undefined) {
+    reasons.push(
+      manifest.project === undefined
+        ? "no [workspace] table — profile v0 requires a project-root Pixi workspace"
+        : "legacy [project] table — profile v0 requires the [workspace] spelling",
+    );
+  }
   if (!Array.isArray(workspace.channels) || workspace.channels.length === 0) {
     reasons.push("no channels declared — nothing to resolve against");
   }
+
+  let platforms: string[] = [];
   if (!Array.isArray(workspace.platforms) || workspace.platforms.length === 0) {
     reasons.push("no platforms declared — the target of the build is unstated");
-  }
-  if (Object.keys(record(manifest.dependencies)).length === 0) {
-    reasons.push("no [dependencies] — nothing to package");
+  } else {
+    platforms = declaredPlatforms(manifest);
+    const linuxCount = platforms.filter((platform) => platform === "linux-64").length;
+    const macosCount = platforms.filter((platform) => platform === "osx-arm64").length;
+    const unsupported = platforms.filter(
+      (platform) => platform !== "linux-64" && platform !== "osx-arm64",
+    );
+    if (
+      platforms.length !== workspace.platforms.length ||
+      linuxCount !== 1 ||
+      macosCount > 1 ||
+      unsupported.length > 0
+    ) {
+      reasons.push(
+        `unsupported platform set (${workspace.platforms.map(String).join(", ")}) — profile v0 requires linux-64 and permits only optional osx-arm64`,
+      );
+    }
   }
 
-  for (const [label, table] of dependencyTables(manifest)) {
-    if (label.includes("pypi-dependencies")) {
+  const effectivePlatforms = platforms.length > 0 ? [...new Set(platforms)] : [""];
+  for (const platform of effectivePlatforms) {
+    const dependencies =
+      platform === ""
+        ? record(manifest.dependencies)
+        : effectiveCondaDependencies(manifest, platform);
+    if (Object.keys(dependencies).length === 0) {
+      const suffix = platform === "" ? "" : ` for ${platform}`;
+      reasons.push(`default environment has no Conda dependencies${suffix} — nothing to package`);
+    }
+  }
+
+  const featureNames = Object.keys(record(manifest.feature)).sort();
+  if (featureNames.length > 0) {
+    reasons.push(
+      `named feature tables (${featureNames.join(", ")}) — profile v0 supports only the default feature`,
+    );
+  }
+
+  if (manifest.environments !== undefined) {
+    const environments = record(manifest.environments);
+    if (Object.keys(environments).length === 0) {
+      reasons.push("[environments] must define only default = [] when present");
+    }
+    const namedEnvironments = Object.keys(environments)
+      .filter((name) => name !== "default")
+      .sort();
+    if (namedEnvironments.length > 0) {
+      reasons.push(
+        `named environments (${namedEnvironments.join(", ")}) — profile v0 supports only default`,
+      );
+    }
+
+    if (hasOwn(environments, "default")) {
+      const definition = environments.default;
+      if (!Array.isArray(definition) || definition.length !== 0) {
+        reasons.push("environments.default must be [] — no other composition is in profile v0");
+      }
+    }
+
+    for (const [name, definitionValue] of Object.entries(environments)) {
+      const definition = record(definitionValue);
+      if (hasOwn(definition, "no-default-feature")) {
+        reasons.push(
+          `environment '${name}' sets no-default-feature — profile v0 always includes the default feature`,
+        );
+      }
+      if (hasOwn(definition, "solve-group")) {
+        reasons.push(
+          `environment '${name}' sets solve-group — solve groups are outside profile v0`,
+        );
+      }
+    }
+  }
+
+  for (const [label, table] of pypiDependencyTables(manifest, effectivePlatforms)) {
+    if (Object.keys(table).length > 0) {
       reasons.push(
         `[${label}] present (${Object.keys(table).sort().join(", ")}) — outside the conda universe`,
       );
-      continue;
     }
+  }
 
+  for (const [label, table] of dependencyTables(manifest, effectivePlatforms)) {
     for (const [name, value] of Object.entries(table)) {
       const specification = record(value);
       for (const sourceKind of ["git", "url"]) {
         if (specification[sourceKind] !== undefined) {
-          reasons.push(`${name} declared by ${sourceKind}= — no recipe can name this source`);
+          reasons.push(
+            `${name} in [${label}] declared by ${sourceKind}= — no recipe can name this source`,
+          );
         }
       }
     }
@@ -273,7 +400,15 @@ export function grade(directory: string, options: GradeOptions = {}): Grade {
     return makeGrade(1, { reasons: heldBack, lints: profile.lints });
   }
 
-  const direct = Object.keys(record(manifest.dependencies)).sort();
+  // L4 is a linux-64 claim, and the locked closure is still flattened, so one platform supplies
+  // the root target set. Its target table participates: a target-only dependency is a root.
+  const platforms = declaredPlatforms(manifest);
+  const gradingPlatform = platforms.includes("linux-64") ? "linux-64" : platforms[0];
+  const direct = Object.keys(
+    gradingPlatform === undefined
+      ? record(manifest.dependencies)
+      : effectiveCondaDependencies(manifest, gradingPlatform),
+  ).sort();
   const missing = direct.filter((name) => !byName.has(name));
   if (missing.length > 0) {
     return makeGrade(1, {
