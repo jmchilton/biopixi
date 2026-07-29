@@ -60,6 +60,15 @@ A manifest earns **L0–L4**. These levels do not measure scientific reproducibi
 quality, or security. They measure how much project-specific infrastructure must still exist
 before an environment can be rebuilt or run elsewhere.
 
+The normative boundary — including the default-environment constraint, platform targets,
+dependency forms, channel provenance, and incomplete lockfiles — is defined in
+[`PROFILE.md`](PROFILE.md). The current grader is a prototype; the implementation gaps are listed
+at the end of that document rather than hidden as implied guarantees here.
+
+L1–L4 intentionally model one runtime environment on required `linux-64`, with optional
+`osx-arm64`. Named features, `no-default-feature`, multiple environments, and other platforms are
+valid Pixi, but outside this focused Bioconda/BioContainers profile.
+
 L1 requires the original repository and a local build toolchain. L2 removes the repository by
 publishing every package to a named public channel. L3 moves those packages into conda-forge or
 Bioconda, where they participate in established community build, migration, testing, and
@@ -67,10 +76,10 @@ maintenance infrastructure. L4 records that the exact environment has been publi
 BioContainer and distributed through the Galaxy ecosystem, after the environment has satisfied
 L3.
 
-Every distinction is mechanically decidable from the manifest, the resolved lockfile when
-present, and public metadata — no judgement calls. Without a lockfile, `grade` reports a
-provisional result based on the declared dependency set rather than pretending it has inspected
-the full transitive closure.
+Every distinction is mechanically decidable from the manifest, a current resolved lockfile, and
+public metadata — no judgement calls. Under the normative profile, a missing or stale lockfile
+produces `UNRESOLVED` or `STALE`, with no numeric grade. Manifest inspection can still report
+L0 violations and useful ceilings without pretending it has inspected the transitive closure.
 
 | Level | Name | Mechanically decidable condition | What still must exist |
 |---|---|---|---|
