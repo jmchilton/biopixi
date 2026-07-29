@@ -1,4 +1,4 @@
-- [Home](/)
+- [Home](README.md)
 - [Getting Started](getting-started.md)
 - **Architecture**
   - [Profile and readiness](architecture/profile.md)

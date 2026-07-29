@@ -1,13 +1,22 @@
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
 import { runGrade } from "../src/index.js";
+import { buildProgram } from "../src/program.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 
 describe("runGrade", () => {
+  it("reports the version from the package manifest", () => {
+    const packageMetadata = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+    ) as { version: string };
+    expect(buildProgram().version()).toBe(packageMetadata.version);
+  });
+
   it("renders a grade", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];

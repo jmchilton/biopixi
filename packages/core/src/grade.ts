@@ -251,6 +251,12 @@ export function grade(directory: string, options: GradeOptions = {}): Grade {
   }
 
   const locked = loadLock(lockPath);
+  if (locked.problems.length > 0) {
+    return makeGrade(null, {
+      reasons: locked.problems,
+      lints: profile.lints,
+    });
+  }
   const byName = new Map(locked.packages.map((pkg) => [pkg.name, pkg]));
   const heldBack: string[] = [];
   for (const pkg of locked.packages) {

@@ -1,5 +1,6 @@
 import { Command, Option } from "commander";
 
+import packageMetadata from "../package.json" with { type: "json" };
 import { runGrade } from "./grade-command.js";
 
 /**
@@ -9,7 +10,7 @@ export function buildProgram(): Command {
   const program = new Command()
     .name("biopixi")
     .description("Grade how far a Pixi environment can travel outside its project")
-    .version("0.1.0");
+    .version(packageMetadata.version);
 
   program
     .command("grade")

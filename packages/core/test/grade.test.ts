@@ -106,6 +106,34 @@ bioformats2raw = { version = "==0.7.0", channel = "ome" }
     expect(result.evidence).toBeUndefined();
   });
 
+  it("does not assign a definitive grade when the lock contains a PyPI artifact", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-pypi-lock-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["bioconda"]
+platforms = ["linux-64"]
+
+[dependencies]
+samtools = "==1.17"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/bioconda/linux-64/samtools-1.17-hd87286a_2.conda
+        - pypi: https://files.pythonhosted.org/packages/example/example-1.0.0-py3-none-any.whl
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.level).toBeNull();
+    expect(result.reasons).toEqual(["lock contains a PyPI wheel: example-1.0.0-py3-none-any.whl"]);
+  });
+
   it("does not call fetch", () => {
     const originalFetch = globalThis.fetch;
     globalThis.fetch = () => {
