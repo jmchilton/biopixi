@@ -1,0 +1,40 @@
+# Install with `pre-commit install` after `pnpm install`.
+exclude: |
+  (?x)^(
+    content/|
+    recipes/|
+    examples/|
+    packages/core/data/biocontainers-hash\.tsv$|
+    docs/api/typedoc/|
+    pnpm-lock\.yaml$
+  )
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      - id: check-yaml
+      - id: check-json
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier (write)
+        entry: pnpm exec prettier --write
+        language: system
+        files: ^packages/.*/(src|test)/.*\.ts$
+        pass_filenames: true
+
+      - id: eslint
+        name: eslint (fix)
+        entry: pnpm exec eslint --fix
+        language: system
+        files: ^packages/.*/(src|test)/.*\.ts$
+        pass_filenames: true

@@ -1,5 +1,10 @@
 .pixi/
-__pycache__/
-*.pyc
+node_modules/
+dist/
+*.tsbuildinfo
+*.tgz
+.DS_Store
+docs/api/typedoc/
+docs/api/typedoc.json
 # rattler-build output — the L1 local channel is a build artifact, never committed
 output/

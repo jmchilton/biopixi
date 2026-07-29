@@ -1,0 +1,53 @@
+:root {
+  --theme-color: #3157a4;
+  --sidebar-width: 19rem;
+  --base-font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --base-font-size: 17px;
+  --heading-font-family: "Atkinson Hyperlegible", system-ui, sans-serif;
+  --code-font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+body {
+  color: #263246;
+  font-family: var(--base-font-family);
+}
+
+.markdown-section {
+  max-width: 52rem;
+}
+
+.markdown-section h1,
+.markdown-section h2,
+.markdown-section h3 {
+  color: #17233a;
+  font-weight: 700;
+}
+
+.markdown-section code {
+  border-radius: 0.2rem;
+  color: #7c2d52;
+}
+
+.markdown-section pre {
+  border-left: 4px solid var(--theme-color);
+  border-radius: 0.25rem;
+}
+
+.markdown-section table {
+  display: table;
+  width: 100%;
+}
+
+.sidebar {
+  border-right: 1px solid #d8deea;
+}
+
+.sidebar-nav strong {
+  color: #17233a;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.cover-main > p:last-child a {
+  border-radius: 0.2rem;
+}

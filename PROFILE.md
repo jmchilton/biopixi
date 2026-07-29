@@ -238,12 +238,12 @@ appear in the locked environment closure.
 
 For one conformant platform with complete evidence, levels are cumulative:
 
-| Level | Required condition |
-|---|---|
+| Level  | Required condition                                                                                                                                   |
+| ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **L1** | Every source and artifact is understood, but at least one dependency requires the selected source tree, a local build, or non-public infrastructure. |
-| **L2** | Every artifact in the resolved closure is anonymously retrievable from a recognized public channel. |
-| **L3** | L2 holds, and every artifact in the closure resolves from the logical conda-forge or Bioconda channels. |
-| **L4** | L3 holds on `linux-64`, and a BioContainer for the exact root target set is present in the verified publication metadata. |
+| **L2** | Every artifact in the resolved closure is anonymously retrievable from a recognized public channel.                                                  |
+| **L3** | L2 holds, and every artifact in the closure resolves from the logical conda-forge or Bioconda channels.                                              |
+| **L4** | L3 holds on `linux-64`, and a BioContainer for the exact root target set is present in the verified publication metadata.                            |
 
 The L4 root target set is the effective set of direct Conda dependencies for the platform, using
 their locked versions. It is not the entire transitive closure: the container solve supplies that
@@ -342,22 +342,22 @@ workspace minimum.
 
 ## Prototype gaps
 
-The current `src/biopixi/grade.py` is a proof of concept. Before it claims conformance with this
-profile, it needs the following changes:
+The current `packages/core/src/grade.ts` is a proof of concept. Before it claims conformance with
+this profile, it needs the following changes:
 
-| Area | Current prototype | Profile requirement |
-|---|---|---|
-| Features | scans feature dependencies globally | reject every named feature table |
-| Environments | grades `default`, or the first lock environment | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
-| Platforms | flattens all locked platforms together | grade each platform independently |
-| Target tables | not inspected | apply top-level target tables per platform |
-| Path dependencies | trusts any locked source record | validate source-root containment, recipe, package name, and lock agreement |
-| Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity | verify the qualifier and preserve it in mulled targets |
-| PyPI | one entry anywhere makes the whole workspace L0 | inspect top-level and platform-targeted dependencies independently |
-| Missing lock | returns L1 | return `UNRESOLVED` with no numeric level |
-| Stale lock | checks only that direct names occur somewhere | validate the default environment's effective requirements per platform |
-| L4 | infers single-package publication and reads a vendored combination list | report verified snapshot provenance and endpoint evidence |
-| CLI | accepts directories only | add source-root and platform selection plus matrix/JSON output |
+| Area               | Current prototype                                                                  | Profile requirement                                                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Features           | scans feature dependencies globally                                                | reject every named feature table                                                                                                   |
+| Environments       | grades `default`, or the first lock environment                                    | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
+| Platforms          | flattens all locked platforms together                                             | grade each platform independently                                                                                                  |
+| Target tables      | not inspected                                                                      | apply top-level target tables per platform                                                                                         |
+| Path dependencies  | trusts any locked source record                                                    | validate source-root containment, recipe, package name, and lock agreement                                                         |
+| Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity | verify the qualifier and preserve it in mulled targets                                                                             |
+| PyPI               | one entry anywhere makes the whole workspace L0                                    | inspect top-level and platform-targeted dependencies independently                                                                 |
+| Missing lock       | returns L1                                                                         | return `UNRESOLVED` with no numeric level                                                                                          |
+| Stale lock         | checks only that direct names occur somewhere                                      | validate the default environment's effective requirements per platform                                                             |
+| L4                 | infers single-package publication and reads a vendored combination list            | report verified snapshot provenance and endpoint evidence                                                                          |
+| CLI                | accepts directories only                                                           | add source-root and platform selection plus matrix/JSON output                                                                     |
 
 ## Pixi references
 

@@ -81,13 +81,13 @@ public metadata — no judgement calls. Under the normative profile, a missing o
 produces `UNRESOLVED` or `STALE`, with no numeric grade. Manifest inspection can still report
 L0 violations and useful ceilings without pretending it has inspected the transitive closure.
 
-| Level | Name | Mechanically decidable condition | What still must exist |
-|---|---|---|---|
-| **L0** | out of profile | the manifest uses unsupported constructs, or a local dependency has no usable recipe | no portability claim is made |
-| **L1** | packaged locally | each local dependency has an in-repository recipe | this repository, public dependency channels, and a local build toolchain |
-| **L2** | publicly published | every package is versioned and obtainable from a named public channel | those publishers and explicitly configured channels |
-| **L3** | ecosystem-ready | every package is obtainable from conda-forge or Bioconda | the community package ecosystem; recipes participate in its build and migration machinery |
-| **L4** | ecosystem-published | L3 holds, and a BioContainer for the exact target set exists at the verified distribution endpoints | any one supported copy of the pre-built artifact |
+| Level  | Name                | Mechanically decidable condition                                                                    | What still must exist                                                                     |
+| ------ | ------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **L0** | out of profile      | the manifest uses unsupported constructs, or a local dependency has no usable recipe                | no portability claim is made                                                              |
+| **L1** | packaged locally    | each local dependency has an in-repository recipe                                                   | this repository, public dependency channels, and a local build toolchain                  |
+| **L2** | publicly published  | every package is versioned and obtainable from a named public channel                               | those publishers and explicitly configured channels                                       |
+| **L3** | ecosystem-ready     | every package is obtainable from conda-forge or Bioconda                                            | the community package ecosystem; recipes participate in its build and migration machinery |
+| **L4** | ecosystem-published | L3 holds, and a BioContainer for the exact target set exists at the verified distribution endpoints | any one supported copy of the pre-built artifact                                          |
 
 At L2, an `environment.yml` is derivable with the required custom channels and container builders
 can use those channels explicitly. At L3, the same operations use the standard conda-forge,
@@ -128,13 +128,13 @@ workflow.
 
 The examples are real pixi solves and double as grader fixtures:
 
-| Level | Example | What it demonstrates |
-|---|---|---|
-| **L0** | [`l0-out-of-profile`](examples/l0-out-of-profile/) | a valid pixi environment that mixes in PyPI and install-like tasks outside the profile |
-| **L1** | [`l1-local-recipe`](examples/l1-local-recipe/) | an in-repository `r-designit` recipe and path dependency |
-| **L2** | — | not yet represented by a real solve; it needs a stable package from a public channel outside conda-forge and Bioconda |
-| **L3** | [`l3-ecosystem-ready`](examples/l3-ecosystem-ready/) | every package is community-maintained, but the exact combination is not published |
-| **L4** | [`l4-single`](examples/l4-single/) and [`l4-combination`](examples/l4-combination/) | the two publication routes: an automatic Bioconda image and a registered multi-package image |
+| Level  | Example                                                                             | What it demonstrates                                                                                                  |
+| ------ | ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **L0** | [`l0-out-of-profile`](examples/l0-out-of-profile/)                                  | a valid pixi environment that mixes in PyPI and install-like tasks outside the profile                                |
+| **L1** | [`l1-local-recipe`](examples/l1-local-recipe/)                                      | an in-repository `r-designit` recipe and path dependency                                                              |
+| **L2** | —                                                                                   | not yet represented by a real solve; it needs a stable package from a public channel outside conda-forge and Bioconda |
+| **L3** | [`l3-ecosystem-ready`](examples/l3-ecosystem-ready/)                                | every package is community-maintained, but the exact combination is not published                                     |
+| **L4** | [`l4-single`](examples/l4-single/) and [`l4-combination`](examples/l4-combination/) | the two publication routes: an automatic Bioconda image and a registered multi-package image                          |
 
 The L2 branch is covered by a focused unit test, but the example suite deliberately does not
 pretend a fabricated lockfile is a real public solve. A durable public-channel fixture is still
@@ -175,15 +175,15 @@ Singularity from `depot.galaxyproject.org`.
 
 They fail in opposite places.
 
-| | Wave | mulled-* |
-|---|---|---|
-| local prerequisites | one static binary + network | conda **+** Docker **+** involucro |
-| built for | a developer who wants a container | BioContainers/Galaxy CI and channel maintenance |
-| L1 (local channel) | **blind** — remote service, cannot read `file://` | **works** |
-| L2 (public channel) | works when the service can reach the explicitly configured channel | **works**, with the channel supplied |
-| L3 (ecosystem-ready) | one call, hosted, frozen | standard community inputs |
-| L4 (ecosystem-published) | redundant | already built and distributed |
-| name computable offline | no — service round-trip | **yes**, `mulled-hash` |
+|                          | Wave                                                               | mulled-*                                        |
+| ------------------------ | ------------------------------------------------------------------ | ----------------------------------------------- |
+| local prerequisites      | one static binary + network                                        | conda **+** Docker **+** involucro              |
+| built for                | a developer who wants a container                                  | BioContainers/Galaxy CI and channel maintenance |
+| L1 (local channel)       | **blind** — remote service, cannot read `file://`                  | **works**                                       |
+| L2 (public channel)      | works when the service can reach the explicitly configured channel | **works**, with the channel supplied            |
+| L3 (ecosystem-ready)     | one call, hosted, frozen                                           | standard community inputs                       |
+| L4 (ecosystem-published) | redundant                                                          | already built and distributed                   |
+| name computable offline  | no — service round-trip                                            | **yes**, `mulled-hash`                          |
 
 Wave is the better ergonomic default once every channel is publicly reachable. mulled is the
 only thing that works at L1 and the only source of an offline-computable name. **Wave for reach,
@@ -196,17 +196,17 @@ Bioconductor, and GitHub, with `rocker/r-ver` or `wave --cran-package` for the c
 lane trades an offline-derivable container identity for zero packaging work, and converts into L1
 whenever `rattler-build generate-recipe cran` is worth running.
 
-**Hard rule:** pin `--cran-base-image rocker/r-ver:<superseded patch>`. The *current* patch tag
+**Hard rule:** pin `--cran-base-image rocker/r-ver:<superseded patch>`. The _current_ patch tag
 resolves `p3m.dev/.../noble/latest` — a moving repo. Record the resolved snapshot date, not the
 tag; the tag's meaning drifts as rocker freezes it once superseded.
 
 ## Design rules
 
 - **The profile is declarative metadata pointing at other formats — never a build instruction.**
-  A field describing *how* to install something belongs in a recipe. This is the line that keeps
+  A field describing _how_ to install something belongs in a recipe. This is the line that keeps
   biopixi from becoming another packaging format.
 - **The artifact must work without us.** A conformant manifest is just a `pixi.toml` — `pixi
-  install` works with biopixi nowhere in sight. From L2 up, anyone with access to the declared
+install` works with biopixi nowhere in sight. From L2 up, anyone with access to the declared
   channels can build a container using `wave`, `mulled-build`, or a plain Dockerfile. At L3 no
   project-specific channel configuration is needed; at L4 the artifact is already available.
   biopixi grades and automates, but must never become a dependency of the result.
@@ -227,9 +227,35 @@ tag; the tag's meaning drifts as rocker freezes it once superseded.
 - **BioContainers is channel-agnostic; the readiness ladder is not.** `hash.tsv` accepts
   `channel::package`, and historical images exist for packages from other public channels. Their
   existence does not confer L4: an environment must first satisfy L3 by resolving its complete
-  package closure from conda-forge or Bioconda. L4 does not require a *Bioconda* package — a
+  package closure from conda-forge or Bioconda. L4 does not require a _Bioconda_ package — a
   conda-forge-only combination can qualify — but it does require L3.
+
+## Development
+
+biopixi is a Node.js 22+ pnpm workspace modeled after the package and documentation structure in
+`galaxy-tool-util`.
+
+| Package                           | Responsibility                                         |
+| --------------------------------- | ------------------------------------------------------ |
+| [`@biopixi/core`](packages/core/) | offline grading, lock inspection, and mulled-v2 naming |
+| [`@biopixi/cli`](packages/cli/)   | the `biopixi grade` command and terminal rendering     |
+
+```bash
+pnpm install
+pnpm check
+pnpm build
+node packages/cli/dist/bin/biopixi.js grade examples/l4-single
+```
+
+The documentation site is under [`docs/`](docs/) and combines Docsify prose with a generated
+TypeDoc API:
+
+```bash
+pnpm docs:build
+pnpm docs:dev
+```
 
 ---
 
-*Status: design only. No code yet — the table above is the specification under discussion.*
+_Status: early TypeScript prototype. The profile is normative; implementation gaps are tracked in
+[`PROFILE.md`](PROFILE.md)._
