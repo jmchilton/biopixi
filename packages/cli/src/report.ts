@@ -22,9 +22,13 @@ export interface GradeReportEntry extends Grade {
  * grading profile the levels are defined by, `biopixi` is the release that produced them.
  */
 export interface GradeReport {
+  /** Where this payload's schema is published. */
   $schema: string;
+  /** The biopixi release that produced the results. */
   biopixi: string;
+  /** The grading profile the levels are defined by. */
   profile: string;
+  /** One entry per directory given, in the order they were given. */
   results: GradeReportEntry[];
 }
 

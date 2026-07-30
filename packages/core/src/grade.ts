@@ -27,9 +27,13 @@ export type EvidenceState = "DEFINITIVE" | "UNRESOLVED" | "STALE" | "UNSUPPORTED
 
 /** The dependency and resolved artifact holding a platform below L4. */
 export interface Cap {
+  /** The dependency name, as the manifest and the lock both spell it. */
   package: string;
+  /** The locked version, absent only when the lock records none. */
   version?: string;
+  /** The channel it resolved from, or null when it was built from source. */
   channel: string | null;
+  /** The resolved artifact URL, or the path it is built from. */
   artifact: string;
 }
 
@@ -38,20 +42,31 @@ export interface Cap {
  * an image is not the same as reaching a registry and finding it there.
  */
 export interface Publication {
+  /** The container image this environment corresponds to. */
   uri: string;
+  /** Whether a registry was reached and the image found there. False while grading is offline. */
   verified: boolean;
+  /** How the URI was arrived at, so an unverified claim can be judged rather than trusted. */
   basis: string;
 }
 
 /** Provenance of the vendored public metadata a claim rests on. */
 export interface MetadataSnapshot {
+  /** The vendored copy's filename inside this package. */
   file: string;
+  /** The upstream repository it was taken from. */
   source: string;
+  /** The path within that repository. */
   path: string;
+  /** The branch or tag followed. */
   ref: string;
+  /** The exact upstream commit vendored, or null if it was not recorded. */
   revision: string | null;
+  /** The date of that commit, ISO 8601. */
   revisionDate: string;
+  /** The date the copy was taken, ISO 8601. */
   fetched: string;
+  /** SHA-1 of the vendored copy, so the claim stays checkable offline. */
   sha1: string;
 }
 
@@ -64,16 +79,27 @@ export interface Grade {
    * result because it is a property of the invocation, not of the project.
    */
   sourceRoot: string;
+  /** Whether the manifest is inside profile v0. Everything below is unanswerable when false. */
   conformant: boolean;
+  /** Whether a solve backs the result. Null when the manifest never got as far as being solved. */
   evidenceState: EvidenceState | null;
+  /** How far the environment travels, 1–4. Null unless `evidenceState` is `DEFINITIVE`. */
   level: number | null;
+  /** The level, evidence state, or `L0`, as one token for display. */
   label: string;
+  /** Why the result is what it is, most specific first. */
   reasons: string[];
+  /** Portability concerns that did not change the result. */
   lints: string[];
+  /** What to do to move the result up, in the order it would have to be done. */
   nextActions: string[];
+  /** The `name=version` set a container claim would be built from. */
   target?: string;
+  /** What holds the environment at this level. Absent at L4, where nothing does. */
   cap?: Cap;
+  /** The container this environment can be published as, and how that was arrived at. */
   publication?: Publication;
+  /** Provenance of the vendored metadata behind `publication`, when any was consulted. */
   snapshot?: MetadataSnapshot;
 }
 

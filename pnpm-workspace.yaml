@@ -1,2 +1,10 @@
 packages:
   - "packages/*"
+
+# ts-json-schema-generator requires tslib at runtime without declaring it, which pnpm's strict
+# layout then refuses to resolve. Declared here rather than as a stray root devDependency nothing
+# in this workspace imports.
+packageExtensions:
+  ts-json-schema-generator:
+    dependencies:
+      tslib: "^2.8.1"

@@ -106,7 +106,9 @@ export function runGrade(
     const named = undeterminable
       .map((entry) => `${entry.directory} (${entry.evidenceState})`)
       .join(", ");
-    io.stderr(`\nfailed: no level could be determined for ${named} — required L${options.minLevel}`);
+    io.stderr(
+      `\nfailed: no level could be determined for ${named} — required L${options.minLevel}`,
+    );
     return 1;
   }
   const worst = results.reduce((lowest, entry) => Math.min(lowest, entry.level ?? 0), 4);
