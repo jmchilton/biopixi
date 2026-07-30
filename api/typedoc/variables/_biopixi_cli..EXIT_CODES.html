@@ -12,7 +12,7 @@
 <li><a href="../modules/_biopixi_cli..html"></a></li>
 <li><a href="" aria-current="page">EXIT_CODES</a></li></ul>
 <h1>Variable EXIT_CODES<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">EXIT_CODES</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">belowThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">indefinite</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">ok</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">64</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
+<div class="tsd-signature"><span class="tsd-kind-variable">EXIT_CODES</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">belowThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">indefinite</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">ok</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">unconfirmed</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">4</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">64</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
 <div class="tsd-comment tsd-typography"><p>What <code>--min-level</code> failed on, in the order <a href="http://PROFILE.md">PROFILE.md</a> asks the questions: whether the manifest
 is in profile, then whether a solve backs it, then how far it travels. Collapsing these onto one
 code makes &quot;this project is not gradeable&quot; indistinguishable from &quot;this project scored low&quot;,
@@ -32,9 +32,13 @@ read as a statement about the project.</p>
 <li class="tsd-parameter">
 <h5 id="outofprofile"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">3</span></h5></li>
 <li class="tsd-parameter">
+<h5 id="unconfirmed"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">unconfirmed</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">4</span></h5>
+<div class="tsd-comment tsd-typography"><p><code>verify --require-verified</code> only: a container claim nobody could observe.</p>
+</div></li>
+<li class="tsd-parameter">
 <h5 id="usage"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">64</span></h5></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jmchilton/biopixi/blob/65d4dc30b691d55630ade8c2fb765fd6aaf82d6e/packages/cli/src/grade-command.ts#L14">cli/src/grade-command.ts:14</a></li></ul></aside></div>
+<li>Defined in <a href="https://github.com/jmchilton/biopixi/blob/c22361196ddd06d33b70a074dcc4baae2e94a019/packages/cli/src/grade-command.ts#L14">cli/src/grade-command.ts:14</a></li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

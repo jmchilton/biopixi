@@ -55,6 +55,7 @@ Makes the command assert rather than report. Without it, `grade` always exits `0
 | `1`  | a project is in profile and graded, but below the threshold                                        |
 | `2`  | a project is in profile, but no solve backs a level — `UNRESOLVED`, `STALE`, or `UNSUPPORTED_LOCK` |
 | `3`  | a project is outside profile v0, so it has no level to compare                                     |
+| `4`  | `verify --require-verified` only: a container claim nobody could observe                           |
 | `64` | the invocation itself was wrong, e.g. an unusable `--source-root`                                  |
 
 Codes `1`–`3` answer PROFILE.md's three questions in order, and the earliest unanswered one wins
@@ -62,6 +63,30 @@ when directories disagree: a run containing both an out-of-profile project and a
 exits `3`, because that is the problem to fix first. They are kept apart because the fixes differ —
 `2` means commit a lockfile, `3` means change the manifest, and only `1` means the environment
 genuinely does not travel far enough.
+
+## `biopixi verify`
+
+The only command that reaches the network, and the only route to L4.
+
+```bash
+biopixi verify project-a
+biopixi verify project-a --min-level 4
+biopixi verify content/environments/* --source-root . --require-verified
+```
+
+L1–L3 are decidable from the lockfile, because the channel URL on every resolved artifact is
+recorded there. L4 is not: it asserts that an image exists and can be pulled, which no file in a
+project records. `grade` therefore stops at L3 and reports how far the container claim got —
+`UNREGISTERED`, `INFERRED`, or `REGISTERED`. `verify` observes the registry and, on success,
+records the manifest digest and promotes the result to L4.
+
+Anonymity is the property under test. A registry that refuses an unauthenticated request has
+established that the image is not publicly pullable, which is the negative that matters here,
+whatever may exist behind those credentials. Only a transport failure leaves the question open,
+and that is reported on stderr rather than counted against the project.
+
+An observation never lowers a level: L1–L3 are statements about the lock, which a registry has
+nothing to say about.
 
 Programmatic callers can import `runGrade`, `renderGrade`, `buildProgram`, `buildReport`, or
 `EXIT_CODES`.
