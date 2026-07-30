@@ -1,4 +1,4 @@
-import type { Grade } from "@biopixi/core";
+import type { VerifiedGrade } from "@biopixi/core";
 
 import packageMetadata from "../package.json" with { type: "json" };
 
@@ -9,8 +9,13 @@ import packageMetadata from "../package.json" with { type: "json" };
 export const REPORT_SCHEMA_URL =
   "https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json";
 
-/** One graded directory: the path as the caller wrote it, plus everything grading decided. */
-export interface GradeReportEntry extends Grade {
+/**
+ * One graded directory: the path as the caller wrote it, plus everything grading decided.
+ *
+ * Extends the verified shape so `grade` and `verify` emit one payload rather than two. The
+ * observation fields are simply absent when nothing reached a registry.
+ */
+export interface GradeReportEntry extends VerifiedGrade {
   /** As supplied on the command line, so a caller can match results back to its own arguments. */
   directory: string;
 }

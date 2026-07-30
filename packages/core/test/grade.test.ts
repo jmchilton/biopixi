@@ -15,8 +15,10 @@ describe("grade", () => {
     ["l0-out-of-profile", "L0"],
     ["l1-local-recipe", "L1"],
     ["l3-ecosystem-ready", "L3"],
-    ["l4-combination", "L4"],
-    ["l4-single", "L4"],
+    // The l4-* examples are L4 *candidates*: L4 needs a registry observation, which grade
+    // cannot make. See verify.test.ts for the promotion.
+    ["l4-combination", "L3"],
+    ["l4-single", "L3"],
   ]) {
     it(`grades ${name} as ${expected}`, () => {
       expect(grade(join(examples, name)).label).toBe(expected);
@@ -24,16 +26,25 @@ describe("grade", () => {
   }
 
   it("distinguishes an unpublished patch version from a published combination", () => {
-    const l3 = grade(join(examples, "l3-ecosystem-ready"));
-    const l4 = grade(join(examples, "l4-combination"));
-    expect([l3.level, l4.level]).toEqual([3, 4]);
-    expect(l3.target).toBe("bamtools=2.5.2,samtools=1.17");
-    expect(l4.target).toBe("bamtools=2.5.2,samtools=1.16.1");
+    const unregistered = grade(join(examples, "l3-ecosystem-ready"));
+    const registered = grade(join(examples, "l4-combination"));
+
+    // Both are L3 offline; what separates them is how far the container claim got.
+    expect([unregistered.level, registered.level]).toEqual([3, 3]);
+    expect(unregistered.publication?.state).toBe("UNREGISTERED");
+    expect(registered.publication?.state).toBe("REGISTERED");
+    expect(unregistered.target).toBe("bamtools=2.5.2,samtools=1.17");
+    expect(registered.target).toBe("bamtools=2.5.2,samtools=1.16.1");
   });
 
   it("can lower the environment grade when a package is added", () => {
-    expect(grade(join(examples, "l4-single")).level).toBe(4);
-    expect(grade(join(examples, "l3-ecosystem-ready")).level).toBe(3);
+    const single = grade(join(examples, "l4-single"));
+    const combination = grade(join(examples, "l3-ecosystem-ready"));
+
+    expect([single.level, combination.level]).toEqual([3, 3]);
+    // Adding a package costs the single-package inference, which is what made it L4-eligible.
+    expect(single.publication?.state).toBe("INFERRED");
+    expect(combination.publication?.state).toBe("UNREGISTERED");
   });
 
   it("reports lints for an out-of-profile manifest", () => {
@@ -137,7 +148,8 @@ bioformats2raw = { version = "==0.7.0", channel = "ome" }
     );
 
     const result = grade(directory);
-    expect([result.label, result.target]).toEqual(["L4", "samtools=1.17"]);
+    expect([result.label, result.target]).toEqual(["L3", "samtools=1.17"]);
+    expect(result.publication?.state).toBe("INFERRED");
   });
 
   it("does not assign a definitive grade when the lock contains a PyPI artifact", () => {

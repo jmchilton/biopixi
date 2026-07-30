@@ -36,12 +36,14 @@ describe("runGrade", () => {
     expect(stderr).toEqual([]);
   });
 
-  it("never prints a container URI without marking it unverified", () => {
+  it("never prints a container URI without saying how far the claim got", () => {
     const stdout: string[] = [];
     runGrade([join(root, "examples/l4-single")], {}, { stdout: (m) => stdout.push(m), stderr });
     const output = stdout.join("\n");
     expect(output).toContain("quay.io/biocontainers/samtools:1.17--hd87286a_2");
-    expect(output).toContain("UNVERIFIED");
+    // The offline grade knows the name and that Bioconda builds one image per recipe build.
+    expect(output).toContain("INFERRED");
+    expect(output).not.toContain("CONFIRMED");
   });
 
   it("renders a lock-less project as UNRESOLVED, not as a level", () => {

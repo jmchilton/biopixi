@@ -75,8 +75,9 @@ describe("evidence state", () => {
   it("is DEFINITIVE when a complete solve backs the level", () => {
     for (const [name, level] of [
       ["l3-ecosystem-ready", 3],
-      ["l4-single", 4],
-      ["l4-combination", 4],
+      // Both are L4 candidates; the level stops at L3 until a registry is observed.
+      ["l4-single", 3],
+      ["l4-combination", 3],
     ] as Array<[string, number]>) {
       const result = grade(join(examples, name));
       expect([name, result.evidenceState, result.level]).toEqual([name, "DEFINITIVE", level]);
@@ -91,14 +92,17 @@ describe("evidence state", () => {
     expect(result.label).toBe("L0");
   });
 
-  it("does not claim a container it has not verified", () => {
+  it("does not claim a container it has not observed", () => {
     const single = grade(join(examples, "l4-single"));
+
     expect(single.publication).toEqual({
       uri: "quay.io/biocontainers/samtools:1.17--hd87286a_2",
-      verified: false,
-      basis:
-        "inferred: a single bioconda package, and BioContainers builds one image per recipe build",
+      state: "INFERRED",
+      basis: "a single bioconda package, and BioContainers builds one image per recipe build",
     });
+    // No digest and no observation time: nothing was reached, so nothing is recorded.
+    expect(single.publication?.digest).toBeUndefined();
+    expect(single.publication?.observedAt).toBeUndefined();
   });
 
   it("records the metadata snapshot behind a combination claim", () => {
@@ -108,7 +112,7 @@ describe("evidence state", () => {
       revision: "c914c11ef70d8f1b0b609f26712975e78b025667",
       fetched: "2026-07-28",
     });
-    expect(result.publication?.verified).toBe(false);
+    expect(result.publication?.state).toBe("REGISTERED");
     expect(result.publication?.basis).toContain("combinations/hash.tsv");
   });
 

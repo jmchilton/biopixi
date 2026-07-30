@@ -26,6 +26,8 @@ const SNAPSHOT_PATH = fileURLToPath(new URL("../data/snapshot.json", import.meta
 const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
 /** The one PyPI table, walked by the same machinery so target spellings stay consistent. */
 const PYPI_TABLE_KEYS = ["pypi-dependencies"];
+/** The only route from an L4-eligible candidate to L4, since no file in a project records it. */
+const CONFIRM_ACTION = "run `biopixi verify` to observe the container and reach L4";
 /** Pixi refuses to solve a conda source dependency without this preview feature enabled. */
 const PIXI_BUILD_PREVIEW = "pixi-build";
 
@@ -48,16 +50,28 @@ export interface Cap {
 }
 
 /**
- * A container claim and the basis for it. `verified` stays false while grading is offline: naming
- * an image is not the same as reaching a registry and finding it there.
+ * How much is known about a container image, from the name alone up to having seen it.
+ *
+ * Only `CONFIRMED` is L4, and only an observation produces it. The two middle states are the
+ * grounds on which an observation is worth attempting; neither is evidence the image exists.
+ */
+export type PublicationState = "UNREGISTERED" | "INFERRED" | "REGISTERED" | "CONFIRMED";
+
+/**
+ * A container claim and the basis for it. Naming an image is not the same as reaching a registry
+ * and finding it there, so the two are different states rather than one URI with a caveat.
  */
 export interface Publication {
   /** The container image this environment corresponds to. */
   uri: string;
-  /** Whether a registry was reached and the image found there. False while grading is offline. */
-  verified: boolean;
-  /** How the URI was arrived at, so an unverified claim can be judged rather than trusted. */
+  /** How much is known about the image. Only `CONFIRMED` supports L4. */
+  state: PublicationState;
+  /** How the URI was arrived at, so an unconfirmed claim can be judged rather than trusted. */
   basis: string;
+  /** The manifest digest observed at the registry. Present only when `CONFIRMED`. */
+  digest?: string;
+  /** When the registry was reached, ISO 8601. Present only when a registry was reached. */
+  observedAt?: string;
 }
 
 /** Provenance of the vendored public metadata a claim rests on. */
@@ -691,21 +705,19 @@ function gradeSolve(
   if (direct.length === 1) {
     const pkg = byName.get(direct[0]);
     if (pkg !== undefined && pkg.channel !== null && AUTO_CONTAINER_CHANNELS.has(pkg.channel)) {
-      const uri = pullUri(mulled);
-      return definitive(4, {
+      return definitive(3, {
         target,
         lints,
         reasons: [
           `single ${pkg.channel} package — BioContainers builds one image per recipe build`,
+          "L4 needs that image observed at a registry, which offline grading cannot do",
         ],
         publication: {
-          uri,
-          verified: false,
-          basis: `inferred: a single ${pkg.channel} package, and BioContainers builds one image per recipe build`,
+          uri: pullUri(mulled),
+          state: "INFERRED",
+          basis: `a single ${pkg.channel} package, and BioContainers builds one image per recipe build`,
         },
-        nextActions: [
-          "confirm the container above is pullable — offline grading cannot reach a registry",
-        ],
+        nextActions: [CONFIRM_ACTION],
       });
     }
     return definitive(3, {
@@ -716,8 +728,8 @@ function gradeSolve(
       ],
       publication: {
         uri: pullUri(mulled),
-        verified: false,
-        basis: `unregistered: ${pkg?.channel} does not auto-build containers, so this is only the name an image would have`,
+        state: "UNREGISTERED",
+        basis: `${pkg?.channel} does not auto-build containers, so this is only the name an image would have`,
       },
       nextActions: [
         `publish a container for ${target} — ${pkg?.channel} packages are not built automatically`,
@@ -735,19 +747,20 @@ function gradeSolve(
   const registration = combinations.get(combinationKey(targets));
   if (registration !== undefined) {
     const [raw, imageBuild] = registration;
-    return definitive(4, {
+    return definitive(3, {
       target,
       lints,
       snapshot,
-      reasons: [`registered in BioContainers combinations/hash.tsv as: ${raw}`],
+      reasons: [
+        `registered in BioContainers combinations/hash.tsv as: ${raw}`,
+        "L4 needs that image observed at a registry, which offline grading cannot do",
+      ],
       publication: {
         uri: pullUri(versionsOnly, imageBuild),
-        verified: false,
+        state: "REGISTERED",
         basis: `listed in the combinations/hash.tsv snapshot fetched ${snapshot?.fetched ?? "at an unrecorded time"}`,
       },
-      nextActions: [
-        "confirm the container above is pullable — offline grading cannot reach a registry",
-      ],
+      nextActions: [CONFIRM_ACTION],
     });
   }
 
@@ -761,8 +774,8 @@ function gradeSolve(
     ],
     publication: {
       uri: pullUri(versionsOnly, "0"),
-      verified: false,
-      basis: "unregistered: this is only the name an image would have once built",
+      state: "UNREGISTERED",
+      basis: "this is only the name an image would have once built",
     },
     nextActions: [`add \`${target}\` to BioContainers combinations/hash.tsv`],
   });
