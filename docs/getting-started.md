@@ -33,10 +33,17 @@ node packages/cli/dist/bin/biopixi.js grade my-project --min-level 3
 import { grade } from "@biopixi/core";
 
 const result = grade("my-project");
-if (result.level === null || result.level < 3) {
-  console.error(result.reasons);
+if (result.evidenceState !== "DEFINITIVE") {
+  // In profile but unproven (UNRESOLVED, STALE, UNSUPPORTED_LOCK), or out of profile entirely.
+  console.error(result.label, result.reasons, result.nextActions);
+} else if (result.level < 3) {
+  console.error(`capped at L${result.level} by`, result.cap);
 }
 ```
+
+A `level` is only ever a number when `evidenceState` is `DEFINITIVE`. A container named in
+`publication` is not a container biopixi has seen: `publication.verified` is false while grading
+is offline, and `snapshot` records which vendored metadata revision the claim came from.
 
 The implementation remains a prototype. Consult the
 [profile](architecture/profile.md) before treating its output as a stable contract.

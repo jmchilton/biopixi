@@ -13,18 +13,60 @@ const AUTO_CONTAINER_CHANNELS = new Set(["bioconda"]);
 const DEFAULT_COMBINATIONS_PATH = fileURLToPath(
   new URL("../data/biocontainers-hash.tsv", import.meta.url),
 );
+const SNAPSHOT_PATH = fileURLToPath(new URL("../data/snapshot.json", import.meta.url));
 const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
 const CONDA_TABLE_KEYS = ["dependencies", "host-dependencies", "build-dependencies"];
 
 export type Manifest = Record<string, unknown>;
 
+/**
+ * Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only
+ * meaningful when the evidence is `DEFINITIVE`.
+ */
+export type EvidenceState = "DEFINITIVE" | "UNRESOLVED" | "STALE" | "UNSUPPORTED_LOCK";
+
+/** The dependency and resolved artifact holding a platform below L4. */
+export interface Cap {
+  package: string;
+  version?: string;
+  channel: string | null;
+  artifact: string;
+}
+
+/**
+ * A container claim and the basis for it. `verified` stays false while grading is offline: naming
+ * an image is not the same as reaching a registry and finding it there.
+ */
+export interface Publication {
+  uri: string;
+  verified: boolean;
+  basis: string;
+}
+
+/** Provenance of the vendored public metadata a claim rests on. */
+export interface MetadataSnapshot {
+  file: string;
+  source: string;
+  path: string;
+  ref: string;
+  revision: string | null;
+  revisionDate: string;
+  fetched: string;
+  sha1: string;
+}
+
 export interface Grade {
+  conformant: boolean;
+  evidenceState: EvidenceState | null;
   level: number | null;
   label: string;
   reasons: string[];
   lints: string[];
+  nextActions: string[];
   target?: string;
-  evidence?: string;
+  cap?: Cap;
+  publication?: Publication;
+  snapshot?: MetadataSnapshot;
 }
 
 export interface LockedPackage {
@@ -64,12 +106,44 @@ function declaredPlatforms(manifest: Manifest): string[] {
     : [];
 }
 
-function makeGrade(level: number | null, options: Omit<Grade, "level" | "label">): Grade {
+type Conformance = Omit<Grade, "conformant" | "evidenceState" | "level" | "label">;
+
+/** Outside the profile: no solve was considered, so there is no evidence state to report. */
+function outOfProfile(options: Conformance): Grade {
+  return { conformant: false, evidenceState: null, level: null, label: "L0", ...options };
+}
+
+/** In profile, but the solve cannot carry a number. */
+function indefinite(state: Exclude<EvidenceState, "DEFINITIVE">, options: Conformance): Grade {
+  return { conformant: true, evidenceState: state, level: null, label: state, ...options };
+}
+
+function definitive(level: number, options: Conformance): Grade {
   return {
+    conformant: true,
+    evidenceState: "DEFINITIVE",
     level,
-    label: level === null ? "L0" : `L${level}`,
+    label: `L${level}`,
     ...options,
   };
+}
+
+function capOf(pkg: LockedPackage): Cap {
+  const cap: Cap = { package: pkg.name, channel: pkg.channel, artifact: pkg.source ?? "?" };
+  if (pkg.version !== undefined) {
+    cap.version = pkg.version;
+  }
+  return cap;
+}
+
+function loadSnapshot(): MetadataSnapshot | undefined {
+  try {
+    const data = record(JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8")));
+    const entry = record(data["biocontainers-hash"]);
+    return Object.keys(entry).length > 0 ? (entry as unknown as MetadataSnapshot) : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 /**
@@ -354,51 +428,52 @@ export function loadCombinations(path: string): Map<string, [string, string]> {
   return table;
 }
 
+function profileNextActions(reasons: string[]): string[] {
+  if (reasons.some((reason) => reason.includes("pypi-dependencies"))) {
+    return [
+      "give each PyPI-only dependency a conda identity: write a recipe and depend on it by path",
+    ];
+  }
+  return ["bring the manifest inside profile v0 — see PROFILE.md"];
+}
+
 /**
  * Grade one project directory using only its manifest, lock, and vendored metadata.
  */
 export function grade(directory: string, options: GradeOptions = {}): Grade {
   const manifestPath = join(directory, "pixi.toml");
   if (!existsSync(manifestPath)) {
-    return makeGrade(null, { reasons: ["no pixi.toml"], lints: [] });
+    return outOfProfile({
+      reasons: ["no pixi.toml"],
+      lints: [],
+      nextActions: ["run `pixi init` to create a workspace manifest"],
+    });
   }
 
   const manifest = parseManifest(manifestPath);
   const profile = checkProfile(manifest);
   if (profile.reasons.length > 0) {
-    return makeGrade(null, profile);
+    return outOfProfile({ ...profile, nextActions: profileNextActions(profile.reasons) });
   }
 
   const lockPath = join(directory, "pixi.lock");
   if (!existsSync(lockPath)) {
-    return makeGrade(1, {
+    return indefinite("UNRESOLVED", {
       reasons: ["no pixi.lock — publication is a claim about a solve, and there is no solve"],
       lints: profile.lints,
+      nextActions: ["run `pixi lock` and commit pixi.lock"],
     });
   }
 
   const locked = loadLock(lockPath);
   if (locked.problems.length > 0) {
-    return makeGrade(null, {
+    return indefinite("UNSUPPORTED_LOCK", {
       reasons: locked.problems,
       lints: profile.lints,
+      nextActions: ["give every dependency a conda identity, then re-lock"],
     });
   }
   const byName = new Map(locked.packages.map((pkg) => [pkg.name, pkg]));
-  const heldBack: string[] = [];
-  for (const pkg of locked.packages) {
-    if (pkg.channel === null) {
-      heldBack.push(`${pkg.name} built from source at ${pkg.source}`);
-    } else if (
-      pkg.channel.startsWith("local:") ||
-      !PUBLIC_CHANNEL_HOSTS.has(host(pkg.source ?? ""))
-    ) {
-      heldBack.push(`${pkg.name} resolved from a non-public channel (${pkg.source})`);
-    }
-  }
-  if (heldBack.length > 0) {
-    return makeGrade(1, { reasons: heldBack, lints: profile.lints });
-  }
 
   // L4 is a linux-64 claim, and the locked closure is still flattened, so one platform supplies
   // the root target set. Its target table participates: a target-only dependency is a root.
@@ -409,11 +484,43 @@ export function grade(directory: string, options: GradeOptions = {}): Grade {
       ? record(manifest.dependencies)
       : effectiveCondaDependencies(manifest, gradingPlatform),
   ).sort();
+
+  // Evidence before readiness: an incomplete solve cannot be argued down to a level, so staleness
+  // is settled before any package is allowed to cap one.
   const missing = direct.filter((name) => !byName.has(name));
   if (missing.length > 0) {
-    return makeGrade(1, {
+    return indefinite("STALE", {
       reasons: [`lock is stale — ${missing.join(", ")} not resolved`],
       lints: profile.lints,
+      nextActions: [`run \`pixi lock\` — the lock does not cover ${missing.join(", ")}`],
+    });
+  }
+
+  const heldBack: Array<{ reason: string; pkg: LockedPackage }> = [];
+  for (const pkg of locked.packages) {
+    if (pkg.channel === null) {
+      heldBack.push({ reason: `${pkg.name} built from source at ${pkg.source}`, pkg });
+    } else if (
+      pkg.channel.startsWith("local:") ||
+      !PUBLIC_CHANNEL_HOSTS.has(host(pkg.source ?? ""))
+    ) {
+      heldBack.push({
+        reason: `${pkg.name} resolved from a non-public channel (${pkg.source})`,
+        pkg,
+      });
+    }
+  }
+  if (heldBack.length > 0) {
+    const capping = heldBack[0].pkg;
+    return definitive(1, {
+      reasons: heldBack.map(({ reason }) => reason),
+      lints: profile.lints,
+      cap: capOf(capping),
+      nextActions: [
+        capping.channel === null
+          ? `publish ${capping.name} to conda-forge or bioconda — it is built from source at ${capping.source}`
+          : `republish ${capping.name} from a public channel — it resolves from ${capping.source}`,
+      ],
     });
   }
 
@@ -428,45 +535,60 @@ export function grade(directory: string, options: GradeOptions = {}): Grade {
     };
   });
 
-  const outsideCommunity = [
-    ...new Set(
-      locked.packages
-        .map((pkg) => pkg.channel)
-        .filter(
-          (channel): channel is string => channel !== null && !COMMUNITY_CHANNELS.has(channel),
-        ),
-    ),
-  ].sort();
-  if (outsideCommunity.length > 0) {
-    return makeGrade(2, {
+  const outsideCommunityPackages = locked.packages.filter(
+    (pkg) => pkg.channel !== null && !COMMUNITY_CHANNELS.has(pkg.channel),
+  );
+  if (outsideCommunityPackages.length > 0) {
+    const outsideCommunity = [
+      ...new Set(outsideCommunityPackages.map((pkg) => pkg.channel as string)),
+    ].sort();
+    const capping = outsideCommunityPackages[0];
+    return definitive(2, {
       target,
       lints: profile.lints,
+      cap: capOf(capping),
       reasons: [
-        `every package is public, but the resolved closure uses non-community channels: ${outsideCommunity.join(", ")}`,
+        `every package is public, but ${capping.name} resolves from ${capping.channel} — the closure uses non-community channels: ${outsideCommunity.join(", ")}`,
         "L3 requires every package to resolve from conda-forge or bioconda",
       ],
+      nextActions: [`get ${capping.name} into conda-forge or bioconda`],
     });
   }
 
   if (direct.length === 1) {
     const pkg = byName.get(direct[0]);
     if (pkg !== undefined && pkg.channel !== null && AUTO_CONTAINER_CHANNELS.has(pkg.channel)) {
-      return makeGrade(4, {
+      const uri = pullUri(mulled);
+      return definitive(4, {
         target,
         lints: profile.lints,
         reasons: [
           `single ${pkg.channel} package — BioContainers builds one image per recipe build`,
         ],
-        evidence: pullUri(mulled),
+        publication: {
+          uri,
+          verified: false,
+          basis: `inferred: a single ${pkg.channel} package, and BioContainers builds one image per recipe build`,
+        },
+        nextActions: [
+          "confirm the container above is pullable — offline grading cannot reach a registry",
+        ],
       });
     }
-    return makeGrade(3, {
+    return definitive(3, {
       target,
       lints: profile.lints,
       reasons: [
         `${pkg?.name} is ecosystem-ready on ${pkg?.channel}, which does not auto-build containers`,
       ],
-      evidence: `would be ${pullUri(mulled)} if registered`,
+      publication: {
+        uri: pullUri(mulled),
+        verified: false,
+        basis: `unregistered: ${pkg?.channel} does not auto-build containers, so this is only the name an image would have`,
+      },
+      nextActions: [
+        `publish a container for ${target} — ${pkg?.channel} packages are not built automatically`,
+      ],
     });
   }
 
@@ -475,24 +597,40 @@ export function grade(directory: string, options: GradeOptions = {}): Grade {
     version,
   }));
   const combinations = loadCombinations(options.combinationsPath ?? DEFAULT_COMBINATIONS_PATH);
+  // A caller-supplied table is not the copy the vendored snapshot describes, so claim no provenance.
+  const snapshot = options.combinationsPath === undefined ? loadSnapshot() : undefined;
   const registration = combinations.get(combinationKey(targets));
   if (registration !== undefined) {
     const [raw, imageBuild] = registration;
-    return makeGrade(4, {
+    return definitive(4, {
       target,
       lints: profile.lints,
+      snapshot,
       reasons: [`registered in BioContainers combinations/hash.tsv as: ${raw}`],
-      evidence: pullUri(versionsOnly, imageBuild),
+      publication: {
+        uri: pullUri(versionsOnly, imageBuild),
+        verified: false,
+        basis: `listed in the combinations/hash.tsv snapshot fetched ${snapshot?.fetched ?? "at an unrecorded time"}`,
+      },
+      nextActions: [
+        "confirm the container above is pullable — offline grading cannot reach a registry",
+      ],
     });
   }
 
-  return makeGrade(3, {
+  return definitive(3, {
     target,
     lints: profile.lints,
+    snapshot,
     reasons: [
       "every package is ecosystem-ready, but this combination has no hash.tsv line",
       "L4 is one pull request away — add the target string above to combinations/hash.tsv",
     ],
-    evidence: `would be ${pullUri(versionsOnly, "0")} once built`,
+    publication: {
+      uri: pullUri(versionsOnly, "0"),
+      verified: false,
+      basis: "unregistered: this is only the name an image would have once built",
+    },
+    nextActions: [`add \`${target}\` to BioContainers combinations/hash.tsv`],
   });
 }

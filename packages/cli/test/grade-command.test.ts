@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,6 +9,7 @@ import { runGrade } from "../src/index.js";
 import { buildProgram } from "../src/program.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
+const stderr = () => undefined;
 
 describe("runGrade", () => {
   it("reports the version from the package manifest", () => {
@@ -32,6 +34,41 @@ describe("runGrade", () => {
     expect(code).toBe(0);
     expect(stdout.join("\n")).toContain("L4");
     expect(stderr).toEqual([]);
+  });
+
+  it("never prints a container URI without marking it unverified", () => {
+    const stdout: string[] = [];
+    runGrade([join(root, "examples/l4-single")], {}, { stdout: (m) => stdout.push(m), stderr });
+    const output = stdout.join("\n");
+    expect(output).toContain("quay.io/biocontainers/samtools:1.17--hd87286a_2");
+    expect(output).toContain("UNVERIFIED");
+  });
+
+  it("renders a lock-less project as UNRESOLVED, not as a level", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-cli-unresolved-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+zlib = "1.3.*"
+`,
+    );
+
+    const stdout: string[] = [];
+    const messages: string[] = [];
+    const code = runGrade(
+      [directory],
+      { minLevel: 1 },
+      { stdout: (m) => stdout.push(m), stderr: (m) => messages.push(m) },
+    );
+
+    expect(stdout.join("\n")).toContain("UNRESOLVED");
+    expect(stdout.join("\n")).not.toContain("L1");
+    expect(code).toBe(1);
+    expect(messages.join("\n")).toContain("no level could be determined");
   });
 
   it("enforces a minimum level", () => {

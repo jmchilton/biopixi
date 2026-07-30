@@ -355,9 +355,9 @@ this profile, it needs the following changes:
 | Path dependencies  | trusts any locked source record                                                     | validate source-root containment, recipe, package name, and lock agreement                                                         |
 | Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity  | verify the qualifier and preserve it in mulled targets                                                                             |
 | PyPI               | rejects top-level and effective platform-targeted entries                           | inspect top-level and platform-targeted dependencies independently                                                                 |
-| Missing lock       | returns L1                                                                          | return `UNRESOLVED` with no numeric level                                                                                          |
-| Stale lock         | checks only that direct names occur somewhere                                       | validate the default environment's effective requirements per platform                                                             |
-| L4                 | infers single-package publication and reads a vendored combination list             | report verified snapshot provenance and endpoint evidence                                                                          |
+| Missing lock       | returns `UNRESOLVED` with no numeric level                                          | return `UNRESOLVED` with no numeric level                                                                                          |
+| Stale lock         | returns `STALE`, but only checks that root names occur somewhere in the closure     | validate the default environment's effective requirements per platform                                                             |
+| L4                 | reports snapshot revision and marks every container claim unverified                | report verified snapshot provenance and endpoint evidence                                                                          |
 | CLI                | accepts directories only                                                            | add source-root and platform selection plus matrix/JSON output                                                                     |
 
 ## Pixi references
