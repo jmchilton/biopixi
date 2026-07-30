@@ -3,10 +3,21 @@ import { grade, SourceRootError, type Grade } from "@biopixi/core";
 import { buildReport, type GradeReportEntry } from "./report.js";
 
 /**
- * Invocation faults are reported as EX_USAGE so they can never be read as a grading verdict:
- * a bad source root says nothing about how far the project can travel.
+ * What `--min-level` failed on, in the order PROFILE.md asks the questions: whether the manifest
+ * is in profile, then whether a solve backs it, then how far it travels. Collapsing these onto one
+ * code makes "this project is not gradeable" indistinguishable from "this project scored low",
+ * which are different problems with different fixes.
+ *
+ * Invocation faults use EX_USAGE, well clear of the verdicts, so a bad source root can never be
+ * read as a statement about the project.
  */
-const EXIT_USAGE = 64;
+export const EXIT_CODES = {
+  ok: 0,
+  belowThreshold: 1,
+  indefinite: 2,
+  outOfProfile: 3,
+  usage: 64,
+} as const;
 
 export interface GradeCommandOptions {
   minLevel?: number;
@@ -66,8 +77,14 @@ export function renderGrade(directory: string, result: Grade): string {
   return lines.join("\n");
 }
 
+function named(entries: GradeReportEntry[], detail: (entry: GradeReportEntry) => string): string {
+  return entries.map((entry) => `${entry.directory} (${detail(entry)})`).join(", ");
+}
+
 /**
- * Grade one or more directories and return a process exit code.
+ * Grade one or more directories and return one of {@link EXIT_CODES}.
+ *
+ * Without `--min-level` this is reporting rather than assertion, and the code is always `ok`.
  */
 export function runGrade(
   directories: string[],
@@ -84,7 +101,7 @@ export function runGrade(
         throw error;
       }
       io.stderr(`biopixi: ${error.message}`);
-      return EXIT_USAGE;
+      return EXIT_CODES.usage;
     }
     results.push({ directory, ...result });
     if (!options.json) {
@@ -98,23 +115,32 @@ export function runGrade(
   }
 
   if (options.minLevel === undefined) {
-    return 0;
+    return EXIT_CODES.ok;
   }
+
+  // Conformance first: an out-of-profile manifest was never solved, so it has no evidence state
+  // to report and no level to compare — it fails for a different reason than a low grade.
+  const outside = results.filter((entry) => !entry.conformant);
+  if (outside.length > 0) {
+    const detail = named(outside, (entry) => entry.reasons[0] ?? "out of profile v0");
+    io.stderr(`\nfailed: outside profile v0: ${detail} — required L${options.minLevel}`);
+    return EXIT_CODES.outOfProfile;
+  }
+
   // In profile but unproven. Not L0 — biopixi has no level to compare against a threshold.
-  const undeterminable = results.filter((entry) => entry.conformant && entry.level === null);
+  const undeterminable = results.filter((entry) => entry.level === null);
   if (undeterminable.length > 0) {
-    const named = undeterminable
-      .map((entry) => `${entry.directory} (${entry.evidenceState})`)
-      .join(", ");
+    const detail = named(undeterminable, (entry) => entry.evidenceState ?? "no evidence");
     io.stderr(
-      `\nfailed: no level could be determined for ${named} — required L${options.minLevel}`,
+      `\nfailed: no level could be determined for ${detail} — required L${options.minLevel}`,
     );
-    return 1;
+    return EXIT_CODES.indefinite;
   }
+
   const worst = results.reduce((lowest, entry) => Math.min(lowest, entry.level ?? 0), 4);
   if (worst < options.minLevel) {
     io.stderr(`\nfailed: worst level L${worst} < required L${options.minLevel}`);
-    return 1;
+    return EXIT_CODES.belowThreshold;
   }
-  return 0;
+  return EXIT_CODES.ok;
 }

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { runGrade } from "../src/index.js";
+import { EXIT_CODES, runGrade } from "../src/index.js";
 import { buildProgram } from "../src/program.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -67,7 +67,7 @@ zlib = "1.3.*"
 
     expect(stdout.join("\n")).toContain("UNRESOLVED");
     expect(stdout.join("\n")).not.toContain("L1");
-    expect(code).toBe(1);
+    expect(code).toBe(EXIT_CODES.indefinite);
     expect(messages.join("\n")).toContain("no level could be determined");
   });
 
@@ -92,7 +92,7 @@ zlib = "1.3.*"
     );
 
     // 64 is EX_USAGE: a bad invocation must not be mistaken for a low grade.
-    expect(code).toBe(64);
+    expect(code).toBe(EXIT_CODES.usage);
     expect(messages.join("\n")).toContain("is not an ancestor of project root");
   });
 
