@@ -1,64 +1,64 @@
 {
 	"schemaVersion": "2.0",
-	"id": 82,
+	"id": 154,
 	"name": "biopixi API",
 	"variant": "project",
 	"kind": 1,
 	"flags": {},
 	"children": [
 		{
-			"id": 139,
+			"id": 250,
 			"name": "@biopixi/cli",
 			"variant": "declaration",
 			"kind": 2,
 			"flags": {},
 			"children": [
 				{
-					"id": 140,
+					"id": 251,
 					"name": "",
 					"variant": "declaration",
 					"kind": 2,
 					"flags": {},
 					"children": [
 						{
-							"id": 141,
+							"id": 252,
 							"name": "GradeCommandIo",
 							"variant": "declaration",
 							"kind": 256,
 							"flags": {},
 							"children": [
 								{
-									"id": 142,
+									"id": 253,
 									"name": "stderr",
 									"variant": "declaration",
 									"kind": 1024,
 									"flags": {},
 									"sources": [
 										{
-											"fileName": "src/grade-command.ts",
-											"line": 9,
+											"fileName": "cli/src/grade-command.ts",
+											"line": 31,
 											"character": 2,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L9"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L31"
 										}
 									],
 									"type": {
 										"type": "reflection",
 										"declaration": {
-											"id": 143,
+											"id": 254,
 											"name": "__type",
 											"variant": "declaration",
 											"kind": 65536,
 											"flags": {},
 											"signatures": [
 												{
-													"id": 144,
+													"id": 255,
 													"name": "__type",
 													"variant": "signature",
 													"kind": 4096,
 													"flags": {},
 													"parameters": [
 														{
-															"id": 145,
+															"id": 256,
 															"name": "message",
 															"variant": "param",
 															"kind": 32768,
@@ -79,37 +79,37 @@
 									}
 								},
 								{
-									"id": 146,
+									"id": 257,
 									"name": "stdout",
 									"variant": "declaration",
 									"kind": 1024,
 									"flags": {},
 									"sources": [
 										{
-											"fileName": "src/grade-command.ts",
-											"line": 8,
+											"fileName": "cli/src/grade-command.ts",
+											"line": 30,
 											"character": 2,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L8"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L30"
 										}
 									],
 									"type": {
 										"type": "reflection",
 										"declaration": {
-											"id": 147,
+											"id": 258,
 											"name": "__type",
 											"variant": "declaration",
 											"kind": 65536,
 											"flags": {},
 											"signatures": [
 												{
-													"id": 148,
+													"id": 259,
 													"name": "__type",
 													"variant": "signature",
 													"kind": 4096,
 													"flags": {},
 													"parameters": [
 														{
-															"id": 149,
+															"id": 260,
 															"name": "message",
 															"variant": "param",
 															"kind": 32768,
@@ -134,29 +134,58 @@
 								{
 									"title": "Properties",
 									"children": [
-										142,
-										146
+										253,
+										257
 									]
 								}
 							],
 							"sources": [
 								{
-									"fileName": "src/grade-command.ts",
-									"line": 7,
+									"fileName": "cli/src/grade-command.ts",
+									"line": 29,
 									"character": 17,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L7"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L29"
 								}
 							]
 						},
 						{
-							"id": 150,
+							"id": 261,
 							"name": "GradeCommandOptions",
 							"variant": "declaration",
 							"kind": 256,
 							"flags": {},
 							"children": [
 								{
-									"id": 151,
+									"id": 262,
+									"name": "json",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Emit the machine-readable report on stdout instead of the human rendering."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/grade-command.ts",
+											"line": 26,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L26"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "boolean"
+									}
+								},
+								{
+									"id": 263,
 									"name": "minLevel",
 									"variant": "declaration",
 									"kind": 1024,
@@ -165,15 +194,36 @@
 									},
 									"sources": [
 										{
-											"fileName": "src/grade-command.ts",
-											"line": 4,
+											"fileName": "cli/src/grade-command.ts",
+											"line": 23,
 											"character": 2,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L4"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L23"
 										}
 									],
 									"type": {
 										"type": "intrinsic",
 										"name": "number"
+									}
+								},
+								{
+									"id": 264,
+									"name": "sourceRoot",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/grade-command.ts",
+											"line": 24,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L24"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
 									}
 								}
 							],
@@ -181,36 +231,1014 @@
 								{
 									"title": "Properties",
 									"children": [
-										151
+										262,
+										263,
+										264
 									]
 								}
 							],
 							"sources": [
 								{
-									"fileName": "src/grade-command.ts",
-									"line": 3,
+									"fileName": "cli/src/grade-command.ts",
+									"line": 22,
 									"character": 17,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L3"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L22"
 								}
 							]
 						},
 						{
-							"id": 152,
+							"id": 265,
+							"name": "GradeReport",
+							"variant": "declaration",
+							"kind": 256,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The "
+									},
+									{
+										"kind": "code",
+										"text": "`biopixi grade --json`"
+									},
+									{
+										"kind": "text",
+										"text": " payload.\n\nThe envelope carries the versions a consumer needs to interpret "
+									},
+									{
+										"kind": "code",
+										"text": "`results`"
+									},
+									{
+										"kind": "text",
+										"text": ": "
+									},
+									{
+										"kind": "code",
+										"text": "`profile`"
+									},
+									{
+										"kind": "text",
+										"text": " is the\ngrading profile the levels are defined by, "
+									},
+									{
+										"kind": "code",
+										"text": "`biopixi`"
+									},
+									{
+										"kind": "text",
+										"text": " is the release that produced them."
+									}
+								]
+							},
+							"children": [
+								{
+									"id": 266,
+									"name": "$schema",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Where this payload's schema is published."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 26,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L26"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 267,
+									"name": "biopixi",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The biopixi release that produced the results."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 28,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L28"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 268,
+									"name": "profile",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The grading profile the levels are defined by."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 30,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L30"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 269,
+									"name": "results",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "One entry per directory given, in the order they were given."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 32,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L32"
+										}
+									],
+									"type": {
+										"type": "array",
+										"elementType": {
+											"type": "reference",
+											"target": 270,
+											"name": "GradeReportEntry",
+											"package": "@biopixi/cli"
+										}
+									}
+								}
+							],
+							"groups": [
+								{
+									"title": "Properties",
+									"children": [
+										266,
+										267,
+										268,
+										269
+									]
+								}
+							],
+							"sources": [
+								{
+									"fileName": "cli/src/report.ts",
+									"line": 24,
+									"character": 17,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L24"
+								}
+							]
+						},
+						{
+							"id": 270,
+							"name": "GradeReportEntry",
+							"variant": "declaration",
+							"kind": 256,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "One graded directory: the path as the caller wrote it, plus everything grading decided."
+									}
+								]
+							},
+							"children": [
+								{
+									"id": 271,
+									"name": "cap",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "What holds the environment at this level. Absent at L4, where nothing does."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 75,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "reference",
+										"target": 173,
+										"name": "Cap",
+										"package": "@biopixi/core"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 179,
+										"name": "Grade.cap"
+									}
+								},
+								{
+									"id": 272,
+									"name": "conformant",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Whether the manifest is inside profile v0. Everything below is unanswerable when false."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 59,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "boolean"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 180,
+										"name": "Grade.conformant"
+									}
+								},
+								{
+									"id": 273,
+									"name": "directory",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "As supplied on the command line, so a caller can match results back to its own arguments."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 15,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L15"
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									}
+								},
+								{
+									"id": 274,
+									"name": "evidenceState",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Whether a solve backs the result. Null when the manifest never got as far as being solved."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 61,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "union",
+										"types": [
+											{
+												"type": "reference",
+												"target": 218,
+												"name": "EvidenceState",
+												"package": "@biopixi/core"
+											},
+											{
+												"type": "literal",
+												"value": null
+											}
+										]
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 181,
+										"name": "Grade.evidenceState"
+									}
+								},
+								{
+									"id": 275,
+									"name": "label",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The level, evidence state, or "
+											},
+											{
+												"kind": "code",
+												"text": "`L0`"
+											},
+											{
+												"kind": "text",
+												"text": ", as one token for display."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 65,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 182,
+										"name": "Grade.label"
+									}
+								},
+								{
+									"id": 276,
+									"name": "level",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "How far the environment travels, 1–4. Null unless "
+											},
+											{
+												"kind": "code",
+												"text": "`evidenceState`"
+											},
+											{
+												"kind": "text",
+												"text": " is "
+											},
+											{
+												"kind": "code",
+												"text": "`DEFINITIVE`"
+											},
+											{
+												"kind": "text",
+												"text": "."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 63,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "union",
+										"types": [
+											{
+												"type": "intrinsic",
+												"name": "number"
+											},
+											{
+												"type": "literal",
+												"value": null
+											}
+										]
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 183,
+										"name": "Grade.level"
+									}
+								},
+								{
+									"id": 277,
+									"name": "lints",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Portability concerns that did not change the result."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 69,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "array",
+										"elementType": {
+											"type": "intrinsic",
+											"name": "string"
+										}
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 184,
+										"name": "Grade.lints"
+									}
+								},
+								{
+									"id": 278,
+									"name": "nextActions",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "What to do to move the result up, in the order it would have to be done."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 71,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "array",
+										"elementType": {
+											"type": "intrinsic",
+											"name": "string"
+										}
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 185,
+										"name": "Grade.nextActions"
+									}
+								},
+								{
+									"id": 279,
+									"name": "projectRoot",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The graded directory, absolute and symlink-resolved."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 51,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 186,
+										"name": "Grade.projectRoot"
+									}
+								},
+								{
+									"id": 280,
+									"name": "publication",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The container this environment can be published as, and how that was arrived at."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 77,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "reference",
+										"target": 210,
+										"name": "Publication",
+										"package": "@biopixi/core"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 187,
+										"name": "Grade.publication"
+									}
+								},
+								{
+									"id": 281,
+									"name": "reasons",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Why the result is what it is, most specific first."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 67,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "array",
+										"elementType": {
+											"type": "intrinsic",
+											"name": "string"
+										}
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 188,
+										"name": "Grade.reasons"
+									}
+								},
+								{
+									"id": 282,
+									"name": "snapshot",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Provenance of the vendored metadata behind "
+											},
+											{
+												"kind": "code",
+												"text": "`publication`"
+											},
+											{
+												"kind": "text",
+												"text": ", when any was consulted."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 79,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "reference",
+										"target": 201,
+										"name": "MetadataSnapshot",
+										"package": "@biopixi/core"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 189,
+										"name": "Grade.snapshot"
+									}
+								},
+								{
+									"id": 283,
+									"name": "sourceRoot",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the\nproject root; a caller grading a collection may widen it to any ancestor. Recorded on every\nresult because it is a property of the invocation, not of the project."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 57,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 190,
+										"name": "Grade.sourceRoot"
+									}
+								},
+								{
+									"id": 284,
+									"name": "target",
+									"variant": "declaration",
+									"kind": 1024,
+									"flags": {
+										"isOptional": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "The "
+											},
+											{
+												"kind": "code",
+												"text": "`name=version`"
+											},
+											{
+												"kind": "text",
+												"text": " set a container claim would be built from."
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "core/dist/grade.d.ts",
+											"line": 73,
+											"character": 4
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "string"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": 191,
+										"name": "Grade.target"
+									}
+								}
+							],
+							"groups": [
+								{
+									"title": "Properties",
+									"children": [
+										271,
+										272,
+										273,
+										274,
+										275,
+										276,
+										277,
+										278,
+										279,
+										280,
+										281,
+										282,
+										283,
+										284
+									]
+								}
+							],
+							"sources": [
+								{
+									"fileName": "cli/src/report.ts",
+									"line": 13,
+									"character": 17,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L13"
+								}
+							],
+							"extendedTypes": [
+								{
+									"type": "reference",
+									"target": 178,
+									"name": "Grade",
+									"package": "@biopixi/core"
+								}
+							]
+						},
+						{
+							"id": 285,
+							"name": "EXIT_CODES",
+							"variant": "declaration",
+							"kind": 32,
+							"flags": {
+								"isConst": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "What "
+									},
+									{
+										"kind": "code",
+										"text": "`--min-level`"
+									},
+									{
+										"kind": "text",
+										"text": " failed on, in the order PROFILE.md asks the questions: whether the manifest\nis in profile, then whether a solve backs it, then how far it travels. Collapsing these onto one\ncode makes \"this project is not gradeable\" indistinguishable from \"this project scored low\",\nwhich are different problems with different fixes.\n\nInvocation faults use EX_USAGE, well clear of the verdicts, so a bad source root can never be\nread as a statement about the project."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "cli/src/grade-command.ts",
+									"line": 14,
+									"character": 13,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L14"
+								}
+							],
+							"type": {
+								"type": "reflection",
+								"declaration": {
+									"id": 286,
+									"name": "__type",
+									"variant": "declaration",
+									"kind": 65536,
+									"flags": {},
+									"children": [
+										{
+											"id": 287,
+											"name": "belowThreshold",
+											"variant": "declaration",
+											"kind": 1024,
+											"flags": {
+												"isReadonly": true
+											},
+											"sources": [
+												{
+													"fileName": "cli/src/grade-command.ts",
+													"line": 16,
+													"character": 2,
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L16"
+												}
+											],
+											"type": {
+												"type": "literal",
+												"value": 1
+											},
+											"defaultValue": "1"
+										},
+										{
+											"id": 288,
+											"name": "indefinite",
+											"variant": "declaration",
+											"kind": 1024,
+											"flags": {
+												"isReadonly": true
+											},
+											"sources": [
+												{
+													"fileName": "cli/src/grade-command.ts",
+													"line": 17,
+													"character": 2,
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L17"
+												}
+											],
+											"type": {
+												"type": "literal",
+												"value": 2
+											},
+											"defaultValue": "2"
+										},
+										{
+											"id": 289,
+											"name": "ok",
+											"variant": "declaration",
+											"kind": 1024,
+											"flags": {
+												"isReadonly": true
+											},
+											"sources": [
+												{
+													"fileName": "cli/src/grade-command.ts",
+													"line": 15,
+													"character": 2,
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L15"
+												}
+											],
+											"type": {
+												"type": "literal",
+												"value": 0
+											},
+											"defaultValue": "0"
+										},
+										{
+											"id": 290,
+											"name": "outOfProfile",
+											"variant": "declaration",
+											"kind": 1024,
+											"flags": {
+												"isReadonly": true
+											},
+											"sources": [
+												{
+													"fileName": "cli/src/grade-command.ts",
+													"line": 18,
+													"character": 2,
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L18"
+												}
+											],
+											"type": {
+												"type": "literal",
+												"value": 3
+											},
+											"defaultValue": "3"
+										},
+										{
+											"id": 291,
+											"name": "usage",
+											"variant": "declaration",
+											"kind": 1024,
+											"flags": {
+												"isReadonly": true
+											},
+											"sources": [
+												{
+													"fileName": "cli/src/grade-command.ts",
+													"line": 19,
+													"character": 2,
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L19"
+												}
+											],
+											"type": {
+												"type": "literal",
+												"value": 64
+											},
+											"defaultValue": "64"
+										}
+									],
+									"groups": [
+										{
+											"title": "Properties",
+											"children": [
+												287,
+												288,
+												289,
+												290,
+												291
+											]
+										}
+									]
+								}
+							},
+							"defaultValue": "..."
+						},
+						{
+							"id": 292,
+							"name": "REPORT_SCHEMA_URL",
+							"variant": "declaration",
+							"kind": 32,
+							"flags": {
+								"isConst": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Where the schema for this payload is published. The generated schema carries the same string as\nits "
+									},
+									{
+										"kind": "code",
+										"text": "`$id`"
+									},
+									{
+										"kind": "text",
+										"text": ", and a test holds the two together."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "cli/src/report.ts",
+									"line": 9,
+									"character": 13,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L9"
+								}
+							],
+							"type": {
+								"type": "literal",
+								"value": "https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json"
+							},
+							"defaultValue": "\"https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json\""
+						},
+						{
+							"id": 293,
 							"name": "buildProgram",
 							"variant": "declaration",
 							"kind": 64,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "src/program.ts",
+									"fileName": "cli/src/program.ts",
 									"line": 9,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/program.ts#L9"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/program.ts#L9"
 								}
 							],
 							"signatures": [
 								{
-									"id": 153,
+									"id": 294,
 									"name": "buildProgram",
 									"variant": "signature",
 									"kind": 4096,
@@ -225,10 +1253,10 @@
 									},
 									"sources": [
 										{
-											"fileName": "src/program.ts",
+											"fileName": "cli/src/program.ts",
 											"line": 9,
 											"character": 16,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/program.ts#L9"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/program.ts#L9"
 										}
 									],
 									"type": {
@@ -245,22 +1273,78 @@
 							]
 						},
 						{
-							"id": 154,
+							"id": 295,
+							"name": "buildReport",
+							"variant": "declaration",
+							"kind": 64,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "cli/src/report.ts",
+									"line": 35,
+									"character": 16,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L35"
+								}
+							],
+							"signatures": [
+								{
+									"id": 296,
+									"name": "buildReport",
+									"variant": "signature",
+									"kind": 4096,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "cli/src/report.ts",
+											"line": 35,
+											"character": 16,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L35"
+										}
+									],
+									"parameters": [
+										{
+											"id": 297,
+											"name": "results",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {},
+											"type": {
+												"type": "array",
+												"elementType": {
+													"type": "reference",
+													"target": 270,
+													"name": "GradeReportEntry",
+													"package": "@biopixi/cli"
+												}
+											}
+										}
+									],
+									"type": {
+										"type": "reference",
+										"target": 265,
+										"name": "GradeReport",
+										"package": "@biopixi/cli"
+									}
+								}
+							]
+						},
+						{
+							"id": 298,
 							"name": "renderGrade",
 							"variant": "declaration",
 							"kind": 64,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "src/grade-command.ts",
-									"line": 20,
+									"fileName": "cli/src/grade-command.ts",
+									"line": 42,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L20"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L42"
 								}
 							],
 							"signatures": [
 								{
-									"id": 155,
+									"id": 299,
 									"name": "renderGrade",
 									"variant": "signature",
 									"kind": 4096,
@@ -275,15 +1359,15 @@
 									},
 									"sources": [
 										{
-											"fileName": "src/grade-command.ts",
-											"line": 20,
+											"fileName": "cli/src/grade-command.ts",
+											"line": 42,
 											"character": 16,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L20"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L42"
 										}
 									],
 									"parameters": [
 										{
-											"id": 156,
+											"id": 300,
 											"name": "directory",
 											"variant": "param",
 											"kind": 32768,
@@ -294,14 +1378,14 @@
 											}
 										},
 										{
-											"id": 157,
+											"id": 301,
 											"name": "result",
 											"variant": "param",
 											"kind": 32768,
 											"flags": {},
 											"type": {
 												"type": "reference",
-												"target": 84,
+												"target": 178,
 												"name": "Grade",
 												"package": "@biopixi/core"
 											}
@@ -315,22 +1399,22 @@
 							]
 						},
 						{
-							"id": 158,
+							"id": 302,
 							"name": "runGrade",
 							"variant": "declaration",
 							"kind": 64,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "src/grade-command.ts",
-									"line": 57,
+									"fileName": "cli/src/grade-command.ts",
+									"line": 89,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L57"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L89"
 								}
 							],
 							"signatures": [
 								{
-									"id": 159,
+									"id": 303,
 									"name": "runGrade",
 									"variant": "signature",
 									"kind": 4096,
@@ -339,21 +1423,47 @@
 										"summary": [
 											{
 												"kind": "text",
-												"text": "Grade one or more directories and return a process exit code."
+												"text": "Grade one or more directories and return one of "
+											},
+											{
+												"kind": "inline-tag",
+												"tag": "@link",
+												"text": "EXIT_CODES",
+												"target": 285
+											},
+											{
+												"kind": "text",
+												"text": ".\n\nWithout "
+											},
+											{
+												"kind": "code",
+												"text": "`--min-level`"
+											},
+											{
+												"kind": "text",
+												"text": " this is reporting rather than assertion, and the code is always "
+											},
+											{
+												"kind": "code",
+												"text": "`ok`"
+											},
+											{
+												"kind": "text",
+												"text": "."
 											}
 										]
 									},
 									"sources": [
 										{
-											"fileName": "src/grade-command.ts",
-											"line": 57,
+											"fileName": "cli/src/grade-command.ts",
+											"line": 89,
 											"character": 16,
-											"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/grade-command.ts#L57"
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L89"
 										}
 									],
 									"parameters": [
 										{
-											"id": 160,
+											"id": 304,
 											"name": "directories",
 											"variant": "param",
 											"kind": 32768,
@@ -367,28 +1477,28 @@
 											}
 										},
 										{
-											"id": 161,
+											"id": 305,
 											"name": "options",
 											"variant": "param",
 											"kind": 32768,
 											"flags": {},
 											"type": {
 												"type": "reference",
-												"target": 150,
+												"target": 261,
 												"name": "GradeCommandOptions",
 												"package": "@biopixi/cli"
 											},
 											"defaultValue": "{}"
 										},
 										{
-											"id": 162,
+											"id": 306,
 											"name": "io",
 											"variant": "param",
 											"kind": 32768,
 											"flags": {},
 											"type": {
 												"type": "reference",
-												"target": 141,
+												"target": 252,
 												"name": "GradeCommandIo",
 												"package": "@biopixi/cli"
 											},
@@ -407,66 +1517,76 @@
 						{
 							"title": "Interfaces",
 							"children": [
-								141,
-								150
+								252,
+								261,
+								265,
+								270
+							]
+						},
+						{
+							"title": "Variables",
+							"children": [
+								285,
+								292
 							]
 						},
 						{
 							"title": "Functions",
 							"children": [
-								152,
-								154,
-								158
+								293,
+								295,
+								298,
+								302
 							]
 						}
 					],
 					"sources": [
 						{
-							"fileName": "src/index.ts",
+							"fileName": "cli/src/index.ts",
 							"line": 1,
 							"character": 0,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/src/index.ts#L1"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/index.ts#L1"
 						}
 					]
 				},
 				{
-					"id": 163,
+					"id": 307,
 					"name": "package.json",
 					"variant": "declaration",
 					"kind": 2,
 					"flags": {},
 					"children": [
 						{
-							"id": 164,
+							"id": 308,
 							"name": "export=",
 							"variant": "reference",
 							"kind": 4194304,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "package.json",
+									"fileName": "cli/package.json",
 									"line": 1,
 									"character": 0,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/package.json#L1"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/package.json#L1"
 								}
 							],
-							"target": 163
+							"target": 307
 						}
 					],
 					"groups": [
 						{
 							"title": "References",
 							"children": [
-								164
+								308
 							]
 						}
 					],
 					"sources": [
 						{
-							"fileName": "package.json",
+							"fileName": "cli/package.json",
 							"line": 1,
 							"character": 0,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/cli/package.json#L1"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/package.json#L1"
 						}
 					]
 				}
@@ -475,8 +1595,8 @@
 				{
 					"title": "Modules",
 					"children": [
-						140,
-						163
+						251,
+						307
 					]
 				}
 			],
@@ -520,382 +1640,624 @@
 			]
 		},
 		{
-			"id": 83,
+			"id": 155,
 			"name": "@biopixi/core",
 			"variant": "declaration",
 			"kind": 2,
 			"flags": {},
 			"children": [
 				{
-					"id": 84,
-					"name": "Grade",
+					"id": 156,
+					"name": "SourceRootError",
 					"variant": "declaration",
-					"kind": 256,
+					"kind": 128,
 					"flags": {},
+					"comment": {
+						"summary": [
+							{
+								"kind": "text",
+								"text": "A source root that cannot bound the project it was given with. This is a fault in the\ninvocation rather than a finding about the project, so it is raised instead of graded."
+							}
+						]
+					},
 					"children": [
 						{
-							"id": 85,
-							"name": "cap",
+							"id": 157,
+							"name": "constructor",
 							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
-							},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 67,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L67"
-								}
-							],
-							"type": {
-								"type": "reference",
-								"target": {
-									"packageName": "@biopixi/core",
-									"packagePath": "src/grade.ts",
-									"qualifiedName": "Cap"
-								},
-								"name": "Cap",
-								"package": "@biopixi/core"
-							}
-						},
-						{
-							"id": 86,
-							"name": "conformant",
-							"variant": "declaration",
-							"kind": 1024,
+							"kind": 512,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 59,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 125,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L59"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L125"
 								}
 							],
-							"type": {
-								"type": "intrinsic",
-								"name": "boolean"
-							}
-						},
-						{
-							"id": 87,
-							"name": "evidenceState",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {},
-							"sources": [
+							"signatures": [
 								{
-									"fileName": "grade.ts",
-									"line": 60,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L60"
-								}
-							],
-							"type": {
-								"type": "union",
-								"types": [
-									{
+									"id": 158,
+									"name": "SourceRootError",
+									"variant": "signature",
+									"kind": 16384,
+									"flags": {},
+									"sources": [
+										{
+											"fileName": "packages/core/src/grade.ts",
+											"line": 125,
+											"character": 2,
+											"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L125"
+										}
+									],
+									"parameters": [
+										{
+											"id": 159,
+											"name": "message",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {},
+											"type": {
+												"type": "intrinsic",
+												"name": "string"
+											}
+										}
+									],
+									"type": {
 										"type": "reference",
-										"target": {
-											"packageName": "@biopixi/core",
-											"packagePath": "src/grade.ts",
-											"qualifiedName": "EvidenceState"
-										},
-										"name": "EvidenceState",
+										"target": 156,
+										"name": "SourceRootError",
 										"package": "@biopixi/core"
 									},
-									{
-										"type": "literal",
-										"value": null
+									"overwrites": {
+										"type": "reference",
+										"target": -1,
+										"name": "Error.constructor",
+										"package": "typescript"
 									}
-								]
+								}
+							],
+							"overwrites": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.constructor",
+								"package": "typescript"
 							}
 						},
 						{
-							"id": 88,
-							"name": "label",
+							"id": 160,
+							"name": "cause",
 							"variant": "declaration",
 							"kind": 1024,
-							"flags": {},
+							"flags": {
+								"isExternal": true,
+								"isOptional": true,
+								"isInherited": true
+							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 62,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L62"
+									"fileName": "node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/lib/lib.es2022.error.d.ts",
+									"line": 24,
+									"character": 4
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "unknown"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.cause"
+							}
+						},
+						{
+							"id": 161,
+							"name": "message",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isExternal": true,
+								"isInherited": true
+							},
+							"sources": [
+								{
+									"fileName": "node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/lib/lib.es5.d.ts",
+									"line": 1075,
+									"character": 4
 								}
 							],
 							"type": {
 								"type": "intrinsic",
 								"name": "string"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.message"
 							}
 						},
 						{
-							"id": 89,
-							"name": "level",
+							"id": 162,
+							"name": "name",
 							"variant": "declaration",
 							"kind": 1024,
-							"flags": {},
+							"flags": {
+								"isExternal": true,
+								"isInherited": true
+							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 61,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L61"
+									"fileName": "node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/lib/lib.es5.d.ts",
+									"line": 1074,
+									"character": 4
 								}
 							],
 							"type": {
-								"type": "union",
-								"types": [
+								"type": "intrinsic",
+								"name": "string"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.name"
+							}
+						},
+						{
+							"id": 163,
+							"name": "stack",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isExternal": true,
+								"isOptional": true,
+								"isInherited": true
+							},
+							"sources": [
+								{
+									"fileName": "node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/lib/lib.es5.d.ts",
+									"line": 1076,
+									"character": 4
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.stack"
+							}
+						},
+						{
+							"id": 164,
+							"name": "stackTraceLimit",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isStatic": true,
+								"isExternal": true,
+								"isInherited": true
+							},
+							"comment": {
+								"summary": [
 									{
-										"type": "intrinsic",
-										"name": "number"
+										"kind": "text",
+										"text": "The "
 									},
 									{
-										"type": "literal",
-										"value": null
+										"kind": "code",
+										"text": "`Error.stackTraceLimit`"
+									},
+									{
+										"kind": "text",
+										"text": " property specifies the number of stack frames\ncollected by a stack trace (whether generated by "
+									},
+									{
+										"kind": "code",
+										"text": "`new Error().stack`"
+									},
+									{
+										"kind": "text",
+										"text": " or\n"
+									},
+									{
+										"kind": "code",
+										"text": "`Error.captureStackTrace(obj)`"
+									},
+									{
+										"kind": "text",
+										"text": ").\n\nThe default value is "
+									},
+									{
+										"kind": "code",
+										"text": "`10`"
+									},
+									{
+										"kind": "text",
+										"text": " but may be set to any valid JavaScript number. Changes\nwill affect any stack trace captured _after_ the value has been changed.\n\nIf set to a non-number value, or set to a negative number, stack traces will\nnot capture any frames."
 									}
 								]
-							}
-						},
-						{
-							"id": 90,
-							"name": "lints",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 64,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L64"
-								}
-							],
-							"type": {
-								"type": "array",
-								"elementType": {
-									"type": "intrinsic",
-									"name": "string"
-								}
-							}
-						},
-						{
-							"id": 91,
-							"name": "nextActions",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 65,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L65"
-								}
-							],
-							"type": {
-								"type": "array",
-								"elementType": {
-									"type": "intrinsic",
-									"name": "string"
-								}
-							}
-						},
-						{
-							"id": 92,
-							"name": "publication",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 68,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L68"
-								}
-							],
-							"type": {
-								"type": "reference",
-								"target": {
-									"packageName": "@biopixi/core",
-									"packagePath": "src/grade.ts",
-									"qualifiedName": "Publication"
-								},
-								"name": "Publication",
-								"package": "@biopixi/core"
-							}
-						},
-						{
-							"id": 93,
-							"name": "reasons",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 63,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L63"
-								}
-							],
-							"type": {
-								"type": "array",
-								"elementType": {
-									"type": "intrinsic",
-									"name": "string"
-								}
-							}
-						},
-						{
-							"id": 94,
-							"name": "snapshot",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
-							},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 69,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L69"
-								}
-							],
-							"type": {
-								"type": "reference",
-								"target": {
-									"packageName": "@biopixi/core",
-									"packagePath": "src/grade.ts",
-									"qualifiedName": "MetadataSnapshot"
-								},
-								"name": "MetadataSnapshot",
-								"package": "@biopixi/core"
-							}
-						},
-						{
-							"id": 95,
-							"name": "target",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
-							},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 66,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L66"
+									"fileName": "node_modules/.pnpm/@types+node@25.9.5/node_modules/@types/node/globals.d.ts",
+									"line": 67,
+									"character": 4
 								}
 							],
 							"type": {
 								"type": "intrinsic",
-								"name": "string"
+								"name": "number"
+							},
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.stackTraceLimit"
+							}
+						},
+						{
+							"id": 165,
+							"name": "captureStackTrace",
+							"variant": "declaration",
+							"kind": 2048,
+							"flags": {
+								"isStatic": true,
+								"isExternal": true,
+								"isInherited": true
+							},
+							"sources": [
+								{
+									"fileName": "node_modules/.pnpm/@types+node@25.9.5/node_modules/@types/node/globals.d.ts",
+									"line": 51,
+									"character": 4
+								}
+							],
+							"signatures": [
+								{
+									"id": 166,
+									"name": "captureStackTrace",
+									"variant": "signature",
+									"kind": 4096,
+									"flags": {
+										"isExternal": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [
+											{
+												"kind": "text",
+												"text": "Creates a "
+											},
+											{
+												"kind": "code",
+												"text": "`.stack`"
+											},
+											{
+												"kind": "text",
+												"text": " property on "
+											},
+											{
+												"kind": "code",
+												"text": "`targetObject`"
+											},
+											{
+												"kind": "text",
+												"text": ", which when accessed returns\na string representing the location in the code at which\n"
+											},
+											{
+												"kind": "code",
+												"text": "`Error.captureStackTrace()`"
+											},
+											{
+												"kind": "text",
+												"text": " was called.\n\n"
+											},
+											{
+												"kind": "code",
+												"text": "```js\nconst myObject = {};\nError.captureStackTrace(myObject);\nmyObject.stack;  // Similar to `new Error().stack`\n```"
+											},
+											{
+												"kind": "text",
+												"text": "\n\nThe first line of the trace will be prefixed with\n"
+											},
+											{
+												"kind": "code",
+												"text": "`${myObject.name}: ${myObject.message}`"
+											},
+											{
+												"kind": "text",
+												"text": ".\n\nThe optional "
+											},
+											{
+												"kind": "code",
+												"text": "`constructorOpt`"
+											},
+											{
+												"kind": "text",
+												"text": " argument accepts a function. If given, all frames\nabove "
+											},
+											{
+												"kind": "code",
+												"text": "`constructorOpt`"
+											},
+											{
+												"kind": "text",
+												"text": ", including "
+											},
+											{
+												"kind": "code",
+												"text": "`constructorOpt`"
+											},
+											{
+												"kind": "text",
+												"text": ", will be omitted from the\ngenerated stack trace.\n\nThe "
+											},
+											{
+												"kind": "code",
+												"text": "`constructorOpt`"
+											},
+											{
+												"kind": "text",
+												"text": " argument is useful for hiding implementation\ndetails of error generation from the user. For instance:\n\n"
+											},
+											{
+												"kind": "code",
+												"text": "```js\nfunction a() {\n  b();\n}\n\nfunction b() {\n  c();\n}\n\nfunction c() {\n  // Create an error without stack trace to avoid calculating the stack trace twice.\n  const { stackTraceLimit } = Error;\n  Error.stackTraceLimit = 0;\n  const error = new Error();\n  Error.stackTraceLimit = stackTraceLimit;\n\n  // Capture the stack trace above function b\n  Error.captureStackTrace(error, b); // Neither function c, nor b is included in the stack trace\n  throw error;\n}\n\na();\n```"
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "node_modules/.pnpm/@types+node@25.9.5/node_modules/@types/node/globals.d.ts",
+											"line": 51,
+											"character": 4
+										}
+									],
+									"parameters": [
+										{
+											"id": 167,
+											"name": "targetObject",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {
+												"isExternal": true
+											},
+											"type": {
+												"type": "intrinsic",
+												"name": "object"
+											}
+										},
+										{
+											"id": 168,
+											"name": "constructorOpt",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {
+												"isExternal": true,
+												"isOptional": true
+											},
+											"type": {
+												"type": "reference",
+												"target": {
+													"packageName": "typescript",
+													"packagePath": "lib/lib.es5.d.ts",
+													"qualifiedName": "Function"
+												},
+												"name": "Function",
+												"package": "typescript"
+											}
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "void"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": -1,
+										"name": "Error.captureStackTrace"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.captureStackTrace"
+							}
+						},
+						{
+							"id": 169,
+							"name": "prepareStackTrace",
+							"variant": "declaration",
+							"kind": 2048,
+							"flags": {
+								"isStatic": true,
+								"isExternal": true,
+								"isInherited": true
+							},
+							"sources": [
+								{
+									"fileName": "node_modules/.pnpm/@types+node@25.9.5/node_modules/@types/node/globals.d.ts",
+									"line": 55,
+									"character": 4
+								}
+							],
+							"signatures": [
+								{
+									"id": 170,
+									"name": "prepareStackTrace",
+									"variant": "signature",
+									"kind": 4096,
+									"flags": {
+										"isExternal": true,
+										"isInherited": true
+									},
+									"comment": {
+										"summary": [],
+										"blockTags": [
+											{
+												"tag": "@see",
+												"content": [
+													{
+														"kind": "text",
+														"text": "https://v8.dev/docs/stack-trace-api#customizing-stack-traces"
+													}
+												]
+											}
+										]
+									},
+									"sources": [
+										{
+											"fileName": "node_modules/.pnpm/@types+node@25.9.5/node_modules/@types/node/globals.d.ts",
+											"line": 55,
+											"character": 4
+										}
+									],
+									"parameters": [
+										{
+											"id": 171,
+											"name": "err",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {
+												"isExternal": true
+											},
+											"type": {
+												"type": "reference",
+												"target": {
+													"packageName": "typescript",
+													"packagePath": "lib/lib.es5.d.ts",
+													"qualifiedName": "Error"
+												},
+												"name": "Error",
+												"package": "typescript"
+											}
+										},
+										{
+											"id": 172,
+											"name": "stackTraces",
+											"variant": "param",
+											"kind": 32768,
+											"flags": {
+												"isExternal": true
+											},
+											"type": {
+												"type": "array",
+												"elementType": {
+													"type": "reference",
+													"target": {
+														"packageName": "@types/node",
+														"packagePath": "globals.d.ts",
+														"qualifiedName": "NodeJS.CallSite"
+													},
+													"name": "CallSite",
+													"package": "@types/node",
+													"qualifiedName": "NodeJS.CallSite"
+												}
+											}
+										}
+									],
+									"type": {
+										"type": "intrinsic",
+										"name": "any"
+									},
+									"inheritedFrom": {
+										"type": "reference",
+										"target": -1,
+										"name": "Error.prepareStackTrace"
+									}
+								}
+							],
+							"inheritedFrom": {
+								"type": "reference",
+								"target": -1,
+								"name": "Error.prepareStackTrace"
 							}
 						}
 					],
 					"groups": [
 						{
+							"title": "Constructors",
+							"children": [
+								157
+							]
+						},
+						{
 							"title": "Properties",
 							"children": [
-								85,
-								86,
-								87,
-								88,
-								89,
-								90,
-								91,
-								92,
-								93,
-								94,
-								95
+								160,
+								161,
+								162,
+								163,
+								164
+							]
+						},
+						{
+							"title": "Methods",
+							"children": [
+								165,
+								169
 							]
 						}
 					],
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 58,
-							"character": 17,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L58"
+							"fileName": "packages/core/src/grade.ts",
+							"line": 124,
+							"character": 13,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L124"
+						}
+					],
+					"extendedTypes": [
+						{
+							"type": "reference",
+							"target": {
+								"packageName": "typescript",
+								"packagePath": "lib/lib.es5.d.ts",
+								"qualifiedName": "Error"
+							},
+							"name": "Error",
+							"package": "typescript"
 						}
 					]
 				},
 				{
-					"id": 96,
-					"name": "GradeOptions",
+					"id": 173,
+					"name": "Cap",
 					"variant": "declaration",
 					"kind": 256,
 					"flags": {},
-					"children": [
-						{
-							"id": 97,
-							"name": "combinationsPath",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
-							},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 81,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L81"
-								}
-							],
-							"type": {
-								"type": "intrinsic",
-								"name": "string"
+					"comment": {
+						"summary": [
+							{
+								"kind": "text",
+								"text": "The dependency and resolved artifact holding a platform below L4."
 							}
-						}
-					],
-					"groups": [
-						{
-							"title": "Properties",
-							"children": [
-								97
-							]
-						}
-					],
-					"sources": [
-						{
-							"fileName": "grade.ts",
-							"line": 80,
-							"character": 17,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L80"
-						}
-					]
-				},
-				{
-					"id": 98,
-					"name": "LockedPackage",
-					"variant": "declaration",
-					"kind": 256,
-					"flags": {},
+						]
+					},
 					"children": [
 						{
-							"id": 99,
-							"name": "build",
+							"id": 174,
+							"name": "artifact",
 							"variant": "declaration",
 							"kind": 1024,
-							"flags": {
-								"isOptional": true
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The resolved artifact URL, or the path it is built from."
+									}
+								]
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 77,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 37,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L77"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L37"
 								}
 							],
 							"type": {
@@ -904,17 +2266,25 @@
 							}
 						},
 						{
-							"id": 100,
+							"id": 175,
 							"name": "channel",
 							"variant": "declaration",
 							"kind": 1024,
 							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The channel it resolved from, or null when it was built from source."
+									}
+								]
+							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 75,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 35,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L75"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L35"
 								}
 							],
 							"type": {
@@ -932,38 +2302,25 @@
 							}
 						},
 						{
-							"id": 101,
-							"name": "name",
+							"id": 176,
+							"name": "package",
 							"variant": "declaration",
 							"kind": 1024,
 							"flags": {},
-							"sources": [
-								{
-									"fileName": "grade.ts",
-									"line": 73,
-									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L73"
-								}
-							],
-							"type": {
-								"type": "intrinsic",
-								"name": "string"
-							}
-						},
-						{
-							"id": 102,
-							"name": "source",
-							"variant": "declaration",
-							"kind": 1024,
-							"flags": {
-								"isOptional": true
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The dependency name, as the manifest and the lock both spell it."
+									}
+								]
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 76,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 31,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L76"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L31"
 								}
 							],
 							"type": {
@@ -972,19 +2329,27 @@
 							}
 						},
 						{
-							"id": 103,
+							"id": 177,
 							"name": "version",
 							"variant": "declaration",
 							"kind": 1024,
 							"flags": {
 								"isOptional": true
 							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The locked version, absent only when the lock records none."
+									}
+								]
+							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 74,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 33,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L74"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L33"
 								}
 							],
 							"type": {
@@ -997,25 +2362,1106 @@
 						{
 							"title": "Properties",
 							"children": [
-								99,
-								100,
-								101,
-								102,
-								103
+								174,
+								175,
+								176,
+								177
 							]
 						}
 					],
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 72,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 29,
 							"character": 17,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L72"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L29"
 						}
 					]
 				},
 				{
-					"id": 104,
+					"id": 178,
+					"name": "Grade",
+					"variant": "declaration",
+					"kind": 256,
+					"flags": {},
+					"children": [
+						{
+							"id": 179,
+							"name": "cap",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "What holds the environment at this level. Absent at L4, where nothing does."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 99,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L99"
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 173,
+								"name": "Cap",
+								"package": "@biopixi/core"
+							}
+						},
+						{
+							"id": 180,
+							"name": "conformant",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Whether the manifest is inside profile v0. Everything below is unanswerable when false."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 83,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L83"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "boolean"
+							}
+						},
+						{
+							"id": 181,
+							"name": "evidenceState",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Whether a solve backs the result. Null when the manifest never got as far as being solved."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 85,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L85"
+								}
+							],
+							"type": {
+								"type": "union",
+								"types": [
+									{
+										"type": "reference",
+										"target": 218,
+										"name": "EvidenceState",
+										"package": "@biopixi/core"
+									},
+									{
+										"type": "literal",
+										"value": null
+									}
+								]
+							}
+						},
+						{
+							"id": 182,
+							"name": "label",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The level, evidence state, or "
+									},
+									{
+										"kind": "code",
+										"text": "`L0`"
+									},
+									{
+										"kind": "text",
+										"text": ", as one token for display."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 89,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L89"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 183,
+							"name": "level",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "How far the environment travels, 1–4. Null unless "
+									},
+									{
+										"kind": "code",
+										"text": "`evidenceState`"
+									},
+									{
+										"kind": "text",
+										"text": " is "
+									},
+									{
+										"kind": "code",
+										"text": "`DEFINITIVE`"
+									},
+									{
+										"kind": "text",
+										"text": "."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 87,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L87"
+								}
+							],
+							"type": {
+								"type": "union",
+								"types": [
+									{
+										"type": "intrinsic",
+										"name": "number"
+									},
+									{
+										"type": "literal",
+										"value": null
+									}
+								]
+							}
+						},
+						{
+							"id": 184,
+							"name": "lints",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Portability concerns that did not change the result."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 93,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L93"
+								}
+							],
+							"type": {
+								"type": "array",
+								"elementType": {
+									"type": "intrinsic",
+									"name": "string"
+								}
+							}
+						},
+						{
+							"id": 185,
+							"name": "nextActions",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "What to do to move the result up, in the order it would have to be done."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 95,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L95"
+								}
+							],
+							"type": {
+								"type": "array",
+								"elementType": {
+									"type": "intrinsic",
+									"name": "string"
+								}
+							}
+						},
+						{
+							"id": 186,
+							"name": "projectRoot",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The graded directory, absolute and symlink-resolved."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 75,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L75"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 187,
+							"name": "publication",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The container this environment can be published as, and how that was arrived at."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 101,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L101"
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 210,
+								"name": "Publication",
+								"package": "@biopixi/core"
+							}
+						},
+						{
+							"id": 188,
+							"name": "reasons",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Why the result is what it is, most specific first."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 91,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L91"
+								}
+							],
+							"type": {
+								"type": "array",
+								"elementType": {
+									"type": "intrinsic",
+									"name": "string"
+								}
+							}
+						},
+						{
+							"id": 189,
+							"name": "snapshot",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Provenance of the vendored metadata behind "
+									},
+									{
+										"kind": "code",
+										"text": "`publication`"
+									},
+									{
+										"kind": "text",
+										"text": ", when any was consulted."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 103,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L103"
+								}
+							],
+							"type": {
+								"type": "reference",
+								"target": 201,
+								"name": "MetadataSnapshot",
+								"package": "@biopixi/core"
+							}
+						},
+						{
+							"id": 190,
+							"name": "sourceRoot",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the\nproject root; a caller grading a collection may widen it to any ancestor. Recorded on every\nresult because it is a property of the invocation, not of the project."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 81,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L81"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 191,
+							"name": "target",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The "
+									},
+									{
+										"kind": "code",
+										"text": "`name=version`"
+									},
+									{
+										"kind": "text",
+										"text": " set a container claim would be built from."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 97,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L97"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								179,
+								180,
+								181,
+								182,
+								183,
+								184,
+								185,
+								186,
+								187,
+								188,
+								189,
+								190,
+								191
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 73,
+							"character": 17,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L73"
+						}
+					],
+					"extendedBy": [
+						{
+							"type": "reference",
+							"target": 270,
+							"name": "GradeReportEntry"
+						}
+					]
+				},
+				{
+					"id": 192,
+					"name": "GradeOptions",
+					"variant": "declaration",
+					"kind": 256,
+					"flags": {},
+					"children": [
+						{
+							"id": 193,
+							"name": "combinationsPath",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 115,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L115"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 194,
+							"name": "sourceRoot",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Widen the path-dependency bound to an ancestor of the project root. Defaults to that root."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 117,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L117"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								193,
+								194
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 114,
+							"character": 17,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L114"
+						}
+					]
+				},
+				{
+					"id": 195,
+					"name": "LockedPackage",
+					"variant": "declaration",
+					"kind": 256,
+					"flags": {},
+					"children": [
+						{
+							"id": 196,
+							"name": "build",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 111,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L111"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 197,
+							"name": "channel",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 109,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L109"
+								}
+							],
+							"type": {
+								"type": "union",
+								"types": [
+									{
+										"type": "intrinsic",
+										"name": "string"
+									},
+									{
+										"type": "literal",
+										"value": null
+									}
+								]
+							}
+						},
+						{
+							"id": 198,
+							"name": "name",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 107,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L107"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 199,
+							"name": "source",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 110,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L110"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 200,
+							"name": "version",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {
+								"isOptional": true
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 108,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L108"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								196,
+								197,
+								198,
+								199,
+								200
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 106,
+							"character": 17,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L106"
+						}
+					]
+				},
+				{
+					"id": 201,
+					"name": "MetadataSnapshot",
+					"variant": "declaration",
+					"kind": 256,
+					"flags": {},
+					"comment": {
+						"summary": [
+							{
+								"kind": "text",
+								"text": "Provenance of the vendored public metadata a claim rests on."
+							}
+						]
+					},
+					"children": [
+						{
+							"id": 202,
+							"name": "fetched",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The date the copy was taken, ISO 8601."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 68,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L68"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 203,
+							"name": "file",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The vendored copy's filename inside this package."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 56,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L56"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 204,
+							"name": "path",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The path within that repository."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 60,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L60"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 205,
+							"name": "ref",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The branch or tag followed."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 62,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L62"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 206,
+							"name": "revision",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The exact upstream commit vendored, or null if it was not recorded."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 64,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L64"
+								}
+							],
+							"type": {
+								"type": "union",
+								"types": [
+									{
+										"type": "intrinsic",
+										"name": "string"
+									},
+									{
+										"type": "literal",
+										"value": null
+									}
+								]
+							}
+						},
+						{
+							"id": 207,
+							"name": "revisionDate",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The date of that commit, ISO 8601."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 66,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L66"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 208,
+							"name": "sha1",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "SHA-1 of the vendored copy, so the claim stays checkable offline."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 70,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L70"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 209,
+							"name": "source",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The upstream repository it was taken from."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 58,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L58"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								202,
+								203,
+								204,
+								205,
+								206,
+								207,
+								208,
+								209
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 54,
+							"character": 17,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L54"
+						}
+					]
+				},
+				{
+					"id": 210,
+					"name": "Publication",
+					"variant": "declaration",
+					"kind": 256,
+					"flags": {},
+					"comment": {
+						"summary": [
+							{
+								"kind": "text",
+								"text": "A container claim and the basis for it. "
+							},
+							{
+								"kind": "code",
+								"text": "`verified`"
+							},
+							{
+								"kind": "text",
+								"text": " stays false while grading is offline: naming\nan image is not the same as reaching a registry and finding it there."
+							}
+						]
+					},
+					"children": [
+						{
+							"id": 211,
+							"name": "basis",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "How the URI was arrived at, so an unverified claim can be judged rather than trusted."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 50,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L50"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 212,
+							"name": "uri",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "The container image this environment corresponds to."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 46,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L46"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "string"
+							}
+						},
+						{
+							"id": 213,
+							"name": "verified",
+							"variant": "declaration",
+							"kind": 1024,
+							"flags": {},
+							"comment": {
+								"summary": [
+									{
+										"kind": "text",
+										"text": "Whether a registry was reached and the image found there. False while grading is offline."
+									}
+								]
+							},
+							"sources": [
+								{
+									"fileName": "packages/core/src/grade.ts",
+									"line": 48,
+									"character": 2,
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L48"
+								}
+							],
+							"type": {
+								"type": "intrinsic",
+								"name": "boolean"
+							}
+						}
+					],
+					"groups": [
+						{
+							"title": "Properties",
+							"children": [
+								211,
+								212,
+								213
+							]
+						}
+					],
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 44,
+							"character": 17,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L44"
+						}
+					]
+				},
+				{
+					"id": 214,
 					"name": "Target",
 					"variant": "declaration",
 					"kind": 256,
@@ -1030,7 +3476,7 @@
 					},
 					"children": [
 						{
-							"id": 105,
+							"id": 215,
 							"name": "build",
 							"variant": "declaration",
 							"kind": 1024,
@@ -1039,10 +3485,10 @@
 							},
 							"sources": [
 								{
-									"fileName": "mulled.ts",
+									"fileName": "packages/core/src/mulled.ts",
 									"line": 9,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L9"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L9"
 								}
 							],
 							"type": {
@@ -1051,17 +3497,17 @@
 							}
 						},
 						{
-							"id": 106,
+							"id": 216,
 							"name": "package",
 							"variant": "declaration",
 							"kind": 1024,
 							"flags": {},
 							"sources": [
 								{
-									"fileName": "mulled.ts",
+									"fileName": "packages/core/src/mulled.ts",
 									"line": 7,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L7"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L7"
 								}
 							],
 							"type": {
@@ -1070,7 +3516,7 @@
 							}
 						},
 						{
-							"id": 107,
+							"id": 217,
 							"name": "version",
 							"variant": "declaration",
 							"kind": 1024,
@@ -1079,10 +3525,10 @@
 							},
 							"sources": [
 								{
-									"fileName": "mulled.ts",
+									"fileName": "packages/core/src/mulled.ts",
 									"line": 8,
 									"character": 2,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L8"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L8"
 								}
 							],
 							"type": {
@@ -1095,33 +3541,85 @@
 						{
 							"title": "Properties",
 							"children": [
-								105,
-								106,
-								107
+								215,
+								216,
+								217
 							]
 						}
 					],
 					"sources": [
 						{
-							"fileName": "mulled.ts",
+							"fileName": "packages/core/src/mulled.ts",
 							"line": 6,
 							"character": 17,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L6"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L6"
 						}
 					]
 				},
 				{
-					"id": 108,
+					"id": 218,
+					"name": "EvidenceState",
+					"variant": "declaration",
+					"kind": 2097152,
+					"flags": {},
+					"comment": {
+						"summary": [
+							{
+								"kind": "text",
+								"text": "Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only\nmeaningful when the evidence is "
+							},
+							{
+								"kind": "code",
+								"text": "`DEFINITIVE`"
+							},
+							{
+								"kind": "text",
+								"text": "."
+							}
+						]
+					},
+					"sources": [
+						{
+							"fileName": "packages/core/src/grade.ts",
+							"line": 26,
+							"character": 12,
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L26"
+						}
+					],
+					"type": {
+						"type": "union",
+						"types": [
+							{
+								"type": "literal",
+								"value": "DEFINITIVE"
+							},
+							{
+								"type": "literal",
+								"value": "UNRESOLVED"
+							},
+							{
+								"type": "literal",
+								"value": "STALE"
+							},
+							{
+								"type": "literal",
+								"value": "UNSUPPORTED_LOCK"
+							}
+						]
+					}
+				},
+				{
+					"id": 219,
 					"name": "Manifest",
 					"variant": "declaration",
 					"kind": 2097152,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
+							"fileName": "packages/core/src/grade.ts",
 							"line": 20,
 							"character": 12,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L20"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L20"
 						}
 					],
 					"type": {
@@ -1146,22 +3644,22 @@
 					}
 				},
 				{
-					"id": 109,
+					"id": 220,
 					"name": "checkProfile",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 209,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 291,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L209"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L291"
 						}
 					],
 					"signatures": [
 						{
-							"id": 110,
+							"id": 221,
 							"name": "checkProfile",
 							"variant": "signature",
 							"kind": 4096,
@@ -1176,22 +3674,22 @@
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 209,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 291,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L209"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L291"
 								}
 							],
 							"parameters": [
 								{
-									"id": 111,
+									"id": 222,
 									"name": "manifest",
 									"variant": "param",
 									"kind": 32768,
 									"flags": {},
 									"type": {
 										"type": "reference",
-										"target": 108,
+										"target": 219,
 										"name": "Manifest",
 										"package": "@biopixi/core"
 									}
@@ -1200,24 +3698,24 @@
 							"type": {
 								"type": "reflection",
 								"declaration": {
-									"id": 112,
+									"id": 223,
 									"name": "__type",
 									"variant": "declaration",
 									"kind": 65536,
 									"flags": {},
 									"children": [
 										{
-											"id": 113,
+											"id": 224,
 											"name": "lints",
 											"variant": "declaration",
 											"kind": 1024,
 											"flags": {},
 											"sources": [
 												{
-													"fileName": "grade.ts",
-													"line": 211,
+													"fileName": "packages/core/src/grade.ts",
+													"line": 293,
 													"character": 2,
-													"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L211"
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L293"
 												}
 											],
 											"type": {
@@ -1229,17 +3727,17 @@
 											}
 										},
 										{
-											"id": 114,
+											"id": 225,
 											"name": "reasons",
 											"variant": "declaration",
 											"kind": 1024,
 											"flags": {},
 											"sources": [
 												{
-													"fileName": "grade.ts",
-													"line": 210,
+													"fileName": "packages/core/src/grade.ts",
+													"line": 292,
 													"character": 2,
-													"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L210"
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L292"
 												}
 											],
 											"type": {
@@ -1255,8 +3753,8 @@
 										{
 											"title": "Properties",
 											"children": [
-												113,
-												114
+												224,
+												225
 											]
 										}
 									]
@@ -1266,22 +3764,22 @@
 					]
 				},
 				{
-					"id": 115,
+					"id": 226,
 					"name": "grade",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 443,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 527,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L443"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L527"
 						}
 					],
 					"signatures": [
 						{
-							"id": 116,
+							"id": 227,
 							"name": "grade",
 							"variant": "signature",
 							"kind": 4096,
@@ -1292,19 +3790,38 @@
 										"kind": "text",
 										"text": "Grade one project directory using only its manifest, lock, and vendored metadata."
 									}
+								],
+								"blockTags": [
+									{
+										"tag": "@throws",
+										"content": [
+											{
+												"kind": "text",
+												"text": "if "
+											},
+											{
+												"kind": "code",
+												"text": "`options.sourceRoot`"
+											},
+											{
+												"kind": "text",
+												"text": " is missing or does not contain the project."
+											}
+										]
+									}
 								]
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 443,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 527,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L443"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L527"
 								}
 							],
 							"parameters": [
 								{
-									"id": 117,
+									"id": 228,
 									"name": "directory",
 									"variant": "param",
 									"kind": 32768,
@@ -1315,14 +3832,14 @@
 									}
 								},
 								{
-									"id": 118,
+									"id": 229,
 									"name": "options",
 									"variant": "param",
 									"kind": 32768,
 									"flags": {},
 									"type": {
 										"type": "reference",
-										"target": 96,
+										"target": 192,
 										"name": "GradeOptions",
 										"package": "@biopixi/core"
 									},
@@ -1331,7 +3848,7 @@
 							],
 							"type": {
 								"type": "reference",
-								"target": 84,
+								"target": 178,
 								"name": "Grade",
 								"package": "@biopixi/core"
 							}
@@ -1339,22 +3856,22 @@
 					]
 				},
 				{
-					"id": 119,
+					"id": 230,
 					"name": "loadCombinations",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 414,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 496,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L414"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L496"
 						}
 					],
 					"signatures": [
 						{
-							"id": 120,
+							"id": 231,
 							"name": "loadCombinations",
 							"variant": "signature",
 							"kind": 4096,
@@ -1369,15 +3886,15 @@
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 414,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 496,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L414"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L496"
 								}
 							],
 							"parameters": [
 								{
-									"id": 121,
+									"id": 232,
 									"name": "path",
 									"variant": "param",
 									"kind": 32768,
@@ -1421,22 +3938,22 @@
 					]
 				},
 				{
-					"id": 122,
+					"id": 233,
 					"name": "loadLock",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 365,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 447,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L365"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L447"
 						}
 					],
 					"signatures": [
 						{
-							"id": 123,
+							"id": 234,
 							"name": "loadLock",
 							"variant": "signature",
 							"kind": 4096,
@@ -1451,15 +3968,15 @@
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 365,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 447,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L365"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L447"
 								}
 							],
 							"parameters": [
 								{
-									"id": 124,
+									"id": 235,
 									"name": "path",
 									"variant": "param",
 									"kind": 32768,
@@ -1473,48 +3990,48 @@
 							"type": {
 								"type": "reflection",
 								"declaration": {
-									"id": 125,
+									"id": 236,
 									"name": "__type",
 									"variant": "declaration",
 									"kind": 65536,
 									"flags": {},
 									"children": [
 										{
-											"id": 126,
+											"id": 237,
 											"name": "packages",
 											"variant": "declaration",
 											"kind": 1024,
 											"flags": {},
 											"sources": [
 												{
-													"fileName": "grade.ts",
-													"line": 366,
+													"fileName": "packages/core/src/grade.ts",
+													"line": 448,
 													"character": 2,
-													"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L366"
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L448"
 												}
 											],
 											"type": {
 												"type": "array",
 												"elementType": {
 													"type": "reference",
-													"target": 98,
+													"target": 195,
 													"name": "LockedPackage",
 													"package": "@biopixi/core"
 												}
 											}
 										},
 										{
-											"id": 127,
+											"id": 238,
 											"name": "problems",
 											"variant": "declaration",
 											"kind": 1024,
 											"flags": {},
 											"sources": [
 												{
-													"fileName": "grade.ts",
-													"line": 367,
+													"fileName": "packages/core/src/grade.ts",
+													"line": 449,
 													"character": 2,
-													"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L367"
+													"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L449"
 												}
 											],
 											"type": {
@@ -1530,8 +4047,8 @@
 										{
 											"title": "Properties",
 											"children": [
-												126,
-												127
+												237,
+												238
 											]
 										}
 									]
@@ -1541,22 +4058,22 @@
 					]
 				},
 				{
-					"id": 128,
+					"id": 239,
 					"name": "parseManifest",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "grade.ts",
-							"line": 152,
+							"fileName": "packages/core/src/grade.ts",
+							"line": 234,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L152"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L234"
 						}
 					],
 					"signatures": [
 						{
-							"id": 129,
+							"id": 240,
 							"name": "parseManifest",
 							"variant": "signature",
 							"kind": 4096,
@@ -1571,15 +4088,15 @@
 							},
 							"sources": [
 								{
-									"fileName": "grade.ts",
-									"line": 152,
+									"fileName": "packages/core/src/grade.ts",
+									"line": 234,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/grade.ts#L152"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/grade.ts#L234"
 								}
 							],
 							"parameters": [
 								{
-									"id": 130,
+									"id": 241,
 									"name": "path",
 									"variant": "param",
 									"kind": 32768,
@@ -1592,7 +4109,7 @@
 							],
 							"type": {
 								"type": "reference",
-								"target": 108,
+								"target": 219,
 								"name": "Manifest",
 								"package": "@biopixi/core"
 							}
@@ -1600,22 +4117,22 @@
 					]
 				},
 				{
-					"id": 131,
+					"id": 242,
 					"name": "pullUri",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "mulled.ts",
+							"fileName": "packages/core/src/mulled.ts",
 							"line": 60,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L60"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L60"
 						}
 					],
 					"signatures": [
 						{
-							"id": 132,
+							"id": 243,
 							"name": "pullUri",
 							"variant": "signature",
 							"kind": 4096,
@@ -1630,15 +4147,15 @@
 							},
 							"sources": [
 								{
-									"fileName": "mulled.ts",
+									"fileName": "packages/core/src/mulled.ts",
 									"line": 60,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L60"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L60"
 								}
 							],
 							"parameters": [
 								{
-									"id": 133,
+									"id": 244,
 									"name": "targets",
 									"variant": "param",
 									"kind": 32768,
@@ -1647,14 +4164,14 @@
 										"type": "array",
 										"elementType": {
 											"type": "reference",
-											"target": 104,
+											"target": 214,
 											"name": "Target",
 											"package": "@biopixi/core"
 										}
 									}
 								},
 								{
-									"id": 134,
+									"id": 245,
 									"name": "imageBuild",
 									"variant": "param",
 									"kind": 32768,
@@ -1675,22 +4192,22 @@
 					]
 				},
 				{
-					"id": 135,
+					"id": 246,
 					"name": "v2ImageName",
 					"variant": "declaration",
 					"kind": 64,
 					"flags": {},
 					"sources": [
 						{
-							"fileName": "mulled.ts",
+							"fileName": "packages/core/src/mulled.ts",
 							"line": 35,
 							"character": 16,
-							"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L35"
+							"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L35"
 						}
 					],
 					"signatures": [
 						{
-							"id": 136,
+							"id": 247,
 							"name": "v2ImageName",
 							"variant": "signature",
 							"kind": 4096,
@@ -1713,15 +4230,15 @@
 							},
 							"sources": [
 								{
-									"fileName": "mulled.ts",
+									"fileName": "packages/core/src/mulled.ts",
 									"line": 35,
 									"character": 16,
-									"url": "https://github.com/jmchilton/biopixi/blob/b43da92832fa5fd190fe2a3c204ca7713ed3a436/packages/core/src/mulled.ts#L35"
+									"url": "https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/core/src/mulled.ts#L35"
 								}
 							],
 							"parameters": [
 								{
-									"id": 137,
+									"id": 248,
 									"name": "targets",
 									"variant": "param",
 									"kind": 32768,
@@ -1730,14 +4247,14 @@
 										"type": "array",
 										"elementType": {
 											"type": "reference",
-											"target": 104,
+											"target": 214,
 											"name": "Target",
 											"package": "@biopixi/core"
 										}
 									}
 								},
 								{
-									"id": 138,
+									"id": 249,
 									"name": "imageBuild",
 									"variant": "param",
 									"kind": 32768,
@@ -1760,30 +4277,40 @@
 			],
 			"groups": [
 				{
+					"title": "Classes",
+					"children": [
+						156
+					]
+				},
+				{
 					"title": "Interfaces",
 					"children": [
-						84,
-						96,
-						98,
-						104
+						173,
+						178,
+						192,
+						195,
+						201,
+						210,
+						214
 					]
 				},
 				{
 					"title": "Type Aliases",
 					"children": [
-						108
+						218,
+						219
 					]
 				},
 				{
 					"title": "Functions",
 					"children": [
-						109,
-						115,
-						119,
-						122,
-						128,
-						131,
-						135
+						220,
+						226,
+						230,
+						233,
+						239,
+						242,
+						246
 					]
 				}
 			],
@@ -1831,414 +4358,774 @@
 		{
 			"title": "Modules",
 			"children": [
-				139,
-				83
+				250,
+				155
 			]
 		}
 	],
 	"packageName": "biopixi",
 	"symbolIdMap": {
-		"83": {
+		"155": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/index.ts",
 			"qualifiedName": ""
 		},
-		"84": {
+		"156": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "SourceRootError"
+		},
+		"157": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "SourceRootError.__constructor"
+		},
+		"158": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "SourceRootError"
+		},
+		"159": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "message"
+		},
+		"160": {
+			"packageName": "typescript",
+			"packagePath": "lib/lib.es2022.error.d.ts",
+			"qualifiedName": "Error.cause"
+		},
+		"161": {
+			"packageName": "typescript",
+			"packagePath": "lib/lib.es5.d.ts",
+			"qualifiedName": "Error.message"
+		},
+		"162": {
+			"packageName": "typescript",
+			"packagePath": "lib/lib.es5.d.ts",
+			"qualifiedName": "Error.name"
+		},
+		"163": {
+			"packageName": "typescript",
+			"packagePath": "lib/lib.es5.d.ts",
+			"qualifiedName": "Error.stack"
+		},
+		"164": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "ErrorConstructor.stackTraceLimit"
+		},
+		"165": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "ErrorConstructor.captureStackTrace"
+		},
+		"166": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "ErrorConstructor.captureStackTrace"
+		},
+		"167": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "targetObject"
+		},
+		"168": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "constructorOpt"
+		},
+		"169": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "ErrorConstructor.prepareStackTrace"
+		},
+		"170": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "ErrorConstructor.prepareStackTrace"
+		},
+		"171": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "err"
+		},
+		"172": {
+			"packageName": "@types/node",
+			"packagePath": "globals.d.ts",
+			"qualifiedName": "stackTraces"
+		},
+		"173": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Cap"
+		},
+		"174": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Cap.artifact"
+		},
+		"175": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Cap.channel"
+		},
+		"176": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Cap.package"
+		},
+		"177": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Cap.version"
+		},
+		"178": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade"
 		},
-		"85": {
+		"179": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.cap"
 		},
-		"86": {
+		"180": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.conformant"
 		},
-		"87": {
+		"181": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.evidenceState"
 		},
-		"88": {
+		"182": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.label"
 		},
-		"89": {
+		"183": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.level"
 		},
-		"90": {
+		"184": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.lints"
 		},
-		"91": {
+		"185": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.nextActions"
 		},
-		"92": {
+		"186": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.projectRoot"
+		},
+		"187": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.publication"
 		},
-		"93": {
+		"188": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.reasons"
 		},
-		"94": {
+		"189": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.snapshot"
 		},
-		"95": {
+		"190": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.sourceRoot"
+		},
+		"191": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Grade.target"
 		},
-		"96": {
+		"192": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "GradeOptions"
 		},
-		"97": {
+		"193": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "GradeOptions.combinationsPath"
 		},
-		"98": {
+		"194": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "GradeOptions.sourceRoot"
+		},
+		"195": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage"
 		},
-		"99": {
+		"196": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage.build"
 		},
-		"100": {
+		"197": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage.channel"
 		},
-		"101": {
+		"198": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage.name"
 		},
-		"102": {
+		"199": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage.source"
 		},
-		"103": {
+		"200": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "LockedPackage.version"
 		},
-		"104": {
+		"201": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot"
+		},
+		"202": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.fetched"
+		},
+		"203": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.file"
+		},
+		"204": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.path"
+		},
+		"205": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.ref"
+		},
+		"206": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.revision"
+		},
+		"207": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.revisionDate"
+		},
+		"208": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.sha1"
+		},
+		"209": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "MetadataSnapshot.source"
+		},
+		"210": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Publication"
+		},
+		"211": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Publication.basis"
+		},
+		"212": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Publication.uri"
+		},
+		"213": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Publication.verified"
+		},
+		"214": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "Target"
 		},
-		"105": {
+		"215": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "Target.build"
 		},
-		"106": {
+		"216": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "Target.package"
 		},
-		"107": {
+		"217": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "Target.version"
 		},
-		"108": {
+		"218": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "EvidenceState"
+		},
+		"219": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "Manifest"
 		},
-		"109": {
+		"220": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "checkProfile"
 		},
-		"110": {
+		"221": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "checkProfile"
 		},
-		"111": {
+		"222": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "manifest"
 		},
-		"112": {
+		"223": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type"
 		},
-		"113": {
+		"224": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type.lints"
 		},
-		"114": {
+		"225": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type.reasons"
 		},
-		"115": {
+		"226": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "grade"
 		},
-		"116": {
+		"227": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "grade"
 		},
-		"117": {
+		"228": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "directory"
 		},
-		"118": {
+		"229": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "options"
 		},
-		"119": {
+		"230": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "loadCombinations"
 		},
-		"120": {
+		"231": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "loadCombinations"
 		},
-		"121": {
+		"232": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "path"
 		},
-		"122": {
+		"233": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "loadLock"
 		},
-		"123": {
+		"234": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "loadLock"
 		},
-		"124": {
+		"235": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "path"
 		},
-		"125": {
+		"236": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type"
 		},
-		"126": {
+		"237": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type.packages"
 		},
-		"127": {
+		"238": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "__type.problems"
 		},
-		"128": {
+		"239": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "parseManifest"
 		},
-		"129": {
+		"240": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "parseManifest"
 		},
-		"130": {
+		"241": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/grade.ts",
 			"qualifiedName": "path"
 		},
-		"131": {
+		"242": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "pullUri"
 		},
-		"132": {
+		"243": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "pullUri"
 		},
-		"133": {
+		"244": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "targets"
 		},
-		"134": {
+		"245": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "imageBuild"
 		},
-		"135": {
+		"246": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "v2ImageName"
 		},
-		"136": {
+		"247": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "v2ImageName"
 		},
-		"137": {
+		"248": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "targets"
 		},
-		"138": {
+		"249": {
 			"packageName": "@biopixi/core",
 			"packagePath": "src/mulled.ts",
 			"qualifiedName": "imageBuild"
 		},
-		"140": {
+		"251": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/index.ts",
 			"qualifiedName": ""
 		},
-		"141": {
+		"252": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "GradeCommandIo"
 		},
-		"142": {
+		"253": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "GradeCommandIo.stderr"
 		},
-		"143": {
+		"254": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "__type"
 		},
-		"144": {
+		"255": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "__type"
 		},
-		"145": {
+		"256": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "message"
 		},
-		"146": {
+		"257": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "GradeCommandIo.stdout"
 		},
-		"147": {
+		"258": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "__type"
 		},
-		"148": {
+		"259": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "__type"
 		},
-		"149": {
+		"260": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "message"
 		},
-		"150": {
+		"261": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "GradeCommandOptions"
 		},
-		"151": {
+		"262": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "GradeCommandOptions.json"
+		},
+		"263": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "GradeCommandOptions.minLevel"
 		},
-		"152": {
+		"264": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "GradeCommandOptions.sourceRoot"
+		},
+		"265": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReport"
+		},
+		"266": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReport.$schema"
+		},
+		"267": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReport.biopixi"
+		},
+		"268": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReport.profile"
+		},
+		"269": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReport.results"
+		},
+		"270": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReportEntry"
+		},
+		"271": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.cap"
+		},
+		"272": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.conformant"
+		},
+		"273": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "GradeReportEntry.directory"
+		},
+		"274": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.evidenceState"
+		},
+		"275": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.label"
+		},
+		"276": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.level"
+		},
+		"277": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.lints"
+		},
+		"278": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.nextActions"
+		},
+		"279": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.projectRoot"
+		},
+		"280": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.publication"
+		},
+		"281": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.reasons"
+		},
+		"282": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.snapshot"
+		},
+		"283": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.sourceRoot"
+		},
+		"284": {
+			"packageName": "@biopixi/core",
+			"packagePath": "src/grade.ts",
+			"qualifiedName": "Grade.target"
+		},
+		"285": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "EXIT_CODES"
+		},
+		"286": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object"
+		},
+		"287": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object.belowThreshold"
+		},
+		"288": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object.indefinite"
+		},
+		"289": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object.ok"
+		},
+		"290": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object.outOfProfile"
+		},
+		"291": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/grade-command.ts",
+			"qualifiedName": "__object.usage"
+		},
+		"292": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "REPORT_SCHEMA_URL"
+		},
+		"293": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/program.ts",
 			"qualifiedName": "buildProgram"
 		},
-		"153": {
+		"294": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/program.ts",
 			"qualifiedName": "buildProgram"
 		},
-		"154": {
+		"295": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "buildReport"
+		},
+		"296": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "buildReport"
+		},
+		"297": {
+			"packageName": "@biopixi/cli",
+			"packagePath": "src/report.ts",
+			"qualifiedName": "results"
+		},
+		"298": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "renderGrade"
 		},
-		"155": {
+		"299": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "renderGrade"
 		},
-		"156": {
+		"300": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "directory"
 		},
-		"157": {
+		"301": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "result"
 		},
-		"158": {
+		"302": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "runGrade"
 		},
-		"159": {
+		"303": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "runGrade"
 		},
-		"160": {
+		"304": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "directories"
 		},
-		"161": {
+		"305": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "options"
 		},
-		"162": {
+		"306": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "src/grade-command.ts",
 			"qualifiedName": "io"
 		},
-		"163": {
+		"307": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "package.json",
 			"qualifiedName": ""
 		},
-		"164": {
+		"308": {
 			"packageName": "@biopixi/cli",
 			"packagePath": "package.json",
 			"qualifiedName": ""
@@ -2255,13 +5142,13 @@
 			"7": "packages/cli/README.md"
 		},
 		"reflections": {
-			"1": 83,
-			"2": 83,
-			"3": 83,
-			"4": 139,
-			"5": 140,
-			"6": 163,
-			"7": 139
+			"1": 155,
+			"2": 155,
+			"3": 155,
+			"4": 250,
+			"5": 251,
+			"6": 307,
+			"7": 250
 		}
 	}
 }

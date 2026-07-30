@@ -1,4 +1,4 @@
-<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>runGrade | biopixi API</title><meta name="description" content="Documentation for biopixi API"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
+<!DOCTYPE html><html class="default" lang="en" data-base="../"><head><meta charset="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>buildReport | biopixi API</title><meta name="description" content="Documentation for biopixi API"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="../assets/style.css"/><link rel="stylesheet" href="../assets/highlight.css"/><script defer src="../assets/main.js"></script><script async src="../assets/icons.js" id="tsd-icons-script"></script><script async src="../assets/search.js" id="tsd-search-script"></script><script async src="../assets/navigation.js" id="tsd-nav-script"></script><script async src="../assets/hierarchy.js" id="tsd-hierarchy-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => window.app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar">
 <div class="tsd-toolbar-contents container"><a href="../index.html" class="title">biopixi API</a>
 <div id="tsd-toolbar-links"></div><button id="tsd-search-trigger" class="tsd-widget" aria-label="Search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-search"></use></svg></button><dialog id="tsd-search" aria-label="Search"><input role="combobox" id="tsd-search-input" aria-controls="tsd-search-results" aria-autocomplete="list" aria-expanded="true" autocapitalize="off" autocomplete="off" placeholder="Search the docs" maxLength="100"/>
 <ul role="listbox" id="tsd-search-results"></ul>
@@ -10,25 +10,20 @@
 <ul class="tsd-breadcrumb" aria-label="Breadcrumb">
 <li><a href="../modules/_biopixi_cli.html">@biopixi/cli</a></li>
 <li><a href="../modules/_biopixi_cli..html"></a></li>
-<li><a href="" aria-current="page">runGrade</a></li></ul>
-<h1>Function runGrade</h1></div>
+<li><a href="" aria-current="page">buildReport</a></li></ul>
+<h1>Function buildReport</h1></div>
 <section class="tsd-panel">
 <ul class="tsd-signatures">
 <li class="">
-<div class="tsd-signature tsd-anchor-link" id="rungrade"><span class="tsd-kind-call-signature">runGrade</span><span class="tsd-signature-symbol">(</span><br/>    <span class="tsd-kind-parameter">directories</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">options</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/_biopixi_cli..GradeCommandOptions.html" class="tsd-signature-type tsd-kind-interface">GradeCommandOptions</a><span class="tsd-signature-symbol">,</span><br/>    <span class="tsd-kind-parameter">io</span><span class="tsd-signature-symbol">?:</span> <a href="../interfaces/_biopixi_cli..GradeCommandIo.html" class="tsd-signature-type tsd-kind-interface">GradeCommandIo</a><span class="tsd-signature-symbol">,</span><br/><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><a href="#rungrade" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
+<div class="tsd-signature tsd-anchor-link" id="buildreport"><span class="tsd-kind-call-signature">buildReport</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">results</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/_biopixi_cli..GradeReportEntry.html" class="tsd-signature-type tsd-kind-interface">GradeReportEntry</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">:</span> <a href="../interfaces/_biopixi_cli..GradeReport.html" class="tsd-signature-type tsd-kind-interface">GradeReport</a><a href="#buildreport" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></div>
 <div class="tsd-description">
-<div class="tsd-comment tsd-typography"><p>Grade one or more directories and return one of <a href="../variables/_biopixi_cli..EXIT_CODES.html" class="tsd-kind-variable">EXIT_CODES</a>.</p>
-<p>Without <code>--min-level</code> this is reporting rather than assertion, and the code is always <code>ok</code>.</p>
-</div>
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
 <ul class="tsd-parameter-list">
-<li><span><span class="tsd-kind-parameter">directories</span>: <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></span></li>
-<li><span><span class="tsd-kind-parameter">options</span>: <a href="../interfaces/_biopixi_cli..GradeCommandOptions.html" class="tsd-signature-type tsd-kind-interface">GradeCommandOptions</a><span class="tsd-signature-symbol"> = {}</span></span></li>
-<li><span><span class="tsd-kind-parameter">io</span>: <a href="../interfaces/_biopixi_cli..GradeCommandIo.html" class="tsd-signature-type tsd-kind-interface">GradeCommandIo</a><span class="tsd-signature-symbol"> = consoleIo</span></span></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4><aside class="tsd-sources">
+<li><span><span class="tsd-kind-parameter">results</span>: <a href="../interfaces/_biopixi_cli..GradeReportEntry.html" class="tsd-signature-type tsd-kind-interface">GradeReportEntry</a><span class="tsd-signature-symbol">[]</span></span></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="../interfaces/_biopixi_cli..GradeReport.html" class="tsd-signature-type tsd-kind-interface">GradeReport</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/grade-command.ts#L89">cli/src/grade-command.ts:89</a></li></ul></aside></div></li></ul></section></div>
+<li>Defined in <a href="https://github.com/jmchilton/biopixi/blob/653c250f91af0a145717e66ec21bc290ec1b2fb1/packages/cli/src/report.ts#L35">cli/src/report.ts:35</a></li></ul></aside></div></li></ul></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">

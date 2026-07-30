@@ -1,0 +1,91 @@
+<!-- Generated from packages/cli/src/report.ts by scripts/generate-schema.mjs. Do not edit. -->
+
+# Grade report
+
+`biopixi grade --json` writes one of these to stdout. It is the only output on stdout in that
+mode; diagnostics go to stderr, and the payload is written even when `--min-level` fails, since
+that is when a consumer needs it most.
+
+The schema is committed at `docs/schema/grade-report-v0.schema.json` and published at
+[`https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json`](https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json), which is the string every payload carries as its
+`$schema`. Both this page and the schema are generated from the TypeScript types that produce
+the payload, and CI fails if either has drifted from them.
+
+A field marked _no_ under **Always present** is omitted entirely rather than set to null, except
+where null is listed as one of its types.
+
+## GradeReport
+
+The `biopixi grade --json` payload.
+
+The envelope carries the versions a consumer needs to interpret `results`: `profile` is the grading profile the levels are defined by, `biopixi` is the release that produced them.
+
+| Field     | Type                                    | Always present | Description                                                  |
+| --------- | --------------------------------------- | -------------- | ------------------------------------------------------------ |
+| `$schema` | `string`                                | yes            | Where this payload's schema is published.                    |
+| `biopixi` | `string`                                | yes            | The biopixi release that produced the results.               |
+| `profile` | `string`                                | yes            | The grading profile the levels are defined by.               |
+| `results` | [GradeReportEntry](#gradereportentry)[] | yes            | One entry per directory given, in the order they were given. |
+
+## Cap
+
+The dependency and resolved artifact holding a platform below L4.
+
+| Field      | Type               | Always present | Description                                                          |
+| ---------- | ------------------ | -------------- | -------------------------------------------------------------------- |
+| `package`  | `string`           | yes            | The dependency name, as the manifest and the lock both spell it.     |
+| `version`  | `string`           | no             | The locked version, absent only when the lock records none.          |
+| `channel`  | `string` \| `null` | yes            | The channel it resolved from, or null when it was built from source. |
+| `artifact` | `string`           | yes            | The resolved artifact URL, or the path it is built from.             |
+
+## EvidenceState
+
+Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only meaningful when the evidence is `DEFINITIVE`.
+
+One of: `DEFINITIVE`, `UNRESOLVED`, `STALE`, `UNSUPPORTED_LOCK`.
+
+## GradeReportEntry
+
+One graded directory: the path as the caller wrote it, plus everything grading decided.
+
+| Field           | Type                                      | Always present | Description                                                                                                                                                                                                                                                   |
+| --------------- | ----------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `projectRoot`   | `string`                                  | yes            | The graded directory, absolute and symlink-resolved.                                                                                                                                                                                                          |
+| `sourceRoot`    | `string`                                  | yes            | The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the project root; a caller grading a collection may widen it to any ancestor. Recorded on every result because it is a property of the invocation, not of the project. |
+| `conformant`    | `boolean`                                 | yes            | Whether the manifest is inside profile v0. Everything below is unanswerable when false.                                                                                                                                                                       |
+| `evidenceState` | [EvidenceState](#evidencestate) \| `null` | yes            | Whether a solve backs the result. Null when the manifest never got as far as being solved.                                                                                                                                                                    |
+| `level`         | `number` \| `null`                        | yes            | How far the environment travels, 1–4. Null unless `evidenceState` is `DEFINITIVE`.                                                                                                                                                                            |
+| `label`         | `string`                                  | yes            | The level, evidence state, or `L0`, as one token for display.                                                                                                                                                                                                 |
+| `reasons`       | `string`[]                                | yes            | Why the result is what it is, most specific first.                                                                                                                                                                                                            |
+| `lints`         | `string`[]                                | yes            | Portability concerns that did not change the result.                                                                                                                                                                                                          |
+| `nextActions`   | `string`[]                                | yes            | What to do to move the result up, in the order it would have to be done.                                                                                                                                                                                      |
+| `target`        | `string`                                  | no             | The `name=version` set a container claim would be built from.                                                                                                                                                                                                 |
+| `cap`           | [Cap](#cap)                               | no             | What holds the environment at this level. Absent at L4, where nothing does.                                                                                                                                                                                   |
+| `publication`   | [Publication](#publication)               | no             | The container this environment can be published as, and how that was arrived at.                                                                                                                                                                              |
+| `snapshot`      | [MetadataSnapshot](#metadatasnapshot)     | no             | Provenance of the vendored metadata behind `publication`, when any was consulted.                                                                                                                                                                             |
+| `directory`     | `string`                                  | yes            | As supplied on the command line, so a caller can match results back to its own arguments.                                                                                                                                                                     |
+
+## MetadataSnapshot
+
+Provenance of the vendored public metadata a claim rests on.
+
+| Field          | Type               | Always present | Description                                                         |
+| -------------- | ------------------ | -------------- | ------------------------------------------------------------------- |
+| `file`         | `string`           | yes            | The vendored copy's filename inside this package.                   |
+| `source`       | `string`           | yes            | The upstream repository it was taken from.                          |
+| `path`         | `string`           | yes            | The path within that repository.                                    |
+| `ref`          | `string`           | yes            | The branch or tag followed.                                         |
+| `revision`     | `string` \| `null` | yes            | The exact upstream commit vendored, or null if it was not recorded. |
+| `revisionDate` | `string`           | yes            | The date of that commit, ISO 8601.                                  |
+| `fetched`      | `string`           | yes            | The date the copy was taken, ISO 8601.                              |
+| `sha1`         | `string`           | yes            | SHA-1 of the vendored copy, so the claim stays checkable offline.   |
+
+## Publication
+
+A container claim and the basis for it. `verified` stays false while grading is offline: naming an image is not the same as reaching a registry and finding it there.
+
+| Field      | Type      | Always present | Description                                                                               |
+| ---------- | --------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `uri`      | `string`  | yes            | The container image this environment corresponds to.                                      |
+| `verified` | `boolean` | yes            | Whether a registry was reached and the image found there. False while grading is offline. |
+| `basis`    | `string`  | yes            | How the URI was arrived at, so an unverified claim can be judged rather than trusted.     |
