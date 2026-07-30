@@ -1,0 +1,7 @@
+# The smallest biopixi v0 environment: one public channel, one Linux solve, one Conda package.
+[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+zlib = "1.3.*"

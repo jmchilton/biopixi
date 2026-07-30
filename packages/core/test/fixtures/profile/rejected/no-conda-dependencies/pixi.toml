@@ -1,0 +1,7 @@
+# This is a useful Pixi task workspace, but it has no distributable Conda environment to grade.
+[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tasks]
+hello = "echo hello"

@@ -1,0 +1,7 @@
+# A macOS-only Pixi workspace is valid, but biopixi v0 is anchored in the Bioconda Linux target.
+[workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64"]
+
+[dependencies]
+zlib = "1.3.*"

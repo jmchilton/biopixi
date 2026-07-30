@@ -1,0 +1,10 @@
+# A single default environment may have distinct requirements on the two supported platforms.
+[workspace]
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "linux-64"]
+
+[dependencies]
+zlib = "1.3.*"
+
+[target.osx-arm64.dependencies]
+xz = "5.8.*"

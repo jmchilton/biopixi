@@ -1,0 +1,10 @@
+# A target-specific PyPI dependency is effective on Linux and therefore outside profile v0.
+[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64"]
+
+[dependencies]
+python = "3.12.*"
+
+[target.linux-64.pypi-dependencies]
+cowsay = "==6.1"

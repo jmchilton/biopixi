@@ -1,0 +1,12 @@
+{
+  "biocontainers-hash": {
+    "file": "biocontainers-hash.tsv",
+    "source": "https://github.com/BioContainers/multi-package-containers",
+    "path": "combinations/hash.tsv",
+    "ref": "master",
+    "revision": "c914c11ef70d8f1b0b609f26712975e78b025667",
+    "revisionDate": "2026-06-19",
+    "fetched": "2026-07-28",
+    "sha1": "1fa0655fe5989ab1b03ffbb07c72770bf07378b5"
+  }
+}
