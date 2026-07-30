@@ -1,7 +1,14 @@
-import { grade, type Grade } from "@biopixi/core";
+import { grade, SourceRootError, type Grade } from "@biopixi/core";
+
+/**
+ * Invocation faults are reported as EX_USAGE so they can never be read as a grading verdict:
+ * a bad source root says nothing about how far the project can travel.
+ */
+const EXIT_USAGE = 64;
 
 export interface GradeCommandOptions {
   minLevel?: number;
+  sourceRoot?: string;
 }
 
 export interface GradeCommandIo {
@@ -21,6 +28,10 @@ export function renderGrade(directory: string, result: Grade): string {
   const lines = [``, `${result.label}  ${directory}`];
   for (const reason of result.reasons) {
     lines.push(`      · ${reason}`);
+  }
+  if (result.sourceRoot !== result.projectRoot) {
+    // Only worth a line once it has been widened past the project: the default is already implied.
+    lines.push(`      source root: ${result.sourceRoot}`);
   }
   if (result.target !== undefined) {
     lines.push(`      target: ${result.target}`);
@@ -62,7 +73,16 @@ export function runGrade(
   let worst = 4;
   const undeterminable: string[] = [];
   for (const directory of directories) {
-    const result = grade(directory);
+    let result: Grade;
+    try {
+      result = grade(directory, { sourceRoot: options.sourceRoot });
+    } catch (error) {
+      if (!(error instanceof SourceRootError)) {
+        throw error;
+      }
+      io.stderr(`biopixi: ${error.message}`);
+      return EXIT_USAGE;
+    }
     io.stdout(renderGrade(directory, result));
     if (result.level === null && result.conformant) {
       // In profile but unproven. Not L0 — biopixi has no level to compare against a threshold.

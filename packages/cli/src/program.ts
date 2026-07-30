@@ -21,10 +21,11 @@ export function buildProgram(): Command {
         .argParser((value) => Number.parseInt(value, 10))
         .choices(["0", "1", "2", "3", "4"]),
     )
-    .action((directories: string[], options: { minLevel?: string }) => {
+    .option("--source-root <path>", "bound path dependencies to this ancestor of each project")
+    .action((directories: string[], options: { minLevel?: string; sourceRoot?: string }) => {
       const minLevel =
         options.minLevel === undefined ? undefined : Number.parseInt(options.minLevel, 10);
-      process.exitCode = runGrade(directories, { minLevel });
+      process.exitCode = runGrade(directories, { minLevel, sourceRoot: options.sourceRoot });
     });
 
   return program;

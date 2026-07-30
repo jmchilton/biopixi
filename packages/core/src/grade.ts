@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parse as parseToml } from "smol-toml";
@@ -56,6 +56,14 @@ export interface MetadataSnapshot {
 }
 
 export interface Grade {
+  /** The graded directory, absolute and symlink-resolved. */
+  projectRoot: string;
+  /**
+   * The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the
+   * project root; a caller grading a collection may widen it to any ancestor. Recorded on every
+   * result because it is a property of the invocation, not of the project.
+   */
+  sourceRoot: string;
   conformant: boolean;
   evidenceState: EvidenceState | null;
   level: number | null;
@@ -79,6 +87,48 @@ export interface LockedPackage {
 
 export interface GradeOptions {
   combinationsPath?: string;
+  /** Widen the path-dependency bound to an ancestor of the project root. Defaults to that root. */
+  sourceRoot?: string;
+}
+
+/**
+ * A source root that cannot bound the project it was given with. This is a fault in the
+ * invocation rather than a finding about the project, so it is raised instead of graded.
+ */
+export class SourceRootError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SourceRootError";
+  }
+}
+
+/** Absolute and symlink-free, without demanding that the path exist. */
+function realpathOrResolve(path: string): string {
+  const absolute = resolve(path);
+  try {
+    return realpathSync(absolute);
+  } catch {
+    return absolute;
+  }
+}
+
+function resolveSourceRoot(project: string, requested: string | undefined): string {
+  if (requested === undefined) {
+    return project;
+  }
+
+  let root: string;
+  try {
+    root = realpathSync(resolve(requested));
+  } catch {
+    throw new SourceRootError(`source root does not exist: ${requested}`);
+  }
+
+  // Compare on path segments: `…/exam` is a string prefix of `…/example` but contains none of it.
+  if (project !== root && !project.startsWith(root.endsWith(sep) ? root : root + sep)) {
+    throw new SourceRootError(`source root ${root} is not an ancestor of project root ${project}`);
+  }
+  return root;
 }
 
 function record(value: unknown): Manifest {
@@ -106,19 +156,25 @@ function declaredPlatforms(manifest: Manifest): string[] {
     : [];
 }
 
-type Conformance = Omit<Grade, "conformant" | "evidenceState" | "level" | "label">;
+/** Everything decided by reading the project; the invocation's roots are stamped on around it. */
+type ProjectGrade = Omit<Grade, "projectRoot" | "sourceRoot">;
+
+type Conformance = Omit<ProjectGrade, "conformant" | "evidenceState" | "level" | "label">;
 
 /** Outside the profile: no solve was considered, so there is no evidence state to report. */
-function outOfProfile(options: Conformance): Grade {
+function outOfProfile(options: Conformance): ProjectGrade {
   return { conformant: false, evidenceState: null, level: null, label: "L0", ...options };
 }
 
 /** In profile, but the solve cannot carry a number. */
-function indefinite(state: Exclude<EvidenceState, "DEFINITIVE">, options: Conformance): Grade {
+function indefinite(
+  state: Exclude<EvidenceState, "DEFINITIVE">,
+  options: Conformance,
+): ProjectGrade {
   return { conformant: true, evidenceState: state, level: null, label: state, ...options };
 }
 
-function definitive(level: number, options: Conformance): Grade {
+function definitive(level: number, options: Conformance): ProjectGrade {
   return {
     conformant: true,
     evidenceState: "DEFINITIVE",
@@ -439,8 +495,16 @@ function profileNextActions(reasons: string[]): string[] {
 
 /**
  * Grade one project directory using only its manifest, lock, and vendored metadata.
+ *
+ * @throws {SourceRootError} if `options.sourceRoot` is missing or does not contain the project.
  */
 export function grade(directory: string, options: GradeOptions = {}): Grade {
+  const projectRoot = realpathOrResolve(directory);
+  const sourceRoot = resolveSourceRoot(projectRoot, options.sourceRoot);
+  return { projectRoot, sourceRoot, ...gradeProject(directory, options) };
+}
+
+function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
   const manifestPath = join(directory, "pixi.toml");
   if (!existsSync(manifestPath)) {
     return outOfProfile({
