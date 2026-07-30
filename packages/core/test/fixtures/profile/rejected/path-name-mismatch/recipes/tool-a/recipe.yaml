@@ -1,0 +1,7 @@
+package:
+  name: tool-b
+  version: 1.0.0
+
+requirements:
+  run:
+  - zlib

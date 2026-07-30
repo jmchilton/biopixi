@@ -48,6 +48,10 @@ export function renderGrade(directory: string, result: Grade): string {
     // Only worth a line once it has been widened past the project: the default is already implied.
     lines.push(`      source root: ${result.sourceRoot}`);
   }
+  for (const dependency of result.pathDependencies ?? []) {
+    // The recipe, not the directory: it is what was actually read to accept the dependency.
+    lines.push(`      builds: ${dependency.name} ${dependency.version} from ${dependency.recipe}`);
+  }
   if (result.target !== undefined) {
     lines.push(`      target: ${result.target}`);
   }

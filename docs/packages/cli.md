@@ -22,6 +22,22 @@ base. `--source-root` widens the bound to any ancestor of every directory given.
 The selected root is recorded on every result. A root that does not contain a project it was given
 with is an invocation fault rather than a finding, and exits `64` without grading anything.
 
+Every path dependency reached is checked against
+[the profile's contract](../profile.md#path-dependency) and reported on a `builds:` line naming the
+recipe that was read:
+
+```text
+L1  examples/l1-local-recipe
+      · r-designit built from source at ./recipes/r-designit
+      builds: r-designit 0.5.0 from recipes/r-designit/recipe.yaml
+      capped by: r-designit built from source
+                 ./recipes/r-designit
+      → publish r-designit to conda-forge or bioconda — it is built from source at ./recipes/r-designit
+      lint: r-designit carries build.skip in recipe.yaml — its one declared output may not be produced for the grading platform
+```
+
+A path dependency the profile cannot read is L0, whatever the rest of the manifest says.
+
 ## `--json`
 
 Writes a [grade report](../schema/grade-report-v0.md) to stdout and nothing else; diagnostics stay

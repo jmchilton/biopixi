@@ -1,0 +1,7 @@
+package:
+  name: tool-a
+  version: 2.0.0
+
+requirements:
+  run:
+  - zlib

@@ -1,0 +1,6 @@
+[package]
+name = "tool-a"
+version = "1.*"
+
+[package.build]
+backend = { name = "pixi-build-rattler-build", version = "*" }

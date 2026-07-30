@@ -178,24 +178,77 @@ r-designit = { path = "./recipes/r-designit" }
 
 A conformant path dependency MUST:
 
-- be expressed as a relative path from the project root;
+- be expressed as a relative path from the manifest that declares it;
 - resolve inside the selected source root after symlinks are resolved;
 - point to a directory containing a Pixi package manifest;
 - declare `[package].name` equal to the dependency name and a concrete `[package].version`;
 - use a build backend supported by this profile;
-- contain backend inputs that parse and render for the grading platform;
-- render exactly one runtime output whose name and version agree with the package manifest;
-- agree with the source record in `pixi.lock`; and
-- have only supported Conda registry or recursively conformant path dependencies in the rendered
+- contain backend inputs that parse;
+- declare exactly one output, whose name and version agree with the package manifest; and
+- have only supported Conda registry or recursively conformant path dependencies in the declared
   runtime requirements.
+
+Only tables effective on a declared platform participate. A path dependency under
+`[target.osx-arm64.dependencies]` in a `linux-64`-only workspace is inert in Pixi and is inert
+here, exactly as an unused target's PyPI entry is.
+
+The last requirement binds at every depth. A reached package requiring something by `git=` or
+`url=` is L0 for the same reason the graded manifest would be: a location is not a package
+identity, and the profile boundary would otherwise hold only at depth zero.
+
+A workspace declaring any path dependency MUST also enable `preview = ["pixi-build"]`. Pixi
+refuses to solve a conda source dependency without it, so such a manifest can never produce the
+lock a level would be argued from, and is L0 for that reason alone.
 
 Profile v0's supported local backend is `pixi-build-rattler-build`, with a `recipe.yaml` or
 `recipe.yml` accepted by rattler-build. Merely having a source checkout, a package manifest, or a
 file named `recipe.yaml` is not sufficient.
 
+Recursion follows the package manifest's own `[package.run-dependencies]`,
+`[package.host-dependencies]`, and `[package.build-dependencies]` tables. Pixi resolves a nested
+path dependency at build time and does not record it in `pixi.lock`, so reading those tables is
+the only way the profile sees the second recipe at all. A package reached twice is inspected once,
+which also terminates a cycle.
+
+The lock is a separate question. A path dependency whose `conda_source` record names a directory
+other than the one the manifest declares is **stale evidence**, not a shape the profile rejects:
+the manifest is in profile and the recipe is readable, and what is wrong is that the solve
+describes a manifest that no longer exists. A path dependency absent from the lock entirely is
+not evidence of anything, because a recursively reached one is never written there.
+
+#### Declaring exactly one output
+
+A recipe declares exactly one output when it carries a top-level `package:` mapping, has no
+`outputs:` key, and pins every variant key to at most one value. Both of the other forms multiply
+what a build produces: an `outputs:` list is rattler-build's multi-package form, and a variant key
+with several values defines a build matrix rendering one output per combination, identical in name
+and version but differing in build string. A path dependency exists to supply one missing package,
+and profile v0 requires it to say so in a form that can be read without a build.
+
+The variant rule is deliberately conservative. rattler-build expands only over the variant keys a
+recipe actually uses, so a multi-valued key the recipe never references renders one output after
+all — but establishing that means resolving the recipe's own template and dependency expressions,
+which profile v0 does not do. It therefore rejects a multi-valued variant key on the ground that
+it cannot show the recipe declares one output, not on the ground that it declares several.
+
+The recipe's `package.name` and `package.version` MAY be written as `${{ key }}` references to the
+recipe's own `context:` block, which is how rattler-build recipes are conventionally written; the
+profile reads those references. This is a lookup, not evaluation: a reference to anything else is
+left as written and so fails the comparison it feeds.
+
+This is a requirement on recipes written inside the source tree. It says nothing about packages
+resolved from a channel: a dependency on a multi-output package such as `gatk4` or `snakemake` is
+an ordinary locked package and is unaffected.
+
+`build.skip` is permitted but produces a lint. A skip expression that matches renders no output at
+all, and profile v0 does not evaluate rattler-build's expression language, so biopixi reports that
+the single declared output may not be produced for the grading platform rather than claiming it
+will be. Whether it builds is a build-time fact and outside what an offline grader can settle.
+
 A valid path dependency caps the platform at L1 because rebuilding still requires the selected
 source tree and a local build toolchain. An absolute path, a path escaping the selected source
-root, a missing target, a package-name mismatch, or a source tree without a usable recipe is L0.
+root, a missing target, a package-name mismatch, a recipe declaring more than one output, or a
+source tree without a usable recipe is L0.
 
 ### Git or URL source dependency
 
@@ -345,20 +398,20 @@ workspace minimum.
 The current `packages/core/src/grade.ts` is a proof of concept. Before it claims conformance with
 this profile, it needs the following changes:
 
-| Area               | Current prototype                                                                   | Profile requirement                                                                                                                |
-| ------------------ | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Features           | rejects every named feature table                                                   | reject every named feature table                                                                                                   |
-| Environments       | enforces the implicit default or `environments.default = []` boundary               | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
-| Platforms          | validates the supported set but flattens all locked platforms together              | grade each platform independently                                                                                                  |
-| Target tables      | applied to one grading platform, not to a per-platform matrix                       | apply top-level target tables per platform                                                                                         |
-| Pixi validation    | never invokes Pixi; only the checked-in fixtures are validated against the real CLI | reject a manifest that Pixi itself rejects                                                                                         |
-| Path dependencies  | records the selected source root but trusts any locked source record                | validate source-root containment, recipe, package name, and lock agreement                                                         |
-| Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity  | verify the qualifier and preserve it in mulled targets                                                                             |
-| PyPI               | rejects top-level and effective platform-targeted entries                           | inspect top-level and platform-targeted dependencies independently                                                                 |
-| Missing lock       | returns `UNRESOLVED` with no numeric level                                          | return `UNRESOLVED` with no numeric level                                                                                          |
-| Stale lock         | returns `STALE`, but only checks that root names occur somewhere in the closure     | validate the default environment's effective requirements per platform                                                             |
-| L4                 | reports snapshot revision and marks every container claim unverified                | report verified snapshot provenance and endpoint evidence                                                                          |
-| CLI                | selects a source root and emits schema-backed JSON; no platform selection           | add platform selection plus matrix output                                                                                          |
+| Area               | Current prototype                                                                    | Profile requirement                                                                                                                |
+| ------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Features           | rejects every named feature table                                                    | reject every named feature table                                                                                                   |
+| Environments       | enforces the implicit default or `environments.default = []` boundary                | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
+| Platforms          | validates the supported set but flattens all locked platforms together               | grade each platform independently                                                                                                  |
+| Target tables      | applied to one grading platform, not to a per-platform matrix                        | apply top-level target tables per platform                                                                                         |
+| Pixi validation    | never invokes Pixi; only the checked-in fixtures are validated against the real CLI  | reject a manifest that Pixi itself rejects                                                                                         |
+| Path dependencies  | validates containment, package manifest, backend, recipe, and single declared output | recurse per grading platform rather than over every target table at once                                                           |
+| Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity   | verify the qualifier and preserve it in mulled targets                                                                             |
+| PyPI               | rejects top-level and effective platform-targeted entries                            | inspect top-level and platform-targeted dependencies independently                                                                 |
+| Missing lock       | returns `UNRESOLVED` with no numeric level                                           | return `UNRESOLVED` with no numeric level                                                                                          |
+| Stale lock         | checks root names and path-dependency source records against the closure             | validate the default environment's effective requirements per platform                                                             |
+| L4                 | reports snapshot revision and marks every container claim unverified                 | report verified snapshot provenance and endpoint evidence                                                                          |
+| CLI                | selects a source root and emits schema-backed JSON; no platform selection            | add platform selection plus matrix output                                                                                          |
 
 ## Pixi references
 

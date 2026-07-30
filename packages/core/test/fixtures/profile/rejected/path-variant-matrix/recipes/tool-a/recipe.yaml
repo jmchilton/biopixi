@@ -1,0 +1,9 @@
+package:
+  name: tool-a
+  version: 1.0.0
+
+requirements:
+  host:
+  - python
+  run:
+  - python
