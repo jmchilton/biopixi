@@ -10,6 +10,18 @@ import { parse as parseToml } from "smol-toml";
 
 export type Manifest = Record<string, unknown>;
 
+/** Conda dependency tables in a workspace manifest, at the top level. */
+export const CONDA_DEPENDENCY_TABLES = ["dependencies", "host-dependencies", "build-dependencies"];
+/**
+ * Dependency tables in a package manifest, which live under `[package.*]`. The runtime table is
+ * spelled `run-dependencies` here rather than `dependencies`.
+ */
+export const PACKAGE_DEPENDENCY_TABLES = [
+  "run-dependencies",
+  "host-dependencies",
+  "build-dependencies",
+];
+
 /** A TOML table as a plain record, or an empty one when the value is not a table. */
 export function record(value: unknown): Manifest {
   return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -27,6 +39,37 @@ export function hasOwn(value: Manifest, key: string): boolean {
  */
 export function parseManifest(path: string): Manifest {
   return record(parseToml(readFileSync(path, "utf8")));
+}
+
+/**
+ * Every named dependency table that participates on `platforms`, labelled as a manifest author
+ * would write it.
+ *
+ * Only the listed platforms are consulted, so a table under a platform the workspace does not
+ * declare takes no part in anything: it is inert in Pixi and must be inert here too.
+ */
+export function dependencyTables(
+  root: Manifest,
+  keys: readonly string[],
+  platforms: readonly string[],
+): Array<[string, Manifest]> {
+  const tables: Array<[string, Manifest]> = [];
+  for (const key of keys) {
+    if (root[key] !== undefined) {
+      tables.push([key, record(root[key])]);
+    }
+  }
+
+  const targets = record(root.target);
+  for (const platform of platforms) {
+    const target = record(targets[platform]);
+    for (const key of keys) {
+      if (target[key] !== undefined) {
+        tables.push([`target.${platform}.${key}`, record(target[key])]);
+      }
+    }
+  }
+  return tables;
 }
 
 /**

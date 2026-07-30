@@ -4,7 +4,15 @@ import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
-import { containedIn, hasOwn, parseManifest, record, type Manifest } from "./manifest.js";
+import {
+  containedIn,
+  dependencyTables,
+  hasOwn,
+  parseManifest,
+  record,
+  CONDA_DEPENDENCY_TABLES,
+  type Manifest,
+} from "./manifest.js";
 import { pullUri, type Target } from "./mulled.js";
 import { checkPathDependencies, type PathDependency } from "./path-dependency.js";
 
@@ -16,7 +24,8 @@ const DEFAULT_COMBINATIONS_PATH = fileURLToPath(
 );
 const SNAPSHOT_PATH = fileURLToPath(new URL("../data/snapshot.json", import.meta.url));
 const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
-const CONDA_TABLE_KEYS = ["dependencies", "host-dependencies", "build-dependencies"];
+/** The one PyPI table, walked by the same machinery so target spellings stay consistent. */
+const PYPI_TABLE_KEYS = ["pypi-dependencies"];
 /** Pixi refuses to solve a conda source dependency without this preview feature enabled. */
 const PIXI_BUILD_PREVIEW = "pixi-build";
 
@@ -223,49 +232,6 @@ function loadSnapshot(): MetadataSnapshot | undefined {
   }
 }
 
-function dependencyTables(
-  manifest: Manifest,
-  platforms: readonly string[],
-): Array<[string, Manifest]> {
-  const tables: Array<[string, Manifest]> = [];
-  for (const key of CONDA_TABLE_KEYS) {
-    if (manifest[key] !== undefined) {
-      tables.push([key, record(manifest[key])]);
-    }
-  }
-
-  const targets = record(manifest.target);
-  for (const platform of platforms) {
-    const target = record(targets[platform]);
-    for (const key of CONDA_TABLE_KEYS) {
-      if (target[key] !== undefined) {
-        tables.push([`target.${platform}.${key}`, record(target[key])]);
-      }
-    }
-  }
-
-  return tables;
-}
-
-function pypiDependencyTables(
-  manifest: Manifest,
-  platforms: readonly string[],
-): Array<[string, Manifest]> {
-  const tables: Array<[string, Manifest]> = [];
-  if (manifest["pypi-dependencies"] !== undefined) {
-    tables.push(["pypi-dependencies", record(manifest["pypi-dependencies"])]);
-  }
-
-  const targets = record(manifest.target);
-  for (const platform of platforms) {
-    const target = record(targets[platform]);
-    if (target["pypi-dependencies"] !== undefined) {
-      tables.push([`target.${platform}.pypi-dependencies`, record(target["pypi-dependencies"])]);
-    }
-  }
-  return tables;
-}
-
 function effectiveCondaDependencies(manifest: Manifest, platform: string): Manifest {
   return {
     ...record(manifest.dependencies),
@@ -372,7 +338,7 @@ export function checkProfile(manifest: Manifest): {
     }
   }
 
-  for (const [label, table] of pypiDependencyTables(manifest, effectivePlatforms)) {
+  for (const [label, table] of dependencyTables(manifest, PYPI_TABLE_KEYS, effectivePlatforms)) {
     if (Object.keys(table).length > 0) {
       reasons.push(
         `[${label}] present (${Object.keys(table).sort().join(", ")}) — outside the conda universe`,
@@ -381,7 +347,11 @@ export function checkProfile(manifest: Manifest): {
   }
 
   let declaresPath = false;
-  for (const [label, table] of dependencyTables(manifest, effectivePlatforms)) {
+  for (const [label, table] of dependencyTables(
+    manifest,
+    CONDA_DEPENDENCY_TABLES,
+    effectivePlatforms,
+  )) {
     for (const [name, value] of Object.entries(table)) {
       const specification = record(value);
       declaresPath ||= specification.path !== undefined;
@@ -466,7 +436,9 @@ export function loadLock(path: string): {
       } else if (typeof entry.conda_source === "string") {
         const raw = entry.conda_source;
         const name = raw.split("[", 1)[0].split(" ", 1)[0].trim();
-        const source = raw.includes("@") ? raw.split("@", 2)[1].trim() : "?";
+        // Split on the separator, not on the character: a path may itself contain an `@`.
+        const separator = raw.indexOf(" @ ");
+        const source = separator === -1 ? "?" : raw.slice(separator + 3).trim();
         packages.push({ name, channel: null, source });
       } else if (typeof entry.pypi === "string") {
         problems.push(`lock contains a PyPI wheel: ${entry.pypi.split("/").at(-1)}`);
@@ -551,7 +523,11 @@ function gradeProject(
 
   // Conformance is still being decided here: a path dependency the profile cannot read is an L0
   // manifest, settled before any question about a solve.
-  const paths = checkPathDependencies(manifest, { projectRoot, sourceRoot });
+  const paths = checkPathDependencies(manifest, {
+    projectRoot,
+    sourceRoot,
+    platforms: declaredPlatforms(manifest),
+  });
   const lints = [...profile.lints, ...paths.lints];
   if (paths.reasons.length > 0) {
     return outOfProfile({
@@ -569,9 +545,15 @@ function gradeProject(
     : result;
 }
 
-/** Normalized for comparison against a lock's source record, which drops no path segments. */
-function sourcePath(path: string): string {
-  return path.replace(/^\.\//, "").replace(/\/+$/, "");
+/**
+ * A lock source record and a declared path resolved to the same absolute form.
+ *
+ * Compared as paths rather than as strings: `./recipes/x`, `recipes/x`, and `recipes/./x` are one
+ * directory, and a URL — what the lock holds for an ordinary registry package — resolves to
+ * something no relative path can equal.
+ */
+function sourcePath(projectRoot: string, path: string): string {
+  return resolve(projectRoot, path);
 }
 
 function gradeSolve(
@@ -625,8 +607,15 @@ function gradeSolve(
   // manifest is in profile and the recipe is readable; what is wrong is the solve, so this is
   // stale rather than L0.
   const moved = context.paths.flatMap((dependency) => {
+    // Workspace scope only. A recursively reached dependency's path is relative to its parent
+    // recipe, and Pixi never writes it to the lock, so a same-named locked package is a different
+    // package rather than a disagreement.
+    if (dependency.scope !== "workspace") {
+      return [];
+    }
     const source = byName.get(dependency.name)?.source;
-    return source === undefined || sourcePath(source) === sourcePath(dependency.declared)
+    return source === undefined ||
+      sourcePath(projectRoot, source) === sourcePath(projectRoot, dependency.declared)
       ? []
       : [
           `${dependency.name} is locked from ${source}, but the manifest declares ${dependency.declared}`,

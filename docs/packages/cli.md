@@ -30,6 +30,10 @@ recipe that was read:
 L1  examples/l1-local-recipe
       · r-designit built from source at ./recipes/r-designit
       builds: r-designit 0.5.0 from recipes/r-designit/recipe.yaml
+      capped by: r-designit built from source
+                 ./recipes/r-designit
+      → publish r-designit to conda-forge or bioconda — it is built from source at ./recipes/r-designit
+      lint: r-designit carries build.skip in recipe.yaml — its one declared output may not be produced for the grading platform
 ```
 
 A path dependency the profile cannot read is L0, whatever the rest of the manifest says.

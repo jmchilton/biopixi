@@ -85,13 +85,20 @@ Provenance of the vendored public metadata a claim rests on.
 
 A local path dependency that satisfies the profile, recorded so a result can be audited.
 
-| Field      | Type     | Always present | Description                                                      |
-| ---------- | -------- | -------------- | ---------------------------------------------------------------- |
-| `name`     | `string` | yes            | The dependency name, as the manifest that declares it spells it. |
-| `declared` | `string` | yes            | The path as declared, relative to the manifest that declares it. |
-| `resolved` | `string` | yes            | The directory it points at, absolute and symlink-resolved.       |
-| `version`  | `string` | yes            | The concrete version its package manifest declares.              |
-| `recipe`   | `string` | yes            | The recipe file backing it, relative to the project root.        |
+| Field      | Type                                        | Always present | Description                                                                                                                                                                                                                   |
+| ---------- | ------------------------------------------- | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | `string`                                    | yes            | The dependency name, as the manifest that declares it spells it.                                                                                                                                                              |
+| `declared` | `string`                                    | yes            | The path as declared, relative to the manifest that declares it.                                                                                                                                                              |
+| `resolved` | `string`                                    | yes            | The directory it points at, absolute and symlink-resolved.                                                                                                                                                                    |
+| `version`  | `string`                                    | yes            | The concrete version its package manifest declares.                                                                                                                                                                           |
+| `recipe`   | `string`                                    | yes            | The recipe file backing it, relative to the project root.                                                                                                                                                                     |
+| `scope`    | [PathDependencyScope](#pathdependencyscope) | yes            | `workspace` when the graded manifest declares it, `package` when another local package does. Only a workspace declaration can be compared against the lock: Pixi resolves the rest at build time and never writes them there. |
+
+## PathDependencyScope
+
+Where a path dependency was declared, which decides what it can be compared against.
+
+One of: `workspace`, `package`.
 
 ## Publication
 

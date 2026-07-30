@@ -178,15 +178,23 @@ r-designit = { path = "./recipes/r-designit" }
 
 A conformant path dependency MUST:
 
-- be expressed as a relative path from the project root;
+- be expressed as a relative path from the manifest that declares it;
 - resolve inside the selected source root after symlinks are resolved;
 - point to a directory containing a Pixi package manifest;
 - declare `[package].name` equal to the dependency name and a concrete `[package].version`;
 - use a build backend supported by this profile;
-- contain backend inputs that parse for the grading platform;
+- contain backend inputs that parse;
 - declare exactly one output, whose name and version agree with the package manifest; and
 - have only supported Conda registry or recursively conformant path dependencies in the declared
   runtime requirements.
+
+Only tables effective on a declared platform participate. A path dependency under
+`[target.osx-arm64.dependencies]` in a `linux-64`-only workspace is inert in Pixi and is inert
+here, exactly as an unused target's PyPI entry is.
+
+The last requirement binds at every depth. A reached package requiring something by `git=` or
+`url=` is L0 for the same reason the graded manifest would be: a location is not a package
+identity, and the profile boundary would otherwise hold only at depth zero.
 
 A workspace declaring any path dependency MUST also enable `preview = ["pixi-build"]`. Pixi
 refuses to solve a conda source dependency without it, so such a manifest can never produce the
@@ -216,6 +224,17 @@ what a build produces: an `outputs:` list is rattler-build's multi-package form,
 with several values defines a build matrix rendering one output per combination, identical in name
 and version but differing in build string. A path dependency exists to supply one missing package,
 and profile v0 requires it to say so in a form that can be read without a build.
+
+The variant rule is deliberately conservative. rattler-build expands only over the variant keys a
+recipe actually uses, so a multi-valued key the recipe never references renders one output after
+all — but establishing that means resolving the recipe's own template and dependency expressions,
+which profile v0 does not do. It therefore rejects a multi-valued variant key on the ground that
+it cannot show the recipe declares one output, not on the ground that it declares several.
+
+The recipe's `package.name` and `package.version` MAY be written as `${{ key }}` references to the
+recipe's own `context:` block, which is how rattler-build recipes are conventionally written; the
+profile reads those references. This is a lookup, not evaluation: a reference to anything else is
+left as written and so fails the comparison it feeds.
 
 This is a requirement on recipes written inside the source tree. It says nothing about packages
 resolved from a channel: a dependency on a multi-output package such as `gatk4` or `snakemake` is
