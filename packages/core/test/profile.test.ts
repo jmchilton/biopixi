@@ -18,6 +18,7 @@ describe("profile boundary", () => {
     "explicit-default",
     "target-only-dependency",
     "unused-target-pypi",
+    "path-dependency",
   ]) {
     it(`accepts the real Pixi project ${name}`, () => {
       expect(profileResult("accepted", name).reasons).toEqual([]);
@@ -40,6 +41,7 @@ describe("profile boundary", () => {
     ["extra-platform", ["permits only optional osx-arm64"]],
     ["pypi", ["[pypi-dependencies]"]],
     ["target-pypi", ["[target.linux-64.pypi-dependencies]"]],
+    ["path-without-preview", ['path dependency without preview = ["pixi-build"]']],
   ] as Array<[string, string[]]>) {
     it(`rejects the Pixi-valid project ${name}`, () => {
       const { reasons } = profileResult("rejected", name);

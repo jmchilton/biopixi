@@ -1,11 +1,12 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parse as parseToml } from "smol-toml";
 import { parse as parseYaml } from "yaml";
 
+import { containedIn, hasOwn, parseManifest, record, type Manifest } from "./manifest.js";
 import { pullUri, type Target } from "./mulled.js";
+import { checkPathDependencies, type PathDependency } from "./path-dependency.js";
 
 const PUBLIC_CHANNEL_HOSTS = new Set(["conda.anaconda.org", "repo.anaconda.com", "prefix.dev"]);
 const COMMUNITY_CHANNELS = new Set(["conda-forge", "bioconda"]);
@@ -16,8 +17,8 @@ const DEFAULT_COMBINATIONS_PATH = fileURLToPath(
 const SNAPSHOT_PATH = fileURLToPath(new URL("../data/snapshot.json", import.meta.url));
 const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
 const CONDA_TABLE_KEYS = ["dependencies", "host-dependencies", "build-dependencies"];
-
-export type Manifest = Record<string, unknown>;
+/** Pixi refuses to solve a conda source dependency without this preview feature enabled. */
+const PIXI_BUILD_PREVIEW = "pixi-build";
 
 /**
  * Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only
@@ -101,6 +102,11 @@ export interface Grade {
   publication?: Publication;
   /** Provenance of the vendored metadata behind `publication`, when any was consulted. */
   snapshot?: MetadataSnapshot;
+  /**
+   * Every conformant local path dependency the manifest reaches, including those reached through
+   * another path dependency. Absent when the manifest declares none, which is the common case.
+   */
+  pathDependencies?: PathDependency[];
 }
 
 export interface LockedPackage {
@@ -150,21 +156,10 @@ function resolveSourceRoot(project: string, requested: string | undefined): stri
     throw new SourceRootError(`source root does not exist: ${requested}`);
   }
 
-  // Compare on path segments: `…/exam` is a string prefix of `…/example` but contains none of it.
-  if (project !== root && !project.startsWith(root.endsWith(sep) ? root : root + sep)) {
+  if (!containedIn(project, root)) {
     throw new SourceRootError(`source root ${root} is not an ancestor of project root ${project}`);
   }
   return root;
-}
-
-function record(value: unknown): Manifest {
-  return value !== null && typeof value === "object" && !Array.isArray(value)
-    ? (value as Manifest)
-    : {};
-}
-
-function hasOwn(value: Manifest, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 /**
@@ -226,13 +221,6 @@ function loadSnapshot(): MetadataSnapshot | undefined {
   } catch {
     return undefined;
   }
-}
-
-/**
- * Parse a Pixi TOML manifest from disk.
- */
-export function parseManifest(path: string): Manifest {
-  return record(parseToml(readFileSync(path, "utf8")));
 }
 
 function dependencyTables(
@@ -392,9 +380,11 @@ export function checkProfile(manifest: Manifest): {
     }
   }
 
+  let declaresPath = false;
   for (const [label, table] of dependencyTables(manifest, effectivePlatforms)) {
     for (const [name, value] of Object.entries(table)) {
       const specification = record(value);
+      declaresPath ||= specification.path !== undefined;
       for (const sourceKind of ["git", "url"]) {
         if (specification[sourceKind] !== undefined) {
           reasons.push(
@@ -403,6 +393,15 @@ export function checkProfile(manifest: Manifest): {
         }
       }
     }
+  }
+
+  // Without the preview feature Pixi refuses to solve a conda source dependency at all, so this
+  // manifest can never produce the lock a level would be argued from.
+  const preview = workspace.preview;
+  if (declaresPath && !(Array.isArray(preview) && preview.includes(PIXI_BUILD_PREVIEW))) {
+    reasons.push(
+      `path dependency without preview = ["${PIXI_BUILD_PREVIEW}"] — Pixi will not solve a conda source dependency without it`,
+    );
   }
 
   for (const [taskName, taskValue] of Object.entries(record(manifest.tasks))) {
@@ -527,11 +526,15 @@ function profileNextActions(reasons: string[]): string[] {
 export function grade(directory: string, options: GradeOptions = {}): Grade {
   const projectRoot = realpathOrResolve(directory);
   const sourceRoot = resolveSourceRoot(projectRoot, options.sourceRoot);
-  return { projectRoot, sourceRoot, ...gradeProject(directory, options) };
+  return { projectRoot, sourceRoot, ...gradeProject(projectRoot, sourceRoot, options) };
 }
 
-function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
-  const manifestPath = join(directory, "pixi.toml");
+function gradeProject(
+  projectRoot: string,
+  sourceRoot: string,
+  options: GradeOptions,
+): ProjectGrade {
+  const manifestPath = join(projectRoot, "pixi.toml");
   if (!existsSync(manifestPath)) {
     return outOfProfile({
       reasons: ["no pixi.toml"],
@@ -546,11 +549,43 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
     return outOfProfile({ ...profile, nextActions: profileNextActions(profile.reasons) });
   }
 
-  const lockPath = join(directory, "pixi.lock");
+  // Conformance is still being decided here: a path dependency the profile cannot read is an L0
+  // manifest, settled before any question about a solve.
+  const paths = checkPathDependencies(manifest, { projectRoot, sourceRoot });
+  const lints = [...profile.lints, ...paths.lints];
+  if (paths.reasons.length > 0) {
+    return outOfProfile({
+      reasons: paths.reasons,
+      lints,
+      nextActions: [
+        "make each path dependency a readable single-output source package — see PROFILE.md",
+      ],
+    });
+  }
+
+  const result = gradeSolve(projectRoot, manifest, { lints, paths: paths.dependencies }, options);
+  return paths.dependencies.length > 0
+    ? { ...result, pathDependencies: paths.dependencies }
+    : result;
+}
+
+/** Normalized for comparison against a lock's source record, which drops no path segments. */
+function sourcePath(path: string): string {
+  return path.replace(/^\.\//, "").replace(/\/+$/, "");
+}
+
+function gradeSolve(
+  projectRoot: string,
+  manifest: Manifest,
+  context: { lints: string[]; paths: PathDependency[] },
+  options: GradeOptions,
+): ProjectGrade {
+  const { lints } = context;
+  const lockPath = join(projectRoot, "pixi.lock");
   if (!existsSync(lockPath)) {
     return indefinite("UNRESOLVED", {
       reasons: ["no pixi.lock — publication is a claim about a solve, and there is no solve"],
-      lints: profile.lints,
+      lints,
       nextActions: ["run `pixi lock` and commit pixi.lock"],
     });
   }
@@ -559,7 +594,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
   if (locked.problems.length > 0) {
     return indefinite("UNSUPPORTED_LOCK", {
       reasons: locked.problems,
-      lints: profile.lints,
+      lints,
       nextActions: ["give every dependency a conda identity, then re-lock"],
     });
   }
@@ -581,8 +616,27 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
   if (missing.length > 0) {
     return indefinite("STALE", {
       reasons: [`lock is stale — ${missing.join(", ")} not resolved`],
-      lints: profile.lints,
+      lints,
       nextActions: [`run \`pixi lock\` — the lock does not cover ${missing.join(", ")}`],
+    });
+  }
+
+  // A source record naming somewhere else is evidence about a manifest that no longer exists. The
+  // manifest is in profile and the recipe is readable; what is wrong is the solve, so this is
+  // stale rather than L0.
+  const moved = context.paths.flatMap((dependency) => {
+    const source = byName.get(dependency.name)?.source;
+    return source === undefined || sourcePath(source) === sourcePath(dependency.declared)
+      ? []
+      : [
+          `${dependency.name} is locked from ${source}, but the manifest declares ${dependency.declared}`,
+        ];
+  });
+  if (moved.length > 0) {
+    return indefinite("STALE", {
+      reasons: moved,
+      lints,
+      nextActions: ["run `pixi lock` — the lock does not describe the current path dependencies"],
     });
   }
 
@@ -604,7 +658,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
     const capping = heldBack[0].pkg;
     return definitive(1, {
       reasons: heldBack.map(({ reason }) => reason),
-      lints: profile.lints,
+      lints,
       cap: capOf(capping),
       nextActions: [
         capping.channel === null
@@ -635,7 +689,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
     const capping = outsideCommunityPackages[0];
     return definitive(2, {
       target,
-      lints: profile.lints,
+      lints,
       cap: capOf(capping),
       reasons: [
         `every package is public, but ${capping.name} resolves from ${capping.channel} — the closure uses non-community channels: ${outsideCommunity.join(", ")}`,
@@ -651,7 +705,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
       const uri = pullUri(mulled);
       return definitive(4, {
         target,
-        lints: profile.lints,
+        lints,
         reasons: [
           `single ${pkg.channel} package — BioContainers builds one image per recipe build`,
         ],
@@ -667,7 +721,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
     }
     return definitive(3, {
       target,
-      lints: profile.lints,
+      lints,
       reasons: [
         `${pkg?.name} is ecosystem-ready on ${pkg?.channel}, which does not auto-build containers`,
       ],
@@ -694,7 +748,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
     const [raw, imageBuild] = registration;
     return definitive(4, {
       target,
-      lints: profile.lints,
+      lints,
       snapshot,
       reasons: [`registered in BioContainers combinations/hash.tsv as: ${raw}`],
       publication: {
@@ -710,7 +764,7 @@ function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
 
   return definitive(3, {
     target,
-    lints: profile.lints,
+    lints,
     snapshot,
     reasons: [
       "every package is ecosystem-ready, but this combination has no hash.tsv line",

@@ -1,0 +1,12 @@
+recipe:
+  name: tool-a
+  version: 1.0.0
+
+outputs:
+- package:
+    name: tool-a
+  requirements:
+    run:
+    - zlib
+- package:
+    name: tool-a-libs
