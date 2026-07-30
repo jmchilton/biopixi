@@ -16,6 +16,14 @@ import {
 import { pullUri, type Target } from "./mulled.js";
 import { checkPathDependencies, type PathDependency } from "./path-dependency.js";
 
+/**
+ * The platform every level is a statement about.
+ *
+ * The ladder ends in a linux-64 BioContainer, so that is the solve the levels describe. The profile
+ * requires exactly one `linux-64`, so this platform is always present by the time a solve is read.
+ * A declared `osx-arm64` is checked for conformance and then left ungraded — see PROFILE.md.
+ */
+const GRADING_PLATFORM = "linux-64";
 const PUBLIC_CHANNEL_HOSTS = new Set(["conda.anaconda.org", "repo.anaconda.com", "prefix.dev"]);
 const COMMUNITY_CHANNELS = new Set(["conda-forge", "bioconda"]);
 const AUTO_CONTAINER_CHANNELS = new Set(["bioconda"]);
@@ -425,11 +433,23 @@ function lockedPackageFromUrl(url: string): LockedPackage {
 }
 
 /**
- * Load and flatten the prototype's default-environment lock closure.
+ * Load one platform's default-environment lock closure.
+ *
+ * A lock records a separate solve under `environments.<name>.packages.<platform>`, and the same
+ * package can resolve to a different build, or from a different channel, on each. Reading them
+ * together would let one platform's artifacts answer a question asked about another, so the
+ * platform is named by the caller rather than inferred.
+ *
+ * `covered` reports whether the lock has a section for that platform at all, which is a different
+ * failure from a section that is merely out of date.
  */
-export function loadLock(path: string): {
+export function loadLock(
+  path: string,
+  platform: string,
+): {
   packages: LockedPackage[];
   problems: string[];
+  covered: boolean;
 } {
   const data = record(parseYaml(readFileSync(path, "utf8")));
   const environments = record(data.environments);
@@ -441,26 +461,27 @@ export function loadLock(path: string): {
   const packages: LockedPackage[] = [];
   const problems: string[] = [];
 
-  for (const entriesValue of Object.values(record(environment.packages))) {
-    const entries = Array.isArray(entriesValue) ? entriesValue : [];
-    for (const entryValue of entries) {
-      const entry = record(entryValue);
-      if (typeof entry.conda === "string") {
-        packages.push(lockedPackageFromUrl(entry.conda));
-      } else if (typeof entry.conda_source === "string") {
-        const raw = entry.conda_source;
-        const name = raw.split("[", 1)[0].split(" ", 1)[0].trim();
-        // Split on the separator, not on the character: a path may itself contain an `@`.
-        const separator = raw.indexOf(" @ ");
-        const source = separator === -1 ? "?" : raw.slice(separator + 3).trim();
-        packages.push({ name, channel: null, source });
-      } else if (typeof entry.pypi === "string") {
-        problems.push(`lock contains a PyPI wheel: ${entry.pypi.split("/").at(-1)}`);
-      }
+  const byPlatform = record(environment.packages);
+  const covered = hasOwn(byPlatform, platform);
+  const entries = Array.isArray(byPlatform[platform]) ? (byPlatform[platform] as unknown[]) : [];
+
+  for (const entryValue of entries) {
+    const entry = record(entryValue);
+    if (typeof entry.conda === "string") {
+      packages.push(lockedPackageFromUrl(entry.conda));
+    } else if (typeof entry.conda_source === "string") {
+      const raw = entry.conda_source;
+      const name = raw.split("[", 1)[0].split(" ", 1)[0].trim();
+      // Split on the separator, not on the character: a path may itself contain an `@`.
+      const separator = raw.indexOf(" @ ");
+      const source = separator === -1 ? "?" : raw.slice(separator + 3).trim();
+      packages.push({ name, channel: null, source });
+    } else if (typeof entry.pypi === "string") {
+      problems.push(`lock contains a PyPI wheel: ${entry.pypi.split("/").at(-1)}`);
     }
   }
 
-  return { packages, problems };
+  return { packages, problems, covered };
 }
 
 function host(url: string): string {
@@ -586,7 +607,16 @@ function gradeSolve(
     });
   }
 
-  const locked = loadLock(lockPath);
+  const locked = loadLock(lockPath, GRADING_PLATFORM);
+  if (!locked.covered) {
+    return indefinite("STALE", {
+      reasons: [
+        `lock has no ${GRADING_PLATFORM} solve, which is the platform every level describes`,
+      ],
+      lints,
+      nextActions: [`run \`pixi lock\` — the lock does not cover ${GRADING_PLATFORM}`],
+    });
+  }
   if (locked.problems.length > 0) {
     return indefinite("UNSUPPORTED_LOCK", {
       reasons: locked.problems,
@@ -596,15 +626,8 @@ function gradeSolve(
   }
   const byName = new Map(locked.packages.map((pkg) => [pkg.name, pkg]));
 
-  // L4 is a linux-64 claim, and the locked closure is still flattened, so one platform supplies
-  // the root target set. Its target table participates: a target-only dependency is a root.
-  const platforms = declaredPlatforms(manifest);
-  const gradingPlatform = platforms.includes("linux-64") ? "linux-64" : platforms[0];
-  const direct = Object.keys(
-    gradingPlatform === undefined
-      ? record(manifest.dependencies)
-      : effectiveCondaDependencies(manifest, gradingPlatform),
-  ).sort();
+  // The grading platform's target table participates: a target-only dependency is a root.
+  const direct = Object.keys(effectiveCondaDependencies(manifest, GRADING_PLATFORM)).sort();
 
   // Evidence before readiness: an incomplete solve cannot be argued down to a level, so staleness
   // is settled before any package is allowed to cap one.
