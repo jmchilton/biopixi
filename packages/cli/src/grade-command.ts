@@ -1,5 +1,7 @@
 import { grade, SourceRootError, type Grade } from "@biopixi/core";
 
+import { buildReport, type GradeReportEntry } from "./report.js";
+
 /**
  * Invocation faults are reported as EX_USAGE so they can never be read as a grading verdict:
  * a bad source root says nothing about how far the project can travel.
@@ -9,6 +11,8 @@ const EXIT_USAGE = 64;
 export interface GradeCommandOptions {
   minLevel?: number;
   sourceRoot?: string;
+  /** Emit the machine-readable report on stdout instead of the human rendering. */
+  json?: boolean;
 }
 
 export interface GradeCommandIo {
@@ -70,8 +74,7 @@ export function runGrade(
   options: GradeCommandOptions = {},
   io: GradeCommandIo = consoleIo,
 ): number {
-  let worst = 4;
-  const undeterminable: string[] = [];
+  const results: GradeReportEntry[] = [];
   for (const directory of directories) {
     let result: Grade;
     try {
@@ -83,23 +86,30 @@ export function runGrade(
       io.stderr(`biopixi: ${error.message}`);
       return EXIT_USAGE;
     }
-    io.stdout(renderGrade(directory, result));
-    if (result.level === null && result.conformant) {
-      // In profile but unproven. Not L0 — biopixi has no level to compare against a threshold.
-      undeterminable.push(`${directory} (${result.evidenceState})`);
+    results.push({ directory, ...result });
+    if (!options.json) {
+      io.stdout(renderGrade(directory, result));
     }
-    worst = Math.min(worst, result.level ?? 0);
+  }
+
+  // The payload is emitted before any verdict: a consumer needs it most when the gate fails.
+  if (options.json) {
+    io.stdout(JSON.stringify(buildReport(results), null, 2));
   }
 
   if (options.minLevel === undefined) {
     return 0;
   }
+  // In profile but unproven. Not L0 — biopixi has no level to compare against a threshold.
+  const undeterminable = results.filter((entry) => entry.conformant && entry.level === null);
   if (undeterminable.length > 0) {
-    io.stderr(
-      `\nfailed: no level could be determined for ${undeterminable.join(", ")} — required L${options.minLevel}`,
-    );
+    const named = undeterminable
+      .map((entry) => `${entry.directory} (${entry.evidenceState})`)
+      .join(", ");
+    io.stderr(`\nfailed: no level could be determined for ${named} — required L${options.minLevel}`);
     return 1;
   }
+  const worst = results.reduce((lowest, entry) => Math.min(lowest, entry.level ?? 0), 4);
   if (worst < options.minLevel) {
     io.stderr(`\nfailed: worst level L${worst} < required L${options.minLevel}`);
     return 1;
