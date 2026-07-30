@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
+import { join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parse as parseToml } from "smol-toml";
@@ -27,9 +27,13 @@ export type EvidenceState = "DEFINITIVE" | "UNRESOLVED" | "STALE" | "UNSUPPORTED
 
 /** The dependency and resolved artifact holding a platform below L4. */
 export interface Cap {
+  /** The dependency name, as the manifest and the lock both spell it. */
   package: string;
+  /** The locked version, absent only when the lock records none. */
   version?: string;
+  /** The channel it resolved from, or null when it was built from source. */
   channel: string | null;
+  /** The resolved artifact URL, or the path it is built from. */
   artifact: string;
 }
 
@@ -38,34 +42,64 @@ export interface Cap {
  * an image is not the same as reaching a registry and finding it there.
  */
 export interface Publication {
+  /** The container image this environment corresponds to. */
   uri: string;
+  /** Whether a registry was reached and the image found there. False while grading is offline. */
   verified: boolean;
+  /** How the URI was arrived at, so an unverified claim can be judged rather than trusted. */
   basis: string;
 }
 
 /** Provenance of the vendored public metadata a claim rests on. */
 export interface MetadataSnapshot {
+  /** The vendored copy's filename inside this package. */
   file: string;
+  /** The upstream repository it was taken from. */
   source: string;
+  /** The path within that repository. */
   path: string;
+  /** The branch or tag followed. */
   ref: string;
+  /** The exact upstream commit vendored, or null if it was not recorded. */
   revision: string | null;
+  /** The date of that commit, ISO 8601. */
   revisionDate: string;
+  /** The date the copy was taken, ISO 8601. */
   fetched: string;
+  /** SHA-1 of the vendored copy, so the claim stays checkable offline. */
   sha1: string;
 }
 
 export interface Grade {
+  /** The graded directory, absolute and symlink-resolved. */
+  projectRoot: string;
+  /**
+   * The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the
+   * project root; a caller grading a collection may widen it to any ancestor. Recorded on every
+   * result because it is a property of the invocation, not of the project.
+   */
+  sourceRoot: string;
+  /** Whether the manifest is inside profile v0. Everything below is unanswerable when false. */
   conformant: boolean;
+  /** Whether a solve backs the result. Null when the manifest never got as far as being solved. */
   evidenceState: EvidenceState | null;
+  /** How far the environment travels, 1–4. Null unless `evidenceState` is `DEFINITIVE`. */
   level: number | null;
+  /** The level, evidence state, or `L0`, as one token for display. */
   label: string;
+  /** Why the result is what it is, most specific first. */
   reasons: string[];
+  /** Portability concerns that did not change the result. */
   lints: string[];
+  /** What to do to move the result up, in the order it would have to be done. */
   nextActions: string[];
+  /** The `name=version` set a container claim would be built from. */
   target?: string;
+  /** What holds the environment at this level. Absent at L4, where nothing does. */
   cap?: Cap;
+  /** The container this environment can be published as, and how that was arrived at. */
   publication?: Publication;
+  /** Provenance of the vendored metadata behind `publication`, when any was consulted. */
   snapshot?: MetadataSnapshot;
 }
 
@@ -79,6 +113,48 @@ export interface LockedPackage {
 
 export interface GradeOptions {
   combinationsPath?: string;
+  /** Widen the path-dependency bound to an ancestor of the project root. Defaults to that root. */
+  sourceRoot?: string;
+}
+
+/**
+ * A source root that cannot bound the project it was given with. This is a fault in the
+ * invocation rather than a finding about the project, so it is raised instead of graded.
+ */
+export class SourceRootError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SourceRootError";
+  }
+}
+
+/** Absolute and symlink-free, without demanding that the path exist. */
+function realpathOrResolve(path: string): string {
+  const absolute = resolve(path);
+  try {
+    return realpathSync(absolute);
+  } catch {
+    return absolute;
+  }
+}
+
+function resolveSourceRoot(project: string, requested: string | undefined): string {
+  if (requested === undefined) {
+    return project;
+  }
+
+  let root: string;
+  try {
+    root = realpathSync(resolve(requested));
+  } catch {
+    throw new SourceRootError(`source root does not exist: ${requested}`);
+  }
+
+  // Compare on path segments: `…/exam` is a string prefix of `…/example` but contains none of it.
+  if (project !== root && !project.startsWith(root.endsWith(sep) ? root : root + sep)) {
+    throw new SourceRootError(`source root ${root} is not an ancestor of project root ${project}`);
+  }
+  return root;
 }
 
 function record(value: unknown): Manifest {
@@ -106,19 +182,25 @@ function declaredPlatforms(manifest: Manifest): string[] {
     : [];
 }
 
-type Conformance = Omit<Grade, "conformant" | "evidenceState" | "level" | "label">;
+/** Everything decided by reading the project; the invocation's roots are stamped on around it. */
+type ProjectGrade = Omit<Grade, "projectRoot" | "sourceRoot">;
+
+type Conformance = Omit<ProjectGrade, "conformant" | "evidenceState" | "level" | "label">;
 
 /** Outside the profile: no solve was considered, so there is no evidence state to report. */
-function outOfProfile(options: Conformance): Grade {
+function outOfProfile(options: Conformance): ProjectGrade {
   return { conformant: false, evidenceState: null, level: null, label: "L0", ...options };
 }
 
 /** In profile, but the solve cannot carry a number. */
-function indefinite(state: Exclude<EvidenceState, "DEFINITIVE">, options: Conformance): Grade {
+function indefinite(
+  state: Exclude<EvidenceState, "DEFINITIVE">,
+  options: Conformance,
+): ProjectGrade {
   return { conformant: true, evidenceState: state, level: null, label: state, ...options };
 }
 
-function definitive(level: number, options: Conformance): Grade {
+function definitive(level: number, options: Conformance): ProjectGrade {
   return {
     conformant: true,
     evidenceState: "DEFINITIVE",
@@ -439,8 +521,16 @@ function profileNextActions(reasons: string[]): string[] {
 
 /**
  * Grade one project directory using only its manifest, lock, and vendored metadata.
+ *
+ * @throws {SourceRootError} if `options.sourceRoot` is missing or does not contain the project.
  */
 export function grade(directory: string, options: GradeOptions = {}): Grade {
+  const projectRoot = realpathOrResolve(directory);
+  const sourceRoot = resolveSourceRoot(projectRoot, options.sourceRoot);
+  return { projectRoot, sourceRoot, ...gradeProject(directory, options) };
+}
+
+function gradeProject(directory: string, options: GradeOptions): ProjectGrade {
   const manifestPath = join(directory, "pixi.toml");
   if (!existsSync(manifestPath)) {
     return outOfProfile({

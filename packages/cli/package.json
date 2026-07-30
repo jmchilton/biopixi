@@ -42,6 +42,7 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0"
+    "@types/node": "^25.5.0",
+    "ajv": "^8.20.0"
   }
 }

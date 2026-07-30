@@ -8,6 +8,7 @@
   - [CLI](packages/cli.md)
 - **API Reference**
   - [Overview](api/README.md)
+  - [Grade report JSON](schema/grade-report-v0.md)
   - [TypeDoc Reference](api/typedoc/index.html ":ignore")
 - **Development**
   - [Contributing](development/contributing.md)

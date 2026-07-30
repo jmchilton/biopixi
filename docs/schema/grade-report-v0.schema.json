@@ -1,0 +1,215 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://jmchilton.github.io/biopixi/schema/grade-report-v0.schema.json",
+  "title": "biopixi grade report",
+  "$ref": "#/definitions/GradeReport",
+  "definitions": {
+    "GradeReport": {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "Where this payload's schema is published."
+        },
+        "biopixi": {
+          "type": "string",
+          "description": "The biopixi release that produced the results."
+        },
+        "profile": {
+          "type": "string",
+          "description": "The grading profile the levels are defined by."
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/GradeReportEntry"
+          },
+          "description": "One entry per directory given, in the order they were given."
+        }
+      },
+      "required": ["$schema", "biopixi", "profile", "results"],
+      "additionalProperties": false,
+      "description": "The `biopixi grade --json` payload.\n\nThe envelope carries the versions a consumer needs to interpret `results`: `profile` is the grading profile the levels are defined by, `biopixi` is the release that produced them."
+    },
+    "GradeReportEntry": {
+      "type": "object",
+      "properties": {
+        "projectRoot": {
+          "type": "string",
+          "description": "The graded directory, absolute and symlink-resolved."
+        },
+        "sourceRoot": {
+          "type": "string",
+          "description": "The absolute, symlink-resolved directory bounding local path dependencies. Defaults to the project root; a caller grading a collection may widen it to any ancestor. Recorded on every result because it is a property of the invocation, not of the project."
+        },
+        "conformant": {
+          "type": "boolean",
+          "description": "Whether the manifest is inside profile v0. Everything below is unanswerable when false."
+        },
+        "evidenceState": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/EvidenceState"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Whether a solve backs the result. Null when the manifest never got as far as being solved."
+        },
+        "level": {
+          "type": ["number", "null"],
+          "description": "How far the environment travels, 1–4. Null unless `evidenceState` is `DEFINITIVE`."
+        },
+        "label": {
+          "type": "string",
+          "description": "The level, evidence state, or `L0`, as one token for display."
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Why the result is what it is, most specific first."
+        },
+        "lints": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Portability concerns that did not change the result."
+        },
+        "nextActions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "What to do to move the result up, in the order it would have to be done."
+        },
+        "target": {
+          "type": "string",
+          "description": "The `name=version` set a container claim would be built from."
+        },
+        "cap": {
+          "$ref": "#/definitions/Cap",
+          "description": "What holds the environment at this level. Absent at L4, where nothing does."
+        },
+        "publication": {
+          "$ref": "#/definitions/Publication",
+          "description": "The container this environment can be published as, and how that was arrived at."
+        },
+        "snapshot": {
+          "$ref": "#/definitions/MetadataSnapshot",
+          "description": "Provenance of the vendored metadata behind `publication`, when any was consulted."
+        },
+        "directory": {
+          "type": "string",
+          "description": "As supplied on the command line, so a caller can match results back to its own arguments."
+        }
+      },
+      "required": [
+        "conformant",
+        "directory",
+        "evidenceState",
+        "label",
+        "level",
+        "lints",
+        "nextActions",
+        "projectRoot",
+        "reasons",
+        "sourceRoot"
+      ],
+      "additionalProperties": false,
+      "description": "One graded directory: the path as the caller wrote it, plus everything grading decided."
+    },
+    "EvidenceState": {
+      "type": "string",
+      "enum": ["DEFINITIVE", "UNRESOLVED", "STALE", "UNSUPPORTED_LOCK"],
+      "description": "Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only meaningful when the evidence is `DEFINITIVE`."
+    },
+    "Cap": {
+      "type": "object",
+      "properties": {
+        "package": {
+          "type": "string",
+          "description": "The dependency name, as the manifest and the lock both spell it."
+        },
+        "version": {
+          "type": "string",
+          "description": "The locked version, absent only when the lock records none."
+        },
+        "channel": {
+          "type": ["string", "null"],
+          "description": "The channel it resolved from, or null when it was built from source."
+        },
+        "artifact": {
+          "type": "string",
+          "description": "The resolved artifact URL, or the path it is built from."
+        }
+      },
+      "required": ["package", "channel", "artifact"],
+      "additionalProperties": false,
+      "description": "The dependency and resolved artifact holding a platform below L4."
+    },
+    "Publication": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "description": "The container image this environment corresponds to."
+        },
+        "verified": {
+          "type": "boolean",
+          "description": "Whether a registry was reached and the image found there. False while grading is offline."
+        },
+        "basis": {
+          "type": "string",
+          "description": "How the URI was arrived at, so an unverified claim can be judged rather than trusted."
+        }
+      },
+      "required": ["uri", "verified", "basis"],
+      "additionalProperties": false,
+      "description": "A container claim and the basis for it. `verified` stays false while grading is offline: naming an image is not the same as reaching a registry and finding it there."
+    },
+    "MetadataSnapshot": {
+      "type": "object",
+      "properties": {
+        "file": {
+          "type": "string",
+          "description": "The vendored copy's filename inside this package."
+        },
+        "source": {
+          "type": "string",
+          "description": "The upstream repository it was taken from."
+        },
+        "path": {
+          "type": "string",
+          "description": "The path within that repository."
+        },
+        "ref": {
+          "type": "string",
+          "description": "The branch or tag followed."
+        },
+        "revision": {
+          "type": ["string", "null"],
+          "description": "The exact upstream commit vendored, or null if it was not recorded."
+        },
+        "revisionDate": {
+          "type": "string",
+          "description": "The date of that commit, ISO 8601."
+        },
+        "fetched": {
+          "type": "string",
+          "description": "The date the copy was taken, ISO 8601."
+        },
+        "sha1": {
+          "type": "string",
+          "description": "SHA-1 of the vendored copy, so the claim stays checkable offline."
+        }
+      },
+      "required": ["file", "source", "path", "ref", "revision", "revisionDate", "fetched", "sha1"],
+      "additionalProperties": false,
+      "description": "Provenance of the vendored public metadata a claim rests on."
+    }
+  }
+}

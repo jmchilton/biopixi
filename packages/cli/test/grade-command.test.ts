@@ -1,11 +1,11 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vitest";
 
-import { runGrade } from "../src/index.js";
+import { EXIT_CODES, runGrade } from "../src/index.js";
 import { buildProgram } from "../src/program.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -67,8 +67,33 @@ zlib = "1.3.*"
 
     expect(stdout.join("\n")).toContain("UNRESOLVED");
     expect(stdout.join("\n")).not.toContain("L1");
-    expect(code).toBe(1);
+    expect(code).toBe(EXIT_CODES.indefinite);
     expect(messages.join("\n")).toContain("no level could be determined");
+  });
+
+  it("prints the source root only once it has been widened past the project", () => {
+    const directory = join(root, "examples/l4-single");
+    const narrow: string[] = [];
+    runGrade([directory], {}, { stdout: (m) => narrow.push(m), stderr });
+    expect(narrow.join("\n")).not.toContain("source root:");
+
+    const wide: string[] = [];
+    runGrade([directory], { sourceRoot: root }, { stdout: (m) => wide.push(m), stderr });
+    expect(wide.join("\n")).toContain(`source root: ${realpathSync(root)}`);
+  });
+
+  it("reports a source root that cannot bound the project as a usage error", () => {
+    const messages: string[] = [];
+    const elsewhere = realpathSync(mkdtempSync(join(tmpdir(), "biopixi-cli-root-")));
+    const code = runGrade(
+      [join(root, "examples/l4-single")],
+      { sourceRoot: elsewhere },
+      { stdout: () => undefined, stderr: (m) => messages.push(m) },
+    );
+
+    // 64 is EX_USAGE: a bad invocation must not be mistaken for a low grade.
+    expect(code).toBe(EXIT_CODES.usage);
+    expect(messages.join("\n")).toContain("is not an ancestor of project root");
   });
 
   it("enforces a minimum level", () => {
