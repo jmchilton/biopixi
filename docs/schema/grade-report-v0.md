@@ -48,6 +48,8 @@ One of: `DEFINITIVE`, `UNRESOLVED`, `STALE`, `UNSUPPORTED_LOCK`.
 
 One graded directory: the path as the caller wrote it, plus everything grading decided.
 
+Extends the verified shape so `grade` and `verify` emit one payload rather than two. The observation fields are simply absent when nothing reached a registry.
+
 | Field              | Type                                      | Always present | Description                                                                                                                                                                                                                                                   |
 | ------------------ | ----------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `projectRoot`      | `string`                                  | yes            | The graded directory, absolute and symlink-resolved.                                                                                                                                                                                                          |
@@ -64,6 +66,7 @@ One graded directory: the path as the caller wrote it, plus everything grading d
 | `publication`      | [Publication](#publication)               | no             | The container this environment can be published as, and how that was arrived at.                                                                                                                                                                              |
 | `snapshot`         | [MetadataSnapshot](#metadatasnapshot)     | no             | Provenance of the vendored metadata behind `publication`, when any was consulted.                                                                                                                                                                             |
 | `pathDependencies` | [PathDependency](#pathdependency)[]       | no             | Every conformant local path dependency the manifest reaches, including those reached through another path dependency. Absent when the manifest declares none, which is the common case.                                                                       |
+| `observation`      | [Observation](#observation)               | no             | Absent when the result carried no publication to observe.                                                                                                                                                                                                     |
 | `directory`        | `string`                                  | yes            | As supplied on the command line, so a caller can match results back to its own arguments.                                                                                                                                                                     |
 
 ## MetadataSnapshot
@@ -80,6 +83,13 @@ Provenance of the vendored public metadata a claim rests on.
 | `revisionDate` | `string`           | yes            | The date of that commit, ISO 8601.                                  |
 | `fetched`      | `string`           | yes            | The date the copy was taken, ISO 8601.                              |
 | `sha1`         | `string`           | yes            | SHA-1 of the vendored copy, so the claim stays checkable offline.   |
+
+## Observation
+
+What a registry lookup established. Absence and ignorance are deliberately not the same.
+
+| Field | Type | Always present | Description |
+| ----- | ---- | -------------- | ----------- |
 
 ## PathDependency
 
@@ -102,10 +112,20 @@ One of: `workspace`, `package`.
 
 ## Publication
 
-A container claim and the basis for it. `verified` stays false while grading is offline: naming an image is not the same as reaching a registry and finding it there.
+A container claim and the basis for it. Naming an image is not the same as reaching a registry and finding it there, so the two are different states rather than one URI with a caveat.
 
-| Field      | Type      | Always present | Description                                                                               |
-| ---------- | --------- | -------------- | ----------------------------------------------------------------------------------------- |
-| `uri`      | `string`  | yes            | The container image this environment corresponds to.                                      |
-| `verified` | `boolean` | yes            | Whether a registry was reached and the image found there. False while grading is offline. |
-| `basis`    | `string`  | yes            | How the URI was arrived at, so an unverified claim can be judged rather than trusted.     |
+| Field        | Type                                  | Always present | Description                                                                            |
+| ------------ | ------------------------------------- | -------------- | -------------------------------------------------------------------------------------- |
+| `uri`        | `string`                              | yes            | The container image this environment corresponds to.                                   |
+| `state`      | [PublicationState](#publicationstate) | yes            | How much is known about the image. Only `CONFIRMED` supports L4.                       |
+| `basis`      | `string`                              | yes            | How the URI was arrived at, so an unconfirmed claim can be judged rather than trusted. |
+| `digest`     | `string`                              | no             | The manifest digest observed at the registry. Present only when `CONFIRMED`.           |
+| `observedAt` | `string`                              | no             | When the registry was reached, ISO 8601. Present only when a registry was reached.     |
+
+## PublicationState
+
+How much is known about a container image, from the name alone up to having seen it.
+
+Only `CONFIRMED` is L4, and only an observation produces it. The two middle states are the grounds on which an observation is worth attempting; neither is evidence the image exists.
+
+One of: `UNREGISTERED`, `INFERRED`, `REGISTERED`, `CONFIRMED`.

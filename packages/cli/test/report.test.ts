@@ -61,9 +61,12 @@ describe("grade --json", () => {
       sourceRoot: realpathSync(directory),
       conformant: true,
       evidenceState: "DEFINITIVE",
-      level: 4,
-      label: "L4",
-      publication: { uri: "quay.io/biocontainers/samtools:1.17--hd87286a_2", verified: false },
+      level: 3,
+      label: "L3",
+      publication: {
+        uri: "quay.io/biocontainers/samtools:1.17--hd87286a_2",
+        state: "INFERRED",
+      },
     });
   });
 

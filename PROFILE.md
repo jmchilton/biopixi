@@ -296,11 +296,37 @@ For one conformant platform with complete evidence, levels are cumulative:
 | **L1** | Every source and artifact is understood, but at least one dependency requires the selected source tree, a local build, or non-public infrastructure. |
 | **L2** | Every artifact in the resolved closure is anonymously retrievable from a recognized public channel.                                                  |
 | **L3** | L2 holds, and every artifact in the closure resolves from the logical conda-forge or Bioconda channels.                                              |
-| **L4** | L3 holds on `linux-64`, and a BioContainer for the exact root target set is present in the verified publication metadata.                            |
+| **L4** | L3 holds on `linux-64`, and a BioContainer for the exact root target set has been observed at a public registry.                                     |
 
 The L4 root target set is the effective set of direct Conda dependencies for the platform, using
 their locked versions. It is not the entire transitive closure: the container solve supplies that
 closure. Explicit channel prefixes MUST be preserved in the target string and hash.
+
+### L4 is not decidable offline
+
+L1–L3 are decidable from the lockfile, because the channel URL on each resolved artifact is
+recorded there. L4 is categorically different: it asserts that a specific image exists and can be
+pulled, which no file in the project records. An offline grader can compute the name that image
+would have and can say whether the target set is registered, but it cannot establish that the
+image is there.
+
+Profile v0 therefore MUST NOT assign L4 offline. A conformant offline grade tops out at L3 and
+carries a **publication candidate**: the URI, and the state of the evidence for it.
+
+| State          | Meaning                                                                     | L4-eligible |
+| -------------- | --------------------------------------------------------------------------- | ----------- |
+| `UNREGISTERED` | The name an image would have, with nothing indicating one was ever built.   | no          |
+| `INFERRED`     | A single Bioconda package, and Bioconda builds one image per recipe build.  | yes         |
+| `REGISTERED`   | The target set appears in the vendored BioContainers combinations snapshot. | yes         |
+| `CONFIRMED`    | The image was observed at a public registry, and its digest is recorded.    | is L4       |
+
+Only an observation promotes. `CONFIRMED` requires anonymous retrieval to have succeeded and MUST
+record the manifest digest and the time of observation, so the claim is auditable rather than
+merely asserted. Anonymity is the property under test: a registry that answers an unauthenticated
+request with an authorization failure has established that the image is not publicly pullable,
+which is the negative the profile cares about, whatever may exist behind those credentials.
+
+A transport failure establishes nothing and MUST NOT be recorded as a negative.
 
 BioContainers' build machinery can historically contain a custom-channel target. That fact does
 not allow L2 to skip L3. For example, the registered
@@ -357,11 +383,15 @@ to prevent biopixi from accidentally grading a flattened or wrong-platform closu
 
 ### Complete lockfile
 
-A **DEFINITIVE** result requires a supported, grade-fresh lockfile and a public-metadata snapshot
-whose revision and observation time are included in the output. A grade is explicitly relative
-to that snapshot. Positive L2–L4 evidence MUST expire under a documented freshness policy or be
-revalidated against its public endpoint; expired positive evidence cannot produce a definitive
-promotion.
+A **DEFINITIVE** result requires a supported, grade-fresh lockfile. Where a public-metadata
+snapshot was consulted, its revision and observation time MUST be included in the output, because
+a claim resting on vendored metadata is relative to the copy that was read.
+
+Profile v0 sets no expiry on that snapshot. An earlier draft required positive L2–L4 evidence to
+expire under a freshness policy, which existed to keep a stale vendored file from indefinitely
+supporting an L4 the grader had not observed. Requiring an observation for L4 removes the need:
+snapshot age can no longer promote anything on its own, so decaying it would add a rule without
+adding a guarantee.
 
 ## Fields outside the level calculation
 
@@ -410,7 +440,7 @@ this profile, it needs the following changes:
 | PyPI               | rejects top-level and effective platform-targeted entries                            | inspect top-level and platform-targeted dependencies independently                                                                 |
 | Missing lock       | returns `UNRESOLVED` with no numeric level                                           | return `UNRESOLVED` with no numeric level                                                                                          |
 | Stale lock         | checks root names and path-dependency source records against the closure             | validate the default environment's effective requirements per platform                                                             |
-| L4                 | reports snapshot revision and marks every container claim unverified                 | report verified snapshot provenance and endpoint evidence                                                                          |
+| L4                 | assigned only from an observed registry digest; offline grades stop at L3            | observe every declared platform, not only `linux-64`                                                                               |
 | CLI                | selects a source root and emits schema-backed JSON; no platform selection            | add platform selection plus matrix output                                                                                          |
 
 ## Pixi references

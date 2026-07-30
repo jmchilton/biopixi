@@ -38,7 +38,14 @@ function run(directories: string[], minLevel?: number): { code: number; stderr: 
 
 describe("exit codes", () => {
   it("passes when every project meets the threshold", () => {
-    expect(run([example("l4-single")], 4).code).toBe(EXIT_CODES.ok);
+    expect(run([example("l4-single")], 3).code).toBe(EXIT_CODES.ok);
+  });
+
+  it("cannot satisfy --min-level 4, because grade never reaches L4", () => {
+    // L4 needs a registry observation. `verify` is the command that can pass this gate.
+    const result = run([example("l4-single")], 4);
+    expect(result.code).toBe(EXIT_CODES.belowThreshold);
+    expect(result.stderr).toContain("worst level L3 < required L4");
   });
 
   it("reports only when no threshold is given, whatever the grades", () => {

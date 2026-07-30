@@ -81,13 +81,13 @@ public metadata — no judgement calls. Under the normative profile, a missing o
 produces `UNRESOLVED` or `STALE`, with no numeric grade. Manifest inspection can still report
 L0 violations and useful ceilings without pretending it has inspected the transitive closure.
 
-| Level  | Name                | Mechanically decidable condition                                                                    | What still must exist                                                                     |
-| ------ | ------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| **L0** | out of profile      | the manifest uses unsupported constructs, or a local dependency has no usable recipe                | no portability claim is made                                                              |
-| **L1** | packaged locally    | each local dependency has an in-repository recipe                                                   | this repository, public dependency channels, and a local build toolchain                  |
-| **L2** | publicly published  | every package is versioned and obtainable from a named public channel                               | those publishers and explicitly configured channels                                       |
-| **L3** | ecosystem-ready     | every package is obtainable from conda-forge or Bioconda                                            | the community package ecosystem; recipes participate in its build and migration machinery |
-| **L4** | ecosystem-published | L3 holds, and a BioContainer for the exact target set exists at the verified distribution endpoints | any one supported copy of the pre-built artifact                                          |
+| Level  | Name                | Mechanically decidable condition                                                        | What still must exist                                                                     |
+| ------ | ------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| **L0** | out of profile      | the manifest uses unsupported constructs, or a local dependency has no usable recipe    | no portability claim is made                                                              |
+| **L1** | packaged locally    | each local dependency has an in-repository recipe                                       | this repository, public dependency channels, and a local build toolchain                  |
+| **L2** | publicly published  | every package is versioned and obtainable from a named public channel                   | those publishers and explicitly configured channels                                       |
+| **L3** | ecosystem-ready     | every package is obtainable from conda-forge or Bioconda                                | the community package ecosystem; recipes participate in its build and migration machinery |
+| **L4** | ecosystem-published | L3 holds, and a BioContainer for the exact target set was observed at a public registry | any one supported copy of the pre-built artifact                                          |
 
 At L2, an `environment.yml` is derivable with the required custom channels and container builders
 can use those channels explicitly. At L3, the same operations use the standard conda-forge,
@@ -100,7 +100,10 @@ at L2, even if everything else is in conda-forge or Bioconda.
 
 L4 adds an environment-level condition to the package-level ladder. It is evaluated only after
 the full dependency closure has earned L3: an exact BioContainer must then have been published
-and verified. A container built from a custom public channel does not skip the community
+and observed. Unlike L1–L3, it is **not decidable offline** — nothing in a project records that an
+image was built and can be pulled — so `biopixi grade` stops at L3 and reports how far the
+container claim got, and `biopixi verify` reaches a registry and records the manifest digest that
+earns L4. A container built from a custom public channel does not skip the community
 maintenance requirement — it remains L2 even if that historical artifact happens to exist.
 Levels are therefore cumulative and **derived, never declared**.
 
@@ -110,7 +113,7 @@ flowchart LR
     L1["L1 · packaged locally<br/>recipe in-repo + local channel"] -- "publish to a public channel" --> L2
     L2["L2 · publicly published<br/>named public channel"] -- "upstream the recipe" --> L3
     L3["L3 · ecosystem-ready<br/>conda-forge or Bioconda"] -- "Bioconda auto-publish<br/>or hash.tsv request" --> L4
-    L4["L4 · ecosystem-published<br/>verified BioContainer"]
+    L4["L4 · ecosystem-published<br/>observed BioContainer<br/>(biopixi verify)"]
     L0 -. "R only · zero packaging" .-> RL["R lane<br/>rocker + renv/rv"]
     RL -. "generate-recipe cran" .-> L1
     L1 -. "private, or licence forbids" .-> OFF["off-ramp · own channel"]

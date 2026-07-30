@@ -109,6 +109,10 @@
           },
           "description": "Every conformant local path dependency the manifest reaches, including those reached through another path dependency. Absent when the manifest declares none, which is the common case."
         },
+        "observation": {
+          "$ref": "#/definitions/Observation",
+          "description": "Absent when the result carried no publication to observe."
+        },
         "directory": {
           "type": "string",
           "description": "As supplied on the command line, so a caller can match results back to its own arguments."
@@ -127,7 +131,7 @@
         "sourceRoot"
       ],
       "additionalProperties": false,
-      "description": "One graded directory: the path as the caller wrote it, plus everything grading decided."
+      "description": "One graded directory: the path as the caller wrote it, plus everything grading decided.\n\nExtends the verified shape so `grade` and `verify` emit one payload rather than two. The observation fields are simply absent when nothing reached a registry."
     },
     "EvidenceState": {
       "type": "string",
@@ -165,18 +169,31 @@
           "type": "string",
           "description": "The container image this environment corresponds to."
         },
-        "verified": {
-          "type": "boolean",
-          "description": "Whether a registry was reached and the image found there. False while grading is offline."
+        "state": {
+          "$ref": "#/definitions/PublicationState",
+          "description": "How much is known about the image. Only `CONFIRMED` supports L4."
         },
         "basis": {
           "type": "string",
-          "description": "How the URI was arrived at, so an unverified claim can be judged rather than trusted."
+          "description": "How the URI was arrived at, so an unconfirmed claim can be judged rather than trusted."
+        },
+        "digest": {
+          "type": "string",
+          "description": "The manifest digest observed at the registry. Present only when `CONFIRMED`."
+        },
+        "observedAt": {
+          "type": "string",
+          "description": "When the registry was reached, ISO 8601. Present only when a registry was reached."
         }
       },
-      "required": ["uri", "verified", "basis"],
+      "required": ["uri", "state", "basis"],
       "additionalProperties": false,
-      "description": "A container claim and the basis for it. `verified` stays false while grading is offline: naming an image is not the same as reaching a registry and finding it there."
+      "description": "A container claim and the basis for it. Naming an image is not the same as reaching a registry and finding it there, so the two are different states rather than one URI with a caveat."
+    },
+    "PublicationState": {
+      "type": "string",
+      "enum": ["UNREGISTERED", "INFERRED", "REGISTERED", "CONFIRMED"],
+      "description": "How much is known about a container image, from the name alone up to having seen it.\n\nOnly `CONFIRMED` is L4, and only an observation produces it. The two middle states are the grounds on which an observation is worth attempting; neither is evidence the image exists."
     },
     "MetadataSnapshot": {
       "type": "object",
@@ -254,6 +271,53 @@
       "type": "string",
       "enum": ["workspace", "package"],
       "description": "Where a path dependency was declared, which decides what it can be compared against."
+    },
+    "Observation": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "outcome": {
+              "type": "string",
+              "const": "present"
+            },
+            "digest": {
+              "type": "string"
+            }
+          },
+          "required": ["outcome", "digest"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "outcome": {
+              "type": "string",
+              "const": "absent"
+            },
+            "detail": {
+              "type": "string"
+            }
+          },
+          "required": ["outcome", "detail"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "outcome": {
+              "type": "string",
+              "const": "indeterminate"
+            },
+            "detail": {
+              "type": "string"
+            }
+          },
+          "required": ["outcome", "detail"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "What a registry lookup established. Absence and ignorance are deliberately not the same."
     }
   }
 }

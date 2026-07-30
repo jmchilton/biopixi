@@ -13,7 +13,10 @@ export type {
   LockedPackage,
   MetadataSnapshot,
   Publication,
+  PublicationState,
 } from "./grade.js";
+export { observe, parsePullUri, verifyGrade } from "./verify.js";
+export type { Fetcher, Observation, VerifiedGrade, VerifyOptions } from "./verify.js";
 export { parseManifest } from "./manifest.js";
 export type { Manifest } from "./manifest.js";
 export { checkPathDependencies } from "./path-dependency.js";

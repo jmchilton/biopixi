@@ -16,6 +16,8 @@ export const EXIT_CODES = {
   belowThreshold: 1,
   indefinite: 2,
   outOfProfile: 3,
+  /** `verify --require-verified` only: a container claim nobody could observe. */
+  unconfirmed: 4,
   usage: 64,
 } as const;
 
@@ -62,10 +64,13 @@ export function renderGrade(directory: string, result: Grade): string {
     lines.push(`                 ${artifact}`);
   }
   if (result.publication !== undefined) {
-    // Never print a bare URI: an unverified container name reads as a checked fact otherwise.
-    const state = result.publication.verified ? "verified" : "UNVERIFIED";
-    lines.push(`      container: ${result.publication.uri}`);
-    lines.push(`                 ${state} — ${result.publication.basis}`);
+    // Never print a bare URI: a container name nobody has looked for reads as a checked fact.
+    const { uri, state, basis, digest } = result.publication;
+    lines.push(`      container: ${uri}`);
+    lines.push(`                 ${state} — ${basis}`);
+    if (digest !== undefined) {
+      lines.push(`                 ${digest}`);
+    }
   }
   if (result.snapshot !== undefined) {
     const { path, revision, fetched } = result.snapshot;
