@@ -183,19 +183,38 @@ A conformant path dependency MUST:
 - point to a directory containing a Pixi package manifest;
 - declare `[package].name` equal to the dependency name and a concrete `[package].version`;
 - use a build backend supported by this profile;
-- contain backend inputs that parse and render for the grading platform;
-- render exactly one runtime output whose name and version agree with the package manifest;
+- contain backend inputs that parse for the grading platform;
+- declare exactly one output, whose name and version agree with the package manifest;
 - agree with the source record in `pixi.lock`; and
-- have only supported Conda registry or recursively conformant path dependencies in the rendered
+- have only supported Conda registry or recursively conformant path dependencies in the declared
   runtime requirements.
 
 Profile v0's supported local backend is `pixi-build-rattler-build`, with a `recipe.yaml` or
 `recipe.yml` accepted by rattler-build. Merely having a source checkout, a package manifest, or a
 file named `recipe.yaml` is not sufficient.
 
+#### Declaring exactly one output
+
+A recipe declares exactly one output when it carries a top-level `package:` mapping, has no
+`outputs:` key, and pins every variant key to at most one value. Both of the other forms multiply
+what a build produces: an `outputs:` list is rattler-build's multi-package form, and a variant key
+with several values defines a build matrix rendering one output per combination, identical in name
+and version but differing in build string. A path dependency exists to supply one missing package,
+and profile v0 requires it to say so in a form that can be read without a build.
+
+This is a requirement on recipes written inside the source tree. It says nothing about packages
+resolved from a channel: a dependency on a multi-output package such as `gatk4` or `snakemake` is
+an ordinary locked package and is unaffected.
+
+`build.skip` is permitted but produces a lint. A skip expression that matches renders no output at
+all, and profile v0 does not evaluate rattler-build's expression language, so biopixi reports that
+the single declared output may not be produced for the grading platform rather than claiming it
+will be. Whether it builds is a build-time fact and outside what an offline grader can settle.
+
 A valid path dependency caps the platform at L1 because rebuilding still requires the selected
 source tree and a local build toolchain. An absolute path, a path escaping the selected source
-root, a missing target, a package-name mismatch, or a source tree without a usable recipe is L0.
+root, a missing target, a package-name mismatch, a recipe declaring more than one output, or a
+source tree without a usable recipe is L0.
 
 ### Git or URL source dependency
 
@@ -352,7 +371,7 @@ this profile, it needs the following changes:
 | Platforms          | validates the supported set but flattens all locked platforms together              | grade each platform independently                                                                                                  |
 | Target tables      | applied to one grading platform, not to a per-platform matrix                       | apply top-level target tables per platform                                                                                         |
 | Pixi validation    | never invokes Pixi; only the checked-in fixtures are validated against the real CLI | reject a manifest that Pixi itself rejects                                                                                         |
-| Path dependencies  | records the selected source root but trusts any locked source record                | validate source-root containment, recipe, package name, and lock agreement                                                         |
+| Path dependencies  | records the selected source root but trusts any locked source record                | validate source-root containment, recipe, package name, single declared output, and lock agreement                                 |
 | Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity  | verify the qualifier and preserve it in mulled targets                                                                             |
 | PyPI               | rejects top-level and effective platform-targeted entries                           | inspect top-level and platform-targeted dependencies independently                                                                 |
 | Missing lock       | returns `UNRESOLVED` with no numeric level                                          | return `UNRESOLVED` with no numeric level                                                                                          |
