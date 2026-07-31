@@ -116,5 +116,6 @@ That is how one person can move quickly without making the environment a private
 fast alone** _**and**_ **go far together.**
 
 To understand where that packaging work can lead, read
-[From Pixi to BioContainers](from-pixi-to-biocontainers.md). For the mechanics behind the two
-container paths, read [Container builders](../architecture/containers.md).
+[From Pixi to BioContainers](from-pixi-to-biocontainers.md). To use the resulting environment with
+Pixi, Wave, mulled, or a container runtime, read
+[Working with Pixi environments](working-with-pixi-environments.md).
