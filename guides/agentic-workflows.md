@@ -33,21 +33,21 @@ analysis or disappearing behind it.
 
 The interfaces differ, but each can preserve the analysis thread while opening another path.
 
-<div class="agent-tabs" data-agent-tabs>
-  <div class="agent-tabs__controls" role="tablist" aria-label="Agent interfaces">
-    <button class="agent-tabs__tab is-active" id="agent-tab-claude" type="button" role="tab" aria-selected="true" aria-controls="agent-panel-claude" tabindex="0">Claude Code</button>
-    <button class="agent-tabs__tab" id="agent-tab-codex" type="button" role="tab" aria-selected="false" aria-controls="agent-panel-codex" tabindex="-1">Codex</button>
-    <button class="agent-tabs__tab" id="agent-tab-pi" type="button" role="tab" aria-selected="false" aria-controls="agent-panel-pi" tabindex="-1">pi</button>
+<div class="doc-tabs" data-doc-tabs>
+  <div class="doc-tabs__controls" role="tablist" aria-label="Agent interfaces">
+    <button class="doc-tabs__tab is-active" id="agent-tab-claude" type="button" role="tab" aria-selected="true" aria-controls="agent-panel-claude" tabindex="0">Claude Code</button>
+    <button class="doc-tabs__tab" id="agent-tab-codex" type="button" role="tab" aria-selected="false" aria-controls="agent-panel-codex" tabindex="-1">Codex</button>
+    <button class="doc-tabs__tab" id="agent-tab-pi" type="button" role="tab" aria-selected="false" aria-controls="agent-panel-pi" tabindex="-1">pi</button>
   </div>
-  <section class="agent-tabs__panel is-active" id="agent-panel-claude" role="tabpanel" aria-labelledby="agent-tab-claude">
+  <section class="doc-tabs__panel is-active" id="agent-panel-claude" role="tabpanel" aria-labelledby="agent-tab-claude">
     <p>Claude Code now uses <a href="https://code.claude.com/docs/en/sessions#branch-a-session"><code>/branch</code></a>, formerly <code>/fork</code>, to copy the conversation into a new session while leaving the original intact. Use a <a href="https://code.claude.com/docs/en/common-workflows#run-parallel-sessions-with-worktrees">separate worktree</a> when both sessions will edit files.</p>
     <pre><code class="language-text">/branch package-r-designit</code></pre>
   </section>
-  <section class="agent-tabs__panel" id="agent-panel-codex" role="tabpanel" aria-labelledby="agent-tab-codex" hidden>
+  <section class="doc-tabs__panel" id="agent-panel-codex" role="tabpanel" aria-labelledby="agent-tab-codex" hidden>
     <p>Codex <a href="https://learn.chatgpt.com/docs/developer-commands?surface=cli#fork-the-current-chat-with-fork"><code>/fork</code></a> starts a new chat with the current transcript. In the Codex app, give parallel editing work an isolated <a href="https://learn.chatgpt.com/docs/environments/git-worktrees">worktree</a>.</p>
     <pre><code class="language-text">/fork</code></pre>
   </section>
-  <section class="agent-tabs__panel" id="agent-panel-pi" role="tabpanel" aria-labelledby="agent-tab-pi" hidden>
+  <section class="doc-tabs__panel" id="agent-panel-pi" role="tabpanel" aria-labelledby="agent-tab-pi" hidden>
     <p>pi uses <a href="https://pi.dev/docs/latest/sessions#branching-with-tree"><code>/tree</code></a> to grow another branch in the same session file and <code>/fork</code> to create a separate session. Pair the new session with a worktree if both paths will edit the repository.</p>
     <pre><code class="language-text">/tree    # keep alternatives together
 /fork    # create a separate session</code></pre>

@@ -43,8 +43,24 @@ samtools = "==1.17"
 inspect = "samtools --version"
 ```
 
-[Pixi](https://pixi.prefix.dev/latest/) reads this file directly. A named task is the cleanest
-interface for a repeated analysis command:
+[Pixi](https://pixi.prefix.dev/latest/) reads this file directly.
+
+<div class="doc-tabs" data-doc-tabs>
+  <div class="doc-tabs__controls" role="tablist" aria-label="Pixi installation by operating system">
+    <button class="doc-tabs__tab is-active" id="pixi-tab-linux" type="button" role="tab" aria-selected="true" aria-controls="pixi-panel-linux" tabindex="0">Linux</button>
+    <button class="doc-tabs__tab" id="pixi-tab-macos" type="button" role="tab" aria-selected="false" aria-controls="pixi-panel-macos" tabindex="-1">macOS</button>
+  </div>
+  <section class="doc-tabs__panel is-active" id="pixi-panel-linux" role="tabpanel" aria-labelledby="pixi-tab-linux">
+    <p>Install Pixi with its official installer, then open a new shell so the updated <code>PATH</code> takes effect.</p>
+    <pre><code class="language-bash">curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
+  </section>
+  <section class="doc-tabs__panel" id="pixi-panel-macos" role="tabpanel" aria-labelledby="pixi-tab-macos" hidden>
+    <p>Install Pixi with <a href="https://pixi.prefix.dev/latest/installation/#homebrew">Homebrew</a>.</p>
+    <pre><code class="language-bash">brew install pixi</code></pre>
+  </section>
+</div>
+
+A named task is the cleanest interface for a repeated analysis command:
 
 ```bash
 pixi run inspect
@@ -139,8 +155,26 @@ r-designit = { path = "./recipes/r-designit" }
 ```
 
 Pixi builds path dependencies automatically when it installs or runs the environment. To create
-an indexed local channel explicitly, current Pixi can build and publish the package there. Run
-this Linux container-testing path on a `linux-64` build host or CI runner:
+an indexed local channel explicitly, current Pixi can build and publish the package there.
+
+<div class="doc-tabs" data-doc-tabs>
+  <div class="doc-tabs__controls" role="tablist" aria-label="Local container tool installation by operating system">
+    <button class="doc-tabs__tab is-active" id="mulled-tab-linux" type="button" role="tab" aria-selected="true" aria-controls="mulled-panel-linux" tabindex="0">Linux</button>
+    <button class="doc-tabs__tab" id="mulled-tab-macos" type="button" role="tab" aria-selected="false" aria-controls="mulled-panel-macos" tabindex="-1">macOS</button>
+  </div>
+  <section class="doc-tabs__panel is-active" id="mulled-panel-linux" role="tabpanel" aria-labelledby="mulled-tab-linux">
+    <p>Install <code>mulled-build</code> from conda-forge's <a href="https://anaconda.org/conda-forge/galaxy-tool-util"><code>galaxy-tool-util</code></a> package, then install and start <a href="https://docs.docker.com/engine/install/">Docker Engine</a>. The first build downloads involucro automatically.</p>
+    <pre><code class="language-bash">pixi global install galaxy-tool-util</code></pre>
+  </section>
+  <section class="doc-tabs__panel" id="mulled-panel-macos" role="tabpanel" aria-labelledby="mulled-tab-macos" hidden>
+    <p>This guide's local build produces a <code>linux-64</code> package and container. Run these commands on a Linux host or CI runner; use Wave from macOS when every package input is public.</p>
+  </section>
+</div>
+
+The pixi-build backend is declared by the package and resolved by Pixi, so it does not need a
+separate global installation.
+
+Run this Linux container-testing path on a `linux-64` build host or CI runner:
 
 ```bash
 pixi publish \
@@ -169,6 +203,21 @@ than the richer build environment, which is why the same pattern is part of
 
 ## Ask Wave to build from public packages
 
+<div class="doc-tabs" data-doc-tabs>
+  <div class="doc-tabs__controls" role="tablist" aria-label="Wave installation by operating system">
+    <button class="doc-tabs__tab is-active" id="wave-tab-linux" type="button" role="tab" aria-selected="true" aria-controls="wave-panel-linux" tabindex="0">Linux</button>
+    <button class="doc-tabs__tab" id="wave-tab-macos" type="button" role="tab" aria-selected="false" aria-controls="wave-panel-macos" tabindex="-1">macOS</button>
+  </div>
+  <section class="doc-tabs__panel is-active" id="wave-panel-linux" role="tabpanel" aria-labelledby="wave-tab-linux">
+    <p>Download the precompiled Linux binary from the <a href="https://docs.seqera.io/wave/cli/installation">Wave CLI installation page</a> and place it on your <code>PATH</code>. If you already use Homebrew on Linux, Seqera also provides a tap.</p>
+    <pre><code class="language-bash">brew install seqeralabs/tap/wave-cli</code></pre>
+  </section>
+  <section class="doc-tabs__panel" id="wave-panel-macos" role="tabpanel" aria-labelledby="wave-tab-macos" hidden>
+    <p>Install the Wave CLI from <a href="https://docs.seqera.io/wave/cli/installation#homebrew">Seqera's Homebrew tap</a>.</p>
+    <pre><code class="language-bash">brew install seqeralabs/tap/wave-cli</code></pre>
+  </section>
+</div>
+
 Once every target is available from publicly reachable channels, pass the target reported by
 biopixi to Wave:
 
@@ -194,6 +243,19 @@ At L4, the build step has already happened. Confirm that the image is publicly a
 ```bash
 biopixi verify . --require-verified
 ```
+
+<div class="doc-tabs" data-doc-tabs>
+  <div class="doc-tabs__controls" role="tablist" aria-label="Container runtime installation by operating system">
+    <button class="doc-tabs__tab is-active" id="runtime-tab-linux" type="button" role="tab" aria-selected="true" aria-controls="runtime-panel-linux" tabindex="0">Linux</button>
+    <button class="doc-tabs__tab" id="runtime-tab-macos" type="button" role="tab" aria-selected="false" aria-controls="runtime-panel-macos" tabindex="-1">macOS</button>
+  </div>
+  <section class="doc-tabs__panel is-active" id="runtime-panel-linux" role="tabpanel" aria-labelledby="runtime-tab-linux">
+    <p>Install the runtime supported at your compute site: <a href="https://docs.docker.com/engine/install/">Docker Engine</a>, <a href="https://podman.io/docs/installation">Podman</a>, or <a href="https://apptainer.org/docs/admin/main/installation.html">Apptainer</a>. You need only one.</p>
+  </section>
+  <section class="doc-tabs__panel" id="runtime-panel-macos" role="tabpanel" aria-labelledby="runtime-tab-macos" hidden>
+    <p>Install and start <a href="https://docs.docker.com/desktop/setup/install/mac-install/">Docker Desktop for Mac</a> to run the published Linux container locally.</p>
+  </section>
+</div>
 
 Then use the verified URI with the runtime available on the machine. For example:
 
