@@ -155,8 +155,20 @@ bioformats2raw = { version = "0.9.4", channel = "ome" }
 ```
 
 The qualifier MUST agree with the resolved channel in the lockfile. biopixi MUST preserve an
-explicit `channel::package` prefix when computing a mulled target because channel prefixes are
-part of the container identity.
+explicit `channel::package` prefix when computing a mulled **target string**, because
+BioContainers hashes those strings as `combinations/hash.tsv` records them and a prefix therefore
+changes which image a multi-package combination names.
+
+A prefix MUST NOT reach an image reference where it is not part of the identity being computed:
+
+- a **single-package** image is named rather than hashed — its repository component is the package
+  name — so the qualifier is dropped. `quay.io/biocontainers/ome::bioformats2raw:0.9.4` is not a
+  container reference at all;
+- a **registered** combination is named from the target string `hash.tsv` records, not from the
+  manifest's spelling, because that image already exists and its name is already decided; and
+- **matching** a target set against `hash.tsv` MUST ignore qualifiers on both sides. Two manifests
+  differing only in whether they spell a qualifier resolve to the same artifacts, and must not
+  differ in whether biopixi finds their published container.
 
 Channel qualification does not promote a package:
 
@@ -430,20 +442,19 @@ workspace minimum.
 The current `packages/core/src/grade.ts` is a proof of concept. Before it claims conformance with
 this profile, it needs the following changes:
 
-| Area               | Current prototype                                                                                                                 | Profile requirement                                                                                                                |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Features           | rejects every named feature table                                                                                                 | reject every named feature table                                                                                                   |
-| Environments       | enforces the implicit default or `environments.default = []` boundary                                                             | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
-| Platforms          | validates the supported set and grades the linux-64 solve alone; a declared osx-arm64 is checked for conformance but never graded | grade each platform independently                                                                                                  |
-| Target tables      | applied to one grading platform, not to a per-platform matrix                                                                     | apply top-level target tables per platform                                                                                         |
-| Pixi validation    | never invokes Pixi; only the checked-in fixtures are validated against the real CLI                                               | reject a manifest that Pixi itself rejects                                                                                         |
-| Path dependencies  | validates containment, package manifest, backend, recipe, and single declared output                                              | recurse per grading platform rather than over every target table at once                                                           |
-| Channel qualifiers | uses the resolved channel for levels but can lose the prefix in container identity                                                | verify the qualifier and preserve it in mulled targets                                                                             |
-| PyPI               | rejects top-level and effective platform-targeted entries                                                                         | inspect top-level and platform-targeted dependencies independently                                                                 |
-| Missing lock       | returns `UNRESOLVED` with no numeric level                                                                                        | return `UNRESOLVED` with no numeric level                                                                                          |
-| Stale lock         | requires a linux-64 section, then checks root names and path-dependency source records against that platform's closure            | validate the default environment's effective requirements per platform                                                             |
-| L4                 | assigned only from an observed registry digest; offline grades stop at L3                                                         | observe every declared platform, not only `linux-64`                                                                               |
-| CLI                | selects a source root and emits schema-backed JSON; no platform selection                                                         | add platform selection plus matrix output                                                                                          |
+| Area              | Current prototype                                                                                                                 | Profile requirement                                                                                                                |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Features          | rejects every named feature table                                                                                                 | reject every named feature table                                                                                                   |
+| Environments      | enforces the implicit default or `environments.default = []` boundary                                                             | accept only the implicit default or `environments.default = []`; reject `no-default-feature`, named environments, and solve groups |
+| Platforms         | validates the supported set and grades the linux-64 solve alone; a declared osx-arm64 is checked for conformance but never graded | grade each platform independently                                                                                                  |
+| Target tables     | applied to one grading platform, not to a per-platform matrix                                                                     | apply top-level target tables per platform                                                                                         |
+| Pixi validation   | never invokes Pixi; only the checked-in fixtures are validated against the real CLI                                               | reject a manifest that Pixi itself rejects                                                                                         |
+| Path dependencies | validates containment, package manifest, backend, recipe, and single declared output                                              | recurse per grading platform rather than over every target table at once                                                           |
+| PyPI              | rejects top-level and effective platform-targeted entries                                                                         | inspect top-level and platform-targeted dependencies independently                                                                 |
+| Missing lock      | returns `UNRESOLVED` with no numeric level                                                                                        | return `UNRESOLVED` with no numeric level                                                                                          |
+| Stale lock        | checks channel configuration plus direct version, build, explicit-channel, and path requirements for linux-64                     | additionally run Pixi's whole-workspace freshness check and validate every platform                                                |
+| L4                | assigned only from an observed registry digest; offline grades stop at L3                                                         | observe every declared platform, not only `linux-64`                                                                               |
+| CLI               | selects a source root and emits schema-backed JSON; no platform selection                                                         | add platform selection plus matrix output                                                                                          |
 
 ## Pixi references
 

@@ -12,13 +12,18 @@
 <li><a href="../modules/_biopixi_cli..html"></a></li>
 <li><a href="" aria-current="page">EXIT_CODES</a></li></ul>
 <h1>Variable EXIT_CODES<code class="tsd-tag">Const</code></h1></div>
-<div class="tsd-signature"><span class="tsd-kind-variable">EXIT_CODES</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">belowThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">indefinite</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">ok</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">unconfirmed</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">4</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">64</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span><span class="tsd-signature-symbol"> = ...</span></div>
-<div class="tsd-comment tsd-typography"><p>What <code>--min-level</code> failed on, in the order <a href="http://PROFILE.md">PROFILE.md</a> asks the questions: whether the manifest
-is in profile, then whether a solve backs it, then how far it travels. Collapsing these onto one
-code makes &quot;this project is not gradeable&quot; indistinguishable from &quot;this project scored low&quot;,
-which are different problems with different fixes.</p>
-<p>Invocation faults use EX_USAGE, well clear of the verdicts, so a bad source root can never be
-read as a statement about the project.</p>
+<div class="tsd-signature"><span class="tsd-kind-variable">EXIT_CODES</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-symbol">{</span><br/>    <span class="tsd-kind-property">belowThreshold</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">1</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">dataError</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">65</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">indefinite</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">2</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">internal</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">70</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">ok</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">0</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">3</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">unavailable</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">69</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">unconfirmed</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">4</span><span class="tsd-signature-symbol">;</span><br/>    <span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">64</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div>
+<div class="tsd-comment tsd-typography"><p>What a biopixi command failed on.</p>
+<p>The low codes are verdicts about a project, in the order <a href="http://PROFILE.md">PROFILE.md</a> asks the questions: whether
+the manifest is in profile, then whether a solve backs it, then how far it travels. Collapsing
+these onto one code makes &quot;this project is not gradeable&quot; indistinguishable from &quot;this project
+scored low&quot;, which are different problems with different fixes.</p>
+<p>The sysexits-range codes are faults in the invocation or the environment rather than findings
+about the project, so a bad source root or a missing external tool can never be read as a
+statement about the code being graded.</p>
+<p>A command that runs an external tool and propagates its exit status — <code>wave-biopixi</code> does —
+cannot keep its own codes disjoint from the child's. Such a command reports every project
+verdict as <a href="#dataerror" class="tsd-kind-property">EXIT_CODES.dataError</a> so that its low codes belong unambiguously to the child.</p>
 </div>
 <div class="tsd-type-declaration">
 <h4>Type Declaration</h4>
@@ -26,19 +31,33 @@ read as a statement about the project.</p>
 <li class="tsd-parameter">
 <h5 id="belowthreshold"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">belowThreshold</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">1</span></h5></li>
 <li class="tsd-parameter">
+<h5 id="dataerror"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">dataError</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">65</span></h5>
+<div class="tsd-comment tsd-typography"><p>EX_DATAERR: the project's evidence cannot support what was asked of it.</p>
+</div></li>
+<li class="tsd-parameter">
 <h5 id="indefinite"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">indefinite</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">2</span></h5></li>
+<li class="tsd-parameter">
+<h5 id="internal"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">internal</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">70</span></h5>
+<div class="tsd-comment tsd-typography"><p>EX_SOFTWARE: an internal fault, distinct from anything the project or the user did.</p>
+</div></li>
 <li class="tsd-parameter">
 <h5 id="ok"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">ok</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">0</span></h5></li>
 <li class="tsd-parameter">
 <h5 id="outofprofile"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">outOfProfile</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">3</span></h5></li>
 <li class="tsd-parameter">
+<h5 id="unavailable"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">unavailable</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">69</span></h5>
+<div class="tsd-comment tsd-typography"><p>EX_UNAVAILABLE: an external tool this command drives could not be started.</p>
+</div></li>
+<li class="tsd-parameter">
 <h5 id="unconfirmed"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">unconfirmed</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">4</span></h5>
 <div class="tsd-comment tsd-typography"><p><code>verify --require-verified</code> only: a container claim nobody could observe.</p>
 </div></li>
 <li class="tsd-parameter">
-<h5 id="usage"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">64</span></h5></li></ul></div><aside class="tsd-sources">
+<h5 id="usage"><code class="tsd-tag">Readonly</code><span class="tsd-kind-property">usage</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">64</span></h5>
+<div class="tsd-comment tsd-typography"><p>EX_USAGE: the command line itself was wrong.</p>
+</div></li></ul></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/jmchilton/biopixi/blob/6778bf60c039031f50ccca0173af301a5ef24b9c/packages/cli/src/grade-command.ts#L14">cli/src/grade-command.ts:14</a></li></ul></aside></div>
+<li>Defined in core/dist/command.d.ts:25</li></ul></aside></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
