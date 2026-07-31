@@ -237,7 +237,9 @@ Wave documents the underlying inputs in its
 Wave does not read the project's `pixi.lock`; `wave-biopixi` uses it to pin the request, and Wave
 creates its own solve record. A local path dependency must become a local mulled build or a
 publicly reachable package before Wave can use it. The wrapper rejects L1 evidence and says so;
-building those inputs locally needs mulled-build directly until biopixi's local adapter lands.
+build those inputs locally with [`mulled-biopixi`](building-with-mulled-biopixi.md) instead.
+[Build hosted containers with wave-biopixi](building-with-wave-biopixi.md) covers the options,
+refusals, and exit codes in full.
 
 ## Run a published BioContainer
 
@@ -296,5 +298,6 @@ For the story behind these stages, read
 [From Pixi to BioContainers](from-pixi-to-biocontainers.md). For the naming and registry logic
 inside biopixi, read [Container identity internals](../architecture/containers.md). To delegate
 dependency hardening without stopping the analysis, read
-[Agentic workflows](agentic-workflows.md). To automate a local build from the project manifest and
-lockfile, read [Build local containers with mulled-biopixi](building-with-mulled-biopixi.md).
+[Agentic workflows](agentic-workflows.md). To automate a build from the project manifest and
+lockfile, read [Build local containers with mulled-biopixi](building-with-mulled-biopixi.md) or
+[Build hosted containers with wave-biopixi](building-with-wave-biopixi.md).
