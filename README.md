@@ -20,6 +20,12 @@ biopixi is for bioinformatics developers who have a working pixi environment and
 whether a collaborator, CI runner, workflow engine, Galaxy server, or future maintainer can use
 it without access to the original checkout.
 
+<p align="center">
+  <a href="assets/biopixi-ladder-infographic.svg">
+    <img src="assets/biopixi-ladder-infographic.svg" width="720" alt="Five-rung ladder from a useful Pixi environment through local and public Conda packaging to community-maintained packages and a published BioContainer" />
+  </a>
+</p>
+
 The intended interface is:
 
 ```console
