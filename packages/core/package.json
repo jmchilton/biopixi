@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Offline pixi portability grading and BioContainers target naming",
   "type": "module",
+  "license": "MIT",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -14,7 +15,8 @@
   "files": [
     "dist",
     "data",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "packageManager": "pnpm@10.33.0",
   "engines": {
     "node": ">=22"
@@ -22,6 +23,7 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish",
+    "smoke": "node scripts/smoke-packages.mjs",
     "schema": "node scripts/generate-schema.mjs",
     "schema:check": "node scripts/generate-schema.mjs --check",
     "docs:api": "typedoc",

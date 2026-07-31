@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Command-line interface for grading Pixi environment portability",
   "type": "module",
+  "license": "MIT",
   "bin": {
     "biopixi": "dist/bin/biopixi.js"
   },
@@ -15,7 +16,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "repository": {
     "type": "git",

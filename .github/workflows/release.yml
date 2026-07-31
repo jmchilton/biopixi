@@ -1,0 +1,87 @@
+name: Release
+
+# Changesets opens a version PR while release notes are pending. Merging that PR
+# publishes the bumped packages. npm authenticates the publish through the OIDC
+# identity of this workflow; no npm token belongs in this repository.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup
+
+      - uses: prefix-dev/setup-pixi@v0.10.0
+        with:
+          run-install: false
+          pixi-version: v0.75.0
+
+      - run: pnpm check
+
+      # Install the packed artifacts in a clean consumer and exercise both the
+      # bundled metadata and the CLI entry point before granting publish access.
+      - run: pnpm smoke
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: package-dist
+          path: packages/*/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    # This must exactly match the environment in both npm trusted-publisher records.
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: package-dist
+          path: packages
+
+      - name: Create release PR or publish
+        uses: changesets/action@v1
+        with:
+          version: pnpm run version-packages
+          publish: pnpm changeset publish
+          title: "chore(release): version packages"
+          commit: "chore(release): version packages"
+          createGithubReleases: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"

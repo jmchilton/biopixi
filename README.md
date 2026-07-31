@@ -260,6 +260,14 @@ pnpm docs:build
 pnpm docs:dev
 ```
 
+Published packages use Changesets and npm OIDC trusted publishing. The one-time package bootstrap
+and normal release flow are documented in the
+[publication guide](docs/development/publication.md).
+
+## License
+
+biopixi is available under the [MIT License](LICENSE).
+
 ---
 
 _Status: early TypeScript prototype. The profile is normative; implementation gaps are tracked in

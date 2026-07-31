@@ -19,3 +19,4 @@
   - [Contributing](development/contributing.md)
   - [Building](development/building.md)
   - [Testing](development/testing.md)
+  - [Publication](development/publication.md)
