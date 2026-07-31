@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest";
 import { EXIT_CODES, runGrade } from "../src/index.js";
 import { buildProgram } from "../src/program.js";
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
-const stderr = () => undefined;
+const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const ignoreStderr = () => undefined;
 
 describe("runGrade", () => {
   it("reports the version from the package manifest", () => {
@@ -23,7 +23,7 @@ describe("runGrade", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];
     const code = runGrade(
-      [join(root, "examples/l4-single")],
+      [join(repositoryRoot, "examples/l4-single")],
       {},
       {
         stdout: (message) => stdout.push(message),
@@ -38,7 +38,11 @@ describe("runGrade", () => {
 
   it("never prints a container URI without saying how far the claim got", () => {
     const stdout: string[] = [];
-    runGrade([join(root, "examples/l4-single")], {}, { stdout: (m) => stdout.push(m), stderr });
+    runGrade(
+      [join(repositoryRoot, "examples/l4-single")],
+      {},
+      { stdout: (message) => stdout.push(message), stderr: ignoreStderr },
+    );
     const output = stdout.join("\n");
     expect(output).toContain("quay.io/biocontainers/samtools:1.17--hd87286a_2");
     // The offline grade knows the name and that Bioconda builds one image per recipe build.
@@ -74,21 +78,25 @@ zlib = "1.3.*"
   });
 
   it("prints the source root only once it has been widened past the project", () => {
-    const directory = join(root, "examples/l4-single");
+    const directory = join(repositoryRoot, "examples/l4-single");
     const narrow: string[] = [];
-    runGrade([directory], {}, { stdout: (m) => narrow.push(m), stderr });
+    runGrade([directory], {}, { stdout: (message) => narrow.push(message), stderr: ignoreStderr });
     expect(narrow.join("\n")).not.toContain("source root:");
 
     const wide: string[] = [];
-    runGrade([directory], { sourceRoot: root }, { stdout: (m) => wide.push(m), stderr });
-    expect(wide.join("\n")).toContain(`source root: ${realpathSync(root)}`);
+    runGrade(
+      [directory],
+      { sourceRoot: repositoryRoot },
+      { stdout: (message) => wide.push(message), stderr: ignoreStderr },
+    );
+    expect(wide.join("\n")).toContain(`source root: ${realpathSync(repositoryRoot)}`);
   });
 
   it("reports a source root that cannot bound the project as a usage error", () => {
     const messages: string[] = [];
     const elsewhere = realpathSync(mkdtempSync(join(tmpdir(), "biopixi-cli-root-")));
     const code = runGrade(
-      [join(root, "examples/l4-single")],
+      [join(repositoryRoot, "examples/l4-single")],
       { sourceRoot: elsewhere },
       { stdout: () => undefined, stderr: (m) => messages.push(m) },
     );
@@ -101,7 +109,7 @@ zlib = "1.3.*"
   it("enforces a minimum level", () => {
     const stderr: string[] = [];
     const code = runGrade(
-      [join(root, "examples/l1-local-recipe")],
+      [join(repositoryRoot, "examples/l1-local-recipe")],
       { minLevel: 3 },
       {
         stdout: () => undefined,

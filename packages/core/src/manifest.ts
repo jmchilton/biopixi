@@ -23,7 +23,7 @@ export const PACKAGE_DEPENDENCY_TABLES = [
 ];
 
 /** A TOML table as a plain record, or an empty one when the value is not a table. */
-export function record(value: unknown): Manifest {
+export function asRecord(value: unknown): Manifest {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? (value as Manifest)
     : {};
@@ -34,11 +34,8 @@ export function hasOwn(value: Manifest, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 
-/**
- * Parse a Pixi TOML manifest from disk.
- */
 export function parseManifest(path: string): Manifest {
-  return record(parseToml(readFileSync(path, "utf8")));
+  return asRecord(parseToml(readFileSync(path, "utf8")));
 }
 
 /**
@@ -49,23 +46,23 @@ export function parseManifest(path: string): Manifest {
  * declare takes no part in anything: it is inert in Pixi and must be inert here too.
  */
 export function dependencyTables(
-  root: Manifest,
+  manifestRoot: Manifest,
   keys: readonly string[],
   platforms: readonly string[],
 ): Array<[string, Manifest]> {
   const tables: Array<[string, Manifest]> = [];
   for (const key of keys) {
-    if (root[key] !== undefined) {
-      tables.push([key, record(root[key])]);
+    if (manifestRoot[key] !== undefined) {
+      tables.push([key, asRecord(manifestRoot[key])]);
     }
   }
 
-  const targets = record(root.target);
+  const targetTables = asRecord(manifestRoot.target);
   for (const platform of platforms) {
-    const target = record(targets[platform]);
+    const platformTarget = asRecord(targetTables[platform]);
     for (const key of keys) {
-      if (target[key] !== undefined) {
-        tables.push([`target.${platform}.${key}`, record(target[key])]);
+      if (platformTarget[key] !== undefined) {
+        tables.push([`target.${platform}.${key}`, asRecord(platformTarget[key])]);
       }
     }
   }
@@ -78,7 +75,7 @@ export function dependencyTables(
  * Compared on whole path segments: `…/exam` is a string prefix of `…/example` but contains none
  * of it. Both arguments are expected to be absolute and already symlink-resolved.
  */
-export function containedIn(descendant: string, ancestor: string): boolean {
+export function isContainedIn(descendant: string, ancestor: string): boolean {
   return (
     descendant === ancestor ||
     descendant.startsWith(ancestor.endsWith(sep) ? ancestor : ancestor + sep)

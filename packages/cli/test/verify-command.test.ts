@@ -10,75 +10,84 @@ const examples = join(fileURLToPath(new URL("../../../", import.meta.url)), "exa
 const DIGEST = "sha256:6f88956b747a67b2a39a3ff72c4de30e665239ee11db610624dd4298e30db1bf";
 
 /** Never reaches the network: the suite must not depend on quay.io being up or on its contents. */
-function registry(body: unknown, status = 200): Fetcher {
+function createRegistryFetcher(body: unknown, status = 200): Fetcher {
   return () => Promise.resolve(new Response(JSON.stringify(body), { status }));
 }
 
-const present = registry({ tags: [{ name: "t", manifest_digest: DIGEST }] });
-const absent = registry({ tags: [] });
+const PRESENT_IMAGE_FETCHER = createRegistryFetcher({
+  tags: [{ name: "t", manifest_digest: DIGEST }],
+});
+const ABSENT_IMAGE_FETCHER = createRegistryFetcher({ tags: [] });
 
-function collect() {
-  const out: string[] = [];
-  const err: string[] = [];
+function createIoCapture() {
+  const stdout: string[] = [];
+  const stderr: string[] = [];
   return {
-    out,
-    err,
-    io: { stdout: (m: string) => out.push(m), stderr: (m: string) => err.push(m) },
+    stdout,
+    stderr,
+    io: {
+      stdout: (message: string) => stdout.push(message),
+      stderr: (message: string) => stderr.push(message),
+    },
   };
 }
 
 describe("runVerify", () => {
   it("promotes an observed candidate to L4 and prints the digest", async () => {
-    const { out, io } = collect();
+    const { stdout, io } = createIoCapture();
 
     const code = await runVerify(
       [join(examples, "l4-single")],
-      { verify: { fetcher: present, observedAt: "2026-07-30T00:00:00.000Z" } },
+      { verify: { fetcher: PRESENT_IMAGE_FETCHER, observedAt: "2026-07-30T00:00:00.000Z" } },
       io,
     );
 
     expect(code).toBe(EXIT_CODES.ok);
-    expect(out.join("\n")).toContain("L4");
-    expect(out.join("\n")).toContain("CONFIRMED");
-    expect(out.join("\n")).toContain(DIGEST);
+    expect(stdout.join("\n")).toContain("L4");
+    expect(stdout.join("\n")).toContain("CONFIRMED");
+    expect(stdout.join("\n")).toContain(DIGEST);
   });
 
   it("leaves an unobservable candidate at L3", async () => {
-    const { out, io } = collect();
+    const { stdout, io } = createIoCapture();
 
-    await runVerify([join(examples, "l4-single")], { verify: { fetcher: absent } }, io);
+    await runVerify(
+      [join(examples, "l4-single")],
+      { verify: { fetcher: ABSENT_IMAGE_FETCHER } },
+      io,
+    );
 
-    expect(out.join("\n")).toContain("L3");
-    expect(out.join("\n")).toContain("INFERRED");
+    expect(stdout.join("\n")).toContain("L3");
+    expect(stdout.join("\n")).toContain("INFERRED");
   });
 
   it("satisfies --min-level 4 only once the container is observed", async () => {
-    const { io } = collect();
-    const at = join(examples, "l4-single");
+    const { io } = createIoCapture();
+    const directory = join(examples, "l4-single");
 
-    await expect(runVerify([at], { minLevel: 4, verify: { fetcher: present } }, io)).resolves.toBe(
-      EXIT_CODES.ok,
-    );
-    await expect(runVerify([at], { minLevel: 4, verify: { fetcher: absent } }, io)).resolves.toBe(
-      EXIT_CODES.belowThreshold,
-    );
+    await expect(
+      runVerify([directory], { minLevel: 4, verify: { fetcher: PRESENT_IMAGE_FETCHER } }, io),
+    ).resolves.toBe(EXIT_CODES.ok);
+    await expect(
+      runVerify([directory], { minLevel: 4, verify: { fetcher: ABSENT_IMAGE_FETCHER } }, io),
+    ).resolves.toBe(EXIT_CODES.belowThreshold);
   });
 
   it("fails --require-verified with its own code, distinct from a low level", async () => {
-    const { err, io } = collect();
+    const { stderr, io } = createIoCapture();
 
     const code = await runVerify(
       [join(examples, "l4-single")],
-      { requireVerified: true, verify: { fetcher: absent } },
+      { requireVerified: true, verify: { fetcher: ABSENT_IMAGE_FETCHER } },
       io,
     );
 
     expect(code).toBe(EXIT_CODES.unconfirmed);
-    expect(err.join("\n")).toContain("no observed container");
+    expect(stderr.join("\n")).toContain("no observed container");
   });
 
   it("reports an unreachable registry on stderr without calling it a negative", async () => {
-    const { err, io } = collect();
+    const { stderr, io } = createIoCapture();
 
     const code = await runVerify(
       [join(examples, "l4-single")],
@@ -87,19 +96,22 @@ describe("runVerify", () => {
     );
 
     expect(code).toBe(EXIT_CODES.ok);
-    expect(err.join("\n")).toContain("could not check");
+    expect(stderr.join("\n")).toContain("could not check");
   });
 
   it("carries the observation into the JSON report", async () => {
-    const { out, io } = collect();
+    const { stdout, io } = createIoCapture();
 
     await runVerify(
       [join(examples, "l4-single")],
-      { json: true, verify: { fetcher: present, observedAt: "2026-07-30T00:00:00.000Z" } },
+      {
+        json: true,
+        verify: { fetcher: PRESENT_IMAGE_FETCHER, observedAt: "2026-07-30T00:00:00.000Z" },
+      },
       io,
     );
 
-    const [entry] = JSON.parse(out.join("\n")).results;
+    const [entry] = JSON.parse(stdout.join("\n")).results;
     expect(entry.level).toBe(4);
     expect(entry.observation).toEqual({ outcome: "present", digest: DIGEST });
     expect(entry.publication.digest).toBe(DIGEST);

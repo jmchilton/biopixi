@@ -12,38 +12,44 @@ import { fileURLToPath } from "node:url";
 
 import { createGenerator } from "ts-json-schema-generator";
 
-const root = fileURLToPath(new URL("../", import.meta.url));
-const entry = join(root, "packages/cli/src/report.ts");
-const destination = join(root, "docs/schema/grade-report-v0.schema.json");
-const page = join(root, "docs/schema/grade-report-v0.md");
+const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
+const reportTypePath = join(repositoryRoot, "packages/cli/src/report.ts");
+const schemaPath = join(repositoryRoot, "docs/schema/grade-report-v0.schema.json");
+const referencePagePath = join(repositoryRoot, "docs/schema/grade-report-v0.md");
 
 /** Kept in step with REPORT_SCHEMA_URL, which every payload carries as its `$schema`. */
-function schemaUrl() {
-  const source = readFileSync(entry, "utf8");
-  const url = /REPORT_SCHEMA_URL =\s*"([^"]+)"/.exec(source)?.[1];
-  if (url === undefined) {
-    throw new Error(`could not read REPORT_SCHEMA_URL from ${entry}`);
+function readReportSchemaUrl() {
+  const reportSource = readFileSync(reportTypePath, "utf8");
+  const schemaUrl = /REPORT_SCHEMA_URL =\s*"([^"]+)"/.exec(reportSource)?.[1];
+  if (schemaUrl === undefined) {
+    throw new Error(`could not read REPORT_SCHEMA_URL from ${reportTypePath}`);
   }
-  return url;
+  return schemaUrl;
 }
 
-function generate() {
+function generateSchema() {
   const { $schema, ...rest } = createGenerator({
-    path: entry,
-    tsconfig: join(root, "packages/cli/tsconfig.json"),
+    path: reportTypePath,
+    tsconfig: join(repositoryRoot, "packages/cli/tsconfig.json"),
     type: "GradeReport",
   }).createSchema("GradeReport");
 
-  return format({ $schema, $id: schemaUrl(), title: "biopixi grade report", ...rest });
+  return formatGeneratedOutput({
+    $schema,
+    $id: readReportSchemaUrl(),
+    title: "biopixi grade report",
+    ...rest,
+  });
 }
 
 /** Prettier owns docs/, so committed output has to be written the way prettier would. */
-function format(value, filepath = destination) {
+function formatGeneratedOutput(value, filePath = schemaPath) {
   const input = typeof value === "string" ? value : `${JSON.stringify(value, null, 2)}\n`;
-  return execFileSync(join(root, "node_modules/.bin/prettier"), ["--stdin-filepath", filepath], {
-    input,
-    encoding: "utf8",
-  });
+  return execFileSync(
+    join(repositoryRoot, "node_modules/.bin/prettier"),
+    ["--stdin-filepath", filePath],
+    { input, encoding: "utf8" },
+  );
 }
 
 /** Render one property's type the way a reader would say it, not the way JSON Schema spells it. */
@@ -77,18 +83,18 @@ function renderDefinition(name, definition) {
     return lines;
   }
 
-  const required = new Set(definition.required ?? []);
+  const requiredFields = new Set(definition.required ?? []);
   lines.push("| Field | Type | Always present | Description |", "| --- | --- | --- | --- |");
   for (const [field, property] of Object.entries(definition.properties ?? {})) {
     const description = (property.description ?? "").replace(/\s*\n\s*/g, " ");
-    const present = required.has(field) ? "yes" : "no";
-    lines.push(`| \`${field}\` | ${describeType(property)} | ${present} | ${description} |`);
+    const presenceMarker = requiredFields.has(field) ? "yes" : "no";
+    lines.push(`| \`${field}\` | ${describeType(property)} | ${presenceMarker} | ${description} |`);
   }
   lines.push("");
   return lines;
 }
 
-function renderPage(schema) {
+function renderReferencePage(schema) {
   const lines = [
     "<!-- Generated from packages/cli/src/report.ts by scripts/generate-schema.mjs. Do not edit. -->",
     "",
@@ -109,31 +115,31 @@ function renderPage(schema) {
   ];
 
   // GradeReport first: the reader meets the envelope before the things inside it.
-  const names = Object.keys(schema.definitions).sort((left, right) =>
+  const definitionNames = Object.keys(schema.definitions).sort((left, right) =>
     left === "GradeReport" ? -1 : right === "GradeReport" ? 1 : left.localeCompare(right),
   );
-  for (const name of names) {
+  for (const name of definitionNames) {
     lines.push(...renderDefinition(name, schema.definitions[name]));
   }
-  return format(`${lines.join("\n")}\n`, page);
+  return formatGeneratedOutput(`${lines.join("\n")}\n`, referencePagePath);
 }
 
-const serialized = generate();
-const outputs = [
-  [destination, serialized],
-  [page, renderPage(JSON.parse(serialized))],
+const serializedSchema = generateSchema();
+const generatedFiles = [
+  [schemaPath, serializedSchema],
+  [referencePagePath, renderReferencePage(JSON.parse(serializedSchema))],
 ];
 
 if (process.argv.includes("--check")) {
-  for (const [path, expected] of outputs) {
-    let committed;
+  for (const [path, expected] of generatedFiles) {
+    let committedContents;
     try {
-      committed = readFileSync(path, "utf8");
+      committedContents = readFileSync(path, "utf8");
     } catch {
       console.error(`missing ${path} — run \`pnpm schema\``);
       process.exit(1);
     }
-    if (committed !== expected) {
+    if (committedContents !== expected) {
       console.error(
         `${path} is out of date with the types in packages/cli/src/report.ts — run \`pnpm schema\``,
       );
@@ -142,7 +148,7 @@ if (process.argv.includes("--check")) {
   }
   console.log("Grade report schema and reference match the types they are generated from.");
 } else {
-  for (const [path, contents] of outputs) {
+  for (const [path, contents] of generatedFiles) {
     mkdirSync(dirname(path), { recursive: true });
     writeFileSync(path, contents);
     console.log(`Wrote ${path}`);
