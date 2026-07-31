@@ -186,11 +186,23 @@ They fail in opposite places.
 | L2 (public channel)      | works when the service can reach the explicitly configured channel | **works**, with the channel supplied            |
 | L3 (ecosystem-ready)     | one call, hosted, frozen                                           | standard community inputs                       |
 | L4 (ecosystem-published) | redundant                                                          | already built and distributed                   |
-| name computable offline  | no — service round-trip                                            | **yes**, `mulled-hash`                          |
+| name identifies          | the build request                                                  | the package set, sorted and canonicalized       |
+| name reproducible later  | not contractually — unversioned service defaults are hash inputs   | **yes**, `mulled-hash --hash v1\|v2`            |
 
 Wave is the better ergonomic default once every channel is publicly reachable. mulled is the
-only thing that works at L1 and the only source of an offline-computable name. **Wave for reach,
-mulled for durability.**
+only thing that works at L1. **Wave for reach, mulled for durability.**
+
+The last two rows are the ones that matter for grading, and they are subtler than "one needs the
+network." Wave's frozen name _is_ computable offline — the algorithm is SipHash-2-4 over a handful of
+fields, and reimplementing it from the AGPL source reproduces observed names exactly. But two of
+those fields are a server-rendered Dockerfile and a deployment-config repository path, so what an
+offline reimplementation pins is a snapshot of Seqera's deployment, not a published contract. The
+default build template has already moved once.
+
+The consequence is about identity, not connectivity. `samtools=1.17 bamtools=2.5.2` and
+`bamtools=2.5.2 samtools=1.17` are one environment and two Wave names; mulled sorts before hashing
+and gives one name for both. Wave names a build request, which is the right thing for a build cache
+and the wrong thing for a durable pin.
 
 ## The R lane
 
