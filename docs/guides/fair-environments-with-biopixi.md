@@ -92,8 +92,16 @@ locked package is anonymously retrievable from a public Conda channel. At L4, bi
 the candidate container in a public registry and records both its manifest digest and the time of
 observation.
 
-Those are increasingly strong access claims, but none is a permanence guarantee. Keep the
-manifest and lockfile in an archived release even when the packages and container are public.
+L3 and L4 also build on more than one artifact form. The software remains available as Conda
+packages, BioContainers publishes Docker/OCI images on Quay, and Galaxy distributes derived
+Singularity/Apptainer copies from its
+[container depot](https://depot.galaxyproject.org/singularity/) and shared CVMFS cache.
+BioContainers was already a
+[published community project in 2017](https://doi.org/10.1093/bioinformatics/btx192), and
+[current Galaxy infrastructure](https://docs.galaxyproject.org/en/latest/admin/container_resolvers.html)
+still resolves and caches those images. That redundant, long-running distribution path is a
+stronger access story than a project-owned image alone; the manifest and lockfile retain the
+reconstruction record around it.
 
 ### Interoperable — cross boundaries through shared formats
 
@@ -207,8 +215,11 @@ The boundary matters as much as the grade:
   maintained repositories keep those sources retrievable.
 - **Containerized does not mean reproducible.** Kernels, hardware, external services, random
   state, inputs, and parameters can still change results.
-- **Public does not mean properly licensed.** Package recipes carry useful license metadata, but
-  biopixi does not perform a project or dependency license audit.
+- **L3+ carries community-enforced license evidence, not a full compatibility audit.**
+  [conda-forge](https://conda-forge.org/docs/maintainer/guidelines/#reviewing-recipes) and
+  [Bioconda](https://bioconda.github.io/contributor/guidelines.html) review licenses for
+  redistribution and require package metadata and license files. biopixi does not independently
+  verify cross-package license compatibility or the research project's own reuse terms.
 - **L4 does not describe the analysis.** It does not capture workflow logic, input data, parameter
   choices, output provenance, or scientific validation.
 - **A lower level is not a judgment on the science.** Private data, active software development,
