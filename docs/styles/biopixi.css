@@ -448,7 +448,7 @@ input:focus-visible {
   text-align: center;
 }
 
-.agent-tabs {
+.doc-tabs {
   background: #f7fafb;
   border: 1px solid rgb(18 62 111 / 14%);
   border-radius: 0.5rem;
@@ -457,7 +457,7 @@ input:focus-visible {
   overflow: hidden;
 }
 
-.agent-tabs__controls {
+.doc-tabs__controls {
   background: rgb(18 62 111 / 4%);
   border-bottom: 1px solid rgb(18 62 111 / 14%);
   display: flex;
@@ -465,7 +465,7 @@ input:focus-visible {
   padding: 0 1rem;
 }
 
-.agent-tabs__tab {
+.doc-tabs__tab {
   appearance: none;
   background: transparent;
   border: 0;
@@ -483,36 +483,36 @@ input:focus-visible {
     background-color 180ms ease;
 }
 
-.agent-tabs__tab:hover {
+.doc-tabs__tab:hover {
   background: rgb(45 178 190 / 7%);
   color: var(--brand-navy);
 }
 
-.agent-tabs__tab.is-active {
+.doc-tabs__tab.is-active {
   border-bottom-color: var(--brand-cyan);
   color: var(--brand-navy);
 }
 
-.agent-tabs__tab:focus-visible {
+.doc-tabs__tab:focus-visible {
   border-radius: 0.2rem;
   outline: 0.16rem solid rgb(45 178 190 / 42%);
   outline-offset: -0.25rem;
 }
 
-.agent-tabs__panel {
+.doc-tabs__panel {
   padding: 1.35rem 1.55rem 1.55rem;
 }
 
-.agent-tabs__panel[hidden] {
+.doc-tabs__panel[hidden] {
   display: none;
 }
 
-.markdown-section .agent-tabs__panel p {
+.markdown-section .doc-tabs__panel p {
   margin: 0 0 1rem;
   max-width: 46rem;
 }
 
-.markdown-section .agent-tabs__panel pre {
+.markdown-section .doc-tabs__panel pre {
   margin: 0;
 }
 
@@ -821,11 +821,11 @@ section.cover .cover-main > p:last-child a:first-child:hover::after {
     grid-column: 1;
   }
 
-  .agent-tabs__controls {
+  .doc-tabs__controls {
     padding: 0 0.35rem;
   }
 
-  .agent-tabs__tab {
+  .doc-tabs__tab {
     flex: 1 1 0;
     padding-inline: 0.45rem;
   }

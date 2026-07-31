@@ -18,21 +18,21 @@
   }
 
   document.addEventListener("click", function (event) {
-    var tab = event.target.closest('[data-agent-tabs] [role="tab"]');
+    var tab = event.target.closest('[data-doc-tabs] [role="tab"]');
 
     if (tab) {
-      selectTab(tab.closest("[data-agent-tabs]"), tab);
+      selectTab(tab.closest("[data-doc-tabs]"), tab);
     }
   });
 
   document.addEventListener("keydown", function (event) {
-    var tab = event.target.closest('[data-agent-tabs] [role="tab"]');
+    var tab = event.target.closest('[data-doc-tabs] [role="tab"]');
 
     if (!tab || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
       return;
     }
 
-    var group = tab.closest("[data-agent-tabs]");
+    var group = tab.closest("[data-doc-tabs]");
     var tabs = Array.from(group.querySelectorAll('[role="tab"]'));
     var index = tabs.indexOf(tab);
     var nextIndex;
