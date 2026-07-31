@@ -11,6 +11,7 @@
 - **Packages**
   - [Core](packages/core.md)
   - [CLI](packages/cli.md)
+  - [Wave CLI](packages/wave-cli.md)
 - **API Reference**
   - [Overview](api/README.md)
   - [Grade report JSON](schema/grade-report-v0.md)

@@ -34,6 +34,73 @@ export function hasOwn(value: Manifest, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
 }
 
+/** Read the workspace table, accepting the legacy spelling so profile errors stay specific. */
+export function workspaceTable(manifest: Manifest): Manifest {
+  return asRecord(manifest.workspace ?? manifest.project);
+}
+
+/** Platforms declared by a Pixi workspace, excluding malformed non-string entries. */
+export function declaredPlatforms(manifest: Manifest): string[] {
+  const platforms = workspaceTable(manifest).platforms;
+  return Array.isArray(platforms)
+    ? platforms.filter((platform): platform is string => typeof platform === "string")
+    : [];
+}
+
+/** Direct Conda dependencies effective for one platform, including target overrides. */
+export function effectiveCondaDependencies(manifest: Manifest, platform: string): Manifest {
+  return {
+    ...asRecord(manifest.dependencies),
+    ...asRecord(asRecord(asRecord(manifest.target)[platform]).dependencies),
+  };
+}
+
+/** An explicit per-dependency channel qualifier, if the dependency declares one. */
+export function dependencyChannel(value: unknown): string | undefined {
+  const channel = asRecord(value).channel;
+  return typeof channel === "string" && channel.length > 0 ? channel : undefined;
+}
+
+/** The manifest's version constraint for a dependency, if it spells one. */
+export function dependencyVersion(value: unknown): string | undefined {
+  if (typeof value === "string") {
+    return value;
+  }
+  const version = asRecord(value).version;
+  return typeof version === "string" ? version : undefined;
+}
+
+/** The manifest's build-string constraint for a dependency, if it spells one. */
+export function dependencyBuild(value: unknown): string | undefined {
+  const build = asRecord(value).build;
+  return typeof build === "string" ? build : undefined;
+}
+
+/** Workspace channel spellings in manifest order, with exact duplicates removed. */
+export function manifestChannels(manifest: Manifest): string[] {
+  const channels = workspaceTable(manifest).channels;
+  if (!Array.isArray(channels)) {
+    return [];
+  }
+  return [...new Set(channels.filter((channel): channel is string => typeof channel === "string"))];
+}
+
+/** Whether a channel URL carries information that must never appear in diagnostics. */
+export function channelHasSensitiveData(channel: string): boolean {
+  try {
+    const url = new URL(channel);
+    return (
+      url.username.length > 0 ||
+      url.password.length > 0 ||
+      url.search.length > 0 ||
+      url.hash.length > 0
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** Parse a Pixi TOML manifest from disk. */
 export function parseManifest(path: string): Manifest {
   return asRecord(parseToml(readFileSync(path, "utf8")));
 }

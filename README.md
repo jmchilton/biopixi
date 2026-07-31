@@ -168,7 +168,7 @@ still carries the packaging and migration burden.
 local toolchain at all:
 
 ```bash
-wave --conda-package r-designit=0.5.0 --freeze --await
+wave-biopixi --freeze --await
 ```
 
 For Bioconda packages, the channel build publishes a corresponding BioContainer automatically.
@@ -240,16 +240,18 @@ install` works with biopixi nowhere in sight. From L2 up, anyone with access to 
 biopixi is a Node.js 22+ pnpm workspace modeled after the package and documentation structure in
 `galaxy-tool-util`.
 
-| Package                           | Responsibility                                         |
-| --------------------------------- | ------------------------------------------------------ |
-| [`@biopixi/core`](packages/core/) | offline grading, lock inspection, and mulled-v2 naming |
-| [`@biopixi/cli`](packages/cli/)   | the `biopixi grade` command and terminal rendering     |
+| Package                                   | Responsibility                                              |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| [`@biopixi/core`](packages/core/)         | offline grading, Conda build planning, and mulled-v2 naming |
+| [`@biopixi/cli`](packages/cli/)           | the `biopixi grade` command and terminal rendering          |
+| [`@biopixi/wave-cli`](packages/wave-cli/) | the `wave-biopixi` adapter for hosted public-package builds |
 
 ```bash
 pnpm install
 pnpm check
 pnpm build
 node packages/cli/dist/bin/biopixi.js grade examples/l4-single
+node packages/wave-cli/dist/bin/wave-biopixi.js examples/l3-ecosystem-ready --print-command
 ```
 
 The documentation site is under [`docs/`](docs/) and combines Docsify prose with a generated

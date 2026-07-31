@@ -23,3 +23,10 @@ export { checkPathDependencies } from "./path-dependency.js";
 export type { PathDependency, PathDependencyReport } from "./path-dependency.js";
 export { pullUri, v2ImageName } from "./mulled.js";
 export type { Target } from "./mulled.js";
+export { CondaBuildPlanError, planCondaBuild } from "./conda-build.js";
+export type {
+  CondaBuildPlan,
+  CondaBuildPlanErrorKind,
+  CondaBuildPlanOptions,
+  CondaBuildTarget,
+} from "./conda-build.js";

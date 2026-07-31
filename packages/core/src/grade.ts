@@ -5,11 +5,26 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 import {
+  artifactChannelUrl,
+  channelIdentity,
+  channelMatches,
+  condaGlobMatches,
+  condaVersionMatches,
+} from "./conda-match.js";
+import {
   asRecord,
+  channelHasSensitiveData,
+  declaredPlatforms,
+  dependencyBuild,
+  dependencyChannel,
   dependencyTables,
+  dependencyVersion,
+  effectiveCondaDependencies,
   hasOwn,
   isContainedIn,
+  manifestChannels,
   parseManifest,
+  workspaceTable,
   CONDA_DEPENDENCY_TABLES,
   type Manifest,
 } from "./manifest.js";
@@ -147,6 +162,8 @@ export interface LockedPackage {
   channel: string | null;
   source?: string;
   build?: string;
+  /** Canonical channel URL derived from the artifact URL, without credentials or a subdir. */
+  channelUrl?: string;
 }
 
 export interface GradeOptions {
@@ -196,21 +213,6 @@ function resolveSourceRoot(projectRoot: string, requestedRoot: string | undefine
   return sourceRoot;
 }
 
-/**
- * Read the workspace table under either spelling so a legacy manifest is rejected for its
- * spelling alone rather than for everything the profile cannot see inside it.
- */
-function workspaceTable(manifest: Manifest): Manifest {
-  return asRecord(manifest.workspace ?? manifest.project);
-}
-
-function declaredPlatforms(manifest: Manifest): string[] {
-  const platforms = workspaceTable(manifest).platforms;
-  return Array.isArray(platforms)
-    ? platforms.filter((platform): platform is string => typeof platform === "string")
-    : [];
-}
-
 /** Everything decided by reading the project; the invocation's roots are stamped on around it. */
 type ProjectGrade = Omit<Grade, "projectRoot" | "sourceRoot">;
 
@@ -240,10 +242,11 @@ function definitiveGrade(level: number, options: GradeDetails): ProjectGrade {
 }
 
 function packageCap(lockedPackage: LockedPackage): Cap {
+  const source = lockedPackage.source ?? "?";
   const levelCap: Cap = {
     package: lockedPackage.name,
     channel: lockedPackage.channel,
-    artifact: lockedPackage.source ?? "?",
+    artifact: channelHasSensitiveData(source) ? "[credential-bearing channel URL]" : source,
   };
   if (lockedPackage.version !== undefined) {
     levelCap.version = lockedPackage.version;
@@ -263,13 +266,9 @@ function loadSnapshot(): MetadataSnapshot | undefined {
   }
 }
 
-function effectiveCondaDependencies(manifest: Manifest, platform: string): Manifest {
-  return {
-    ...asRecord(manifest.dependencies),
-    ...asRecord(asRecord(asRecord(manifest.target)[platform]).dependencies),
-  };
-}
-
+/**
+ * Check whether a parsed Pixi manifest is inside the deliberately small profile-v0 boundary.
+ */
 export function checkProfile(manifest: Manifest): {
   reasons: string[];
   lints: string[];
@@ -432,13 +431,18 @@ function parseLockedPackageUrl(url: string): LockedPackage {
 
   const build = filenameSegments.pop();
   const version = filenameSegments.pop();
-  return {
+  const result: LockedPackage = {
     name: filenameSegments.join("-"),
     version,
     build,
     channel,
     source: url,
   };
+  const channelUrl = artifactChannelUrl(url);
+  if (channelUrl !== undefined) {
+    result.channelUrl = channelUrl;
+  }
+  return result;
 }
 
 /**
@@ -457,8 +461,10 @@ export function loadLock(
   platform: string,
 ): {
   packages: LockedPackage[];
+  channels: string[];
   problems: string[];
   covered: boolean;
+  version?: number;
 } {
   const lockData = asRecord(parseYaml(readFileSync(lockPath, "utf8")));
   const environments = asRecord(lockData.environments);
@@ -469,6 +475,15 @@ export function loadLock(
       : asRecord(Object.values(environments)[0]);
   const packages: LockedPackage[] = [];
   const problems: string[] = [];
+  const channels = (
+    Array.isArray(selectedEnvironment.channels) ? selectedEnvironment.channels : []
+  ).flatMap((entry): string[] => {
+    if (typeof entry === "string") {
+      return [entry];
+    }
+    const url = asRecord(entry).url;
+    return typeof url === "string" ? [url] : [];
+  });
 
   const packagesByPlatform = asRecord(selectedEnvironment.packages);
   const covered = hasOwn(packagesByPlatform, platform);
@@ -492,14 +507,16 @@ export function loadLock(
     }
   }
 
-  return { packages, problems, covered };
+  const version = typeof lockData.version === "number" ? lockData.version : undefined;
+  return { packages, channels, problems, covered, version };
 }
 
-function artifactHost(url: string): string {
+function publicArtifact(url: string): boolean {
   try {
-    return new URL(url).host;
+    const parsed = new URL(url);
+    return !channelHasSensitiveData(url) && PUBLIC_CHANNEL_HOSTS.has(parsed.host);
   } catch {
-    return "";
+    return false;
   }
 }
 
@@ -517,9 +534,7 @@ export function loadCombinations(combinationsPath: string): Map<string, [string,
     const registeredTargets = columns[0];
     const imageBuild = columns[2]?.trim() || "0";
     const targetSetKey = combinationKey(
-      registeredTargets
-        .split(",")
-        .map((target) => target.split("::").at(-1)?.trim() ?? target.trim()),
+      registeredTargets.split(",").map((target) => target.trim()),
     );
     combinations.set(targetSetKey, [registeredTargets, imageBuild]);
   }
@@ -642,14 +657,36 @@ function gradeSolve(
       nextActions: ["give every dependency a conda identity, then re-lock"],
     });
   }
+  if (lock.version !== undefined && lock.version >= 7 && lock.channels.length === 0) {
+    return indefiniteGrade("STALE", {
+      reasons: ["lock does not record the default environment's channel configuration"],
+      lints,
+      nextActions: ["run `pixi lock` — the lock is missing channel evidence"],
+    });
+  }
+
+  const declaredChannels = manifestChannels(manifest);
+  if (lock.channels.length > 0) {
+    const manifestChannelIdentities = declaredChannels.map(channelIdentity);
+    const lockChannelIdentities = lock.channels.map(channelIdentity);
+    if (
+      manifestChannelIdentities.length !== lockChannelIdentities.length ||
+      manifestChannelIdentities.some((channel, index) => channel !== lockChannelIdentities[index])
+    ) {
+      return indefiniteGrade("STALE", {
+        reasons: ["lock channels do not match the manifest channel list and order"],
+        lints,
+        nextActions: ["run `pixi lock` — the configured channels have changed"],
+      });
+    }
+  }
   const lockedPackagesByName = new Map(
     lock.packages.map((lockedPackage) => [lockedPackage.name, lockedPackage]),
   );
 
   // The grading platform's target table participates: a target-only dependency is a root.
-  const directDependencyNames = Object.keys(
-    effectiveCondaDependencies(manifest, GRADING_PLATFORM),
-  ).sort();
+  const dependencies = effectiveCondaDependencies(manifest, GRADING_PLATFORM);
+  const directDependencyNames = Object.keys(dependencies).sort();
 
   // Evidence before readiness: an incomplete solve cannot be argued down to a level, so staleness
   // is settled before any package is allowed to cap one.
@@ -663,6 +700,49 @@ function gradeSolve(
       nextActions: [
         `run \`pixi lock\` — the lock does not cover ${missingDependencies.join(", ")}`,
       ],
+    });
+  }
+  const rootMismatches = directDependencyNames.flatMap((name) => {
+    const qualifier = dependencyChannel(dependencies[name]);
+    const lockedPackage = lockedPackagesByName.get(name);
+    const lockedChannel = lockedPackage?.channel;
+    const problems: string[] = [];
+    if (
+      qualifier !== undefined &&
+      (lockedPackage === undefined ||
+        lockedChannel === null ||
+        lockedChannel === undefined ||
+        !channelMatches(qualifier, lockedPackage.channel, lockedPackage.channelUrl))
+    ) {
+      problems.push(`${name} requires an explicit channel that does not match its locked artifact`);
+    }
+    const version = dependencyVersion(dependencies[name]);
+    if (
+      version !== undefined &&
+      lockedPackage?.version !== undefined &&
+      !condaVersionMatches(version, lockedPackage.version)
+    ) {
+      problems.push(
+        `${name} requires version ${version}, but the lock resolves ${lockedPackage.version}`,
+      );
+    }
+    const build = dependencyBuild(dependencies[name]);
+    if (
+      build !== undefined &&
+      lockedPackage?.build !== undefined &&
+      !condaGlobMatches(build, lockedPackage.build)
+    ) {
+      problems.push(
+        `${name} requires build ${build}, but the lock resolves ${lockedPackage.build}`,
+      );
+    }
+    return problems;
+  });
+  if (rootMismatches.length > 0) {
+    return indefiniteGrade("STALE", {
+      reasons: rootMismatches,
+      lints,
+      nextActions: ["run `pixi lock` — direct dependency requirements must agree with the lock"],
     });
   }
 
@@ -692,6 +772,22 @@ function gradeSolve(
       nextActions: ["run `pixi lock` — the lock does not describe the current path dependencies"],
     });
   }
+  const sensitiveChannels = declaredChannels.filter(channelHasSensitiveData);
+  const sensitiveQualifiers = directDependencyNames.filter((name) => {
+    const qualifier = dependencyChannel(dependencies[name]);
+    return qualifier !== undefined && channelHasSensitiveData(qualifier);
+  });
+  if (sensitiveChannels.length > 0 || sensitiveQualifiers.length > 0) {
+    return definitiveGrade(1, {
+      reasons: [
+        "manifest channels contain embedded credentials or URL parameters that hosted builds must not expose",
+      ],
+      lints,
+      nextActions: [
+        "remove credentials and URL parameters from pixi.toml; configure authentication outside the manifest",
+      ],
+    });
+  }
 
   const portabilityCaps: Array<{ reason: string; package: LockedPackage }> = [];
   for (const lockedPackage of lock.packages) {
@@ -702,10 +798,12 @@ function gradeSolve(
       });
     } else if (
       lockedPackage.channel.startsWith("local:") ||
-      !PUBLIC_CHANNEL_HOSTS.has(artifactHost(lockedPackage.source ?? ""))
+      !publicArtifact(lockedPackage.source ?? "")
     ) {
       portabilityCaps.push({
-        reason: `${lockedPackage.name} resolved from a non-public channel (${lockedPackage.source})`,
+        reason: channelHasSensitiveData(lockedPackage.source ?? "")
+          ? `${lockedPackage.name} resolved from a credential-bearing channel URL`
+          : `${lockedPackage.name} resolved from a non-public channel (${lockedPackage.source})`,
         package: lockedPackage,
       });
     }
@@ -719,19 +817,23 @@ function gradeSolve(
       nextActions: [
         cappingPackage.channel === null
           ? `publish ${cappingPackage.name} to conda-forge or bioconda — it is built from source at ${cappingPackage.source}`
-          : `republish ${cappingPackage.name} from a public channel — it resolves from ${cappingPackage.source}`,
+          : channelHasSensitiveData(cappingPackage.source ?? "")
+            ? `configure ${cappingPackage.name} without embedding channel credentials in project evidence`
+            : `republish ${cappingPackage.name} from a public channel — it resolves from ${cappingPackage.source}`,
       ],
     });
   }
 
-  const resolvedTargets = directDependencyNames.map(
-    (name) => `${name}=${lockedPackagesByName.get(name)?.version}`,
-  );
+  const resolvedTargets = directDependencyNames.map((name) => {
+    const qualifier = dependencyChannel(dependencies[name]);
+    return `${qualifier === undefined ? "" : `${qualifier}::`}${name}=${lockedPackagesByName.get(name)?.version}`;
+  });
   const target = resolvedTargets.join(",");
   const containerTargets: Target[] = directDependencyNames.map((name) => {
     const lockedPackage = lockedPackagesByName.get(name);
+    const qualifier = dependencyChannel(dependencies[name]);
     return {
-      package: name,
+      package: `${qualifier === undefined ? "" : `${qualifier}::`}${name}`,
       version: lockedPackage?.version,
       build: lockedPackage?.build,
     };
