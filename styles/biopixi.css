@@ -448,6 +448,83 @@ input:focus-visible {
   text-align: center;
 }
 
+.fair-stack {
+  display: grid;
+  gap: 0.7rem;
+  margin: 2.2rem 0 3rem;
+}
+
+.fair-stack__layer {
+  background: #f2f7f7;
+  border-left: 0.3rem solid var(--brand-cyan);
+  display: grid;
+  gap: 0.25rem 1.5rem;
+  grid-template-columns: minmax(9.5rem, 0.7fr) minmax(0, 1.8fr);
+  padding: 1.15rem 1.35rem;
+  position: relative;
+}
+
+.fair-stack__layer--record {
+  border-color: var(--brand-lavender);
+  border-radius: 0.4rem 0.4rem 0 0;
+}
+
+.fair-stack__layer--environment {
+  background: var(--brand-navy);
+  border-color: #72d2dc;
+  color: #e8f3f3;
+  padding-bottom: 2.65rem;
+}
+
+.fair-stack__layer--analysis {
+  border-radius: 0 0 0.4rem 0.4rem;
+}
+
+.fair-stack__label {
+  align-self: center;
+  color: #7453a7;
+  font-family: var(--code-font-family);
+  font-size: 0.68rem;
+  font-weight: 700;
+  grid-row: 1 / span 2;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.fair-stack__layer--environment .fair-stack__label {
+  color: #72d2dc;
+}
+
+.fair-stack__layer--analysis .fair-stack__label {
+  color: #147f90;
+}
+
+.markdown-section .fair-stack__layer h3 {
+  color: inherit;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.markdown-section .fair-stack__layer p {
+  line-height: 1.5;
+  margin: 0;
+  max-width: none;
+}
+
+.fair-stack__scope {
+  background: var(--brand-lavender);
+  border-radius: 1rem;
+  bottom: 0.65rem;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.25rem 0.7rem;
+  position: absolute;
+  right: 1rem;
+  text-transform: uppercase;
+}
+
 .doc-tabs {
   background: #f7fafb;
   border: 1px solid rgb(18 62 111 / 14%);
@@ -878,6 +955,20 @@ section.cover .cover-main > p:last-child a:first-child:hover::after {
 
   .markdown-section h1 {
     font-size: 2.8rem;
+  }
+
+  .fair-stack__layer {
+    display: block;
+    padding: 1.1rem 1.2rem;
+  }
+
+  .fair-stack__layer--environment {
+    padding-bottom: 2.8rem;
+  }
+
+  .fair-stack__label {
+    display: block;
+    margin-bottom: 0.55rem;
   }
 }
 
