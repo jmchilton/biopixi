@@ -15,14 +15,14 @@ container runtimes work with the package targets or image URI derived from them.
 
 ## The tool map
 
-| What you want to do                | Tool                         | What the tool consumes                         | When it is useful                |
-| ---------------------------------- | ---------------------------- | ---------------------------------------------- | -------------------------------- |
-| Run the analysis                   | Pixi                         | `pixi.toml` and `pixi.lock`                    | Any valid Pixi project           |
-| Inspect readiness and next actions | biopixi                      | `pixi.toml`, `pixi.lock`, and local recipes    | At every stage                   |
-| Build a local Conda package        | pixi-build / rattler-build   | A package manifest and recipe                  | When a dependency is still local |
-| Build and test a local container   | mulled-build                 | Conda targets and reachable channels           | L1 and later                     |
-| Ask for a hosted container build   | Wave                         | Conda targets from publicly reachable channels | L2 and later                     |
-| Pull a published BioContainer      | Docker, Podman, or Apptainer | A verified image URI                           | L4                               |
+| What you want to do                | Tool                          | What the tool consumes                         | When it is useful                |
+| ---------------------------------- | ----------------------------- | ---------------------------------------------- | -------------------------------- |
+| Run the analysis                   | Pixi                          | `pixi.toml` and `pixi.lock`                    | Any valid Pixi project           |
+| Inspect readiness and next actions | biopixi                       | `pixi.toml`, `pixi.lock`, and local recipes    | At every stage                   |
+| Build a local Conda package        | pixi-build / rattler-build    | A package manifest and recipe                  | When a dependency is still local |
+| Build and test a local container   | mulled-biopixi / mulled-build | Pixi project or explicit Conda targets         | L1 and later                     |
+| Ask for a hosted container build   | Wave                          | Conda targets from publicly reachable channels | L2 and later                     |
+| Pull a published BioContainer      | Docker, Podman, or Apptainer  | A verified image URI                           | L4                               |
 
 The levels are availability cues here, not instructions to perform every operation in order.
 
@@ -188,8 +188,9 @@ runtime, test, and license metadata. The Pixi documentation covers the
 [build model](https://pixi.prefix.dev/latest/build/getting_started/) and
 [`pixi publish`](https://pixi.prefix.dev/latest/reference/cli/pixi/publish/) in detail.
 
-Because mulled-build runs locally, it can install from that `file://` channel and exercise the
-package in a minimal container:
+The [`mulled-biopixi`](building-with-mulled-biopixi.md) companion tool automates the local package
+publication and target derivation directly from `pixi.toml` and `pixi.lock`. Use the manual
+`mulled-build` form when you want to control the channel and target explicitly:
 
 ```bash
 mulled-build build \
@@ -293,4 +294,5 @@ For the story behind these stages, read
 [From Pixi to BioContainers](from-pixi-to-biocontainers.md). For the naming and registry logic
 inside biopixi, read [Container identity internals](../architecture/containers.md). To delegate
 dependency hardening without stopping the analysis, read
-[Agentic workflows](agentic-workflows.md).
+[Agentic workflows](agentic-workflows.md). To automate a local build from the project manifest and
+lockfile, read [Build local containers with mulled-biopixi](building-with-mulled-biopixi.md).
