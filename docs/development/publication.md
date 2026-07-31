@@ -30,14 +30,14 @@ pnpm build
 pnpm smoke
 npm login
 
-pnpm --filter @biopixi/core publish --no-git-checks --no-provenance --tag stub
-pnpm --filter @biopixi/cli publish --no-git-checks --no-provenance --tag stub
+NPM_CONFIG_PROVENANCE=false pnpm --filter @biopixi/core publish --no-git-checks --tag stub
+NPM_CONFIG_PROVENANCE=false pnpm --filter @biopixi/cli publish --no-git-checks --tag stub
 ```
 
 Publish core first because the CLI depends on it. The package manifests make both scoped packages
-public. `--no-provenance` is required for this laptop-only bootstrap because there is no CI OIDC
-identity; it overrides `publishConfig.provenance` for this publish only. `--tag stub` keeps the
-bootstrap version off the normal `latest` release channel.
+public. `NPM_CONFIG_PROVENANCE=false` is required for this laptop-only bootstrap because there is
+no CI OIDC identity; it overrides `publishConfig.provenance` for this publish only. `--tag stub`
+keeps the bootstrap version off the normal `latest` release channel.
 
 These commands publish version `0.1.0`. The pending Changesets bump both linked packages to `0.2.0`
 for the first automated release, so no published version is reused.
