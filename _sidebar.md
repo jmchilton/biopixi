@@ -3,6 +3,7 @@
 - **Guides**
   - [From Pixi to BioContainers](guides/from-pixi-to-biocontainers.md)
   - [Working with Pixi environments](guides/working-with-pixi-environments.md)
+  - [Build with mulled-biopixi](guides/building-with-mulled-biopixi.md)
   - [Agentic workflows](guides/agentic-workflows.md)
   - [FAIR environments with biopixi](guides/fair-environments-with-biopixi.md)
 - **Architecture**
