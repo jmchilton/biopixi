@@ -19,4 +19,8 @@ Credentials remain environment-based through `TOWER_ACCESS_TOKEN`, `TOWER_WORKSP
 redacted from rendered commands and diagnostics.
 
 The hosted Wave service cannot reach path packages or local channels, so an L1 project is
-refused. Building those locally needs mulled-build directly until biopixi's local adapter lands.
+refused. Build those locally with the [`mulled-biopixi`](../guides/building-with-mulled-biopixi.md)
+companion tool, or with `mulled-build` directly.
+
+[Build hosted containers with wave-biopixi](../guides/building-with-wave-biopixi.md) walks through
+the workflow.
