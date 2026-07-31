@@ -13,11 +13,11 @@ describe("planWaveBuild", () => {
     expect(planWaveBuild(join(root, "examples/l3-ecosystem-ready")).targets).toHaveLength(2);
   });
 
-  it("hands local path projects off to mulled-biopixi", () => {
+  it("refuses a local path project and points at a local builder", () => {
     expect(() => planWaveBuild(join(root, "examples/l1-local-recipe"))).toThrowError(
       expect.objectContaining<Partial<CondaBuildPlanError>>({
         kind: "insufficient-level",
-        message: expect.stringContaining("mulled-biopixi"),
+        message: expect.stringContaining("needs a local builder"),
       }),
     );
   });

@@ -1,26 +1,24 @@
 import { spawnSync, type SpawnSyncReturns } from "node:child_process";
 import { constants as osConstants } from "node:os";
 
-import { CondaBuildPlanError } from "@biopixi/core";
+import {
+  CondaBuildPlanError,
+  EXIT_CODES,
+  redactSensitiveUrls,
+  type CommandIo,
+} from "@biopixi/core";
 import { Command, CommanderError, Option } from "commander";
 
 import packageMetadata from "../package.json" with { type: "json" };
 import { planWaveBuild } from "./plan.js";
 import {
   buildWaveCommand,
-  redactSensitiveUrls,
   renderWaveCommand,
   type WaveCommandOptions,
   type WaveOutput,
 } from "./wave-command.js";
 
-export const EXIT_CODES = {
-  ok: 0,
-  project: 65,
-  waveUnavailable: 69,
-  internal: 70,
-  usage: 64,
-} as const;
+export { EXIT_CODES };
 
 export interface WaveRunnerOptions {
   stdio: "inherit";
@@ -35,10 +33,8 @@ export type WaveRunner = (
   options: WaveRunnerOptions,
 ) => WaveRunnerResult;
 
-export interface WaveCommandIo {
-  stdout(message: string): void;
-  stderr(message: string): void;
-}
+/** @deprecated Use {@link CommandIo}: every biopixi command writes the same way. */
+export type WaveCommandIo = CommandIo;
 
 export interface RunWaveBiopixiOptions extends WaveCommandOptions {
   printCommand?: boolean;
@@ -46,12 +42,12 @@ export interface RunWaveBiopixiOptions extends WaveCommandOptions {
 
 export interface ProgramDependencies {
   runner?: WaveRunner;
-  io?: WaveCommandIo;
+  io?: CommandIo;
   env?: NodeJS.ProcessEnv;
   setExitCode?: (code: number) => void;
 }
 
-const defaultIo: WaveCommandIo = {
+const defaultIo: CommandIo = {
   stdout: (message) => process.stdout.write(message),
   stderr: (message) => process.stderr.write(message),
 };
@@ -80,7 +76,11 @@ export function runWaveBiopixi(
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     io.stderr(`wave-biopixi: ${redactSensitiveUrls(message)}\n`);
-    return error instanceof CondaBuildPlanError ? EXIT_CODES.project : EXIT_CODES.internal;
+    // Every unusable-project kind reports the same code. This command propagates Wave's exit
+    // status verbatim, so it cannot also use the low verdict codes `biopixi grade` reserves for
+    // out-of-profile, indefinite, and below-threshold without those numbers becoming ambiguous
+    // between a wrapper verdict and a Wave failure. The kind is on the error and in the message.
+    return error instanceof CondaBuildPlanError ? EXIT_CODES.dataError : EXIT_CODES.internal;
   }
 
   if (options.printCommand === true) {
@@ -99,7 +99,7 @@ export function runWaveBiopixi(
         ? `wave-biopixi: Wave executable not found: ${command.executable}\n`
         : `wave-biopixi: could not start Wave: ${redactSensitiveUrls(result.error.message)}\n`,
     );
-    return missing ? EXIT_CODES.waveUnavailable : EXIT_CODES.internal;
+    return missing ? EXIT_CODES.unavailable : EXIT_CODES.internal;
   }
   if (result.status !== null) {
     return result.status;

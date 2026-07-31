@@ -235,8 +235,8 @@ Wave documents the underlying inputs in its
 
 Wave does not read the project's `pixi.lock`; `wave-biopixi` uses it to pin the request, and Wave
 creates its own solve record. A local path dependency must become a local mulled build or a
-publicly reachable package before Wave can use it. The wrapper rejects L1 evidence and recommends
-`mulled-biopixi` for that local path.
+publicly reachable package before Wave can use it. The wrapper rejects L1 evidence and says so;
+building those inputs locally needs mulled-build directly until biopixi's local adapter lands.
 
 ## Run a published BioContainer
 

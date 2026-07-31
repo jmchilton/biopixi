@@ -9,7 +9,8 @@ wave.seqera.io/wt/…/wave/build:…
 ```
 
 The wrapper requires definitive L2-or-higher evidence because hosted Wave must reach every Conda
-artifact. For an L1 project with path packages or local channels, use `mulled-biopixi` instead.
+artifact. An L1 project with path packages or local channels is refused: those inputs need a
+local builder, which biopixi does not yet wrap.
 
 ## Usage
 

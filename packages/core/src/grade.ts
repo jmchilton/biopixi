@@ -1,19 +1,19 @@
 import { existsSync, readFileSync, realpathSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parse as parseYaml } from "yaml";
 
+import { artifactChannelUrl, channelHasSensitiveData } from "./channel-url.js";
 import {
-  artifactChannelUrl,
   channelIdentity,
   channelMatches,
   condaGlobMatches,
+  condaVersionDecidable,
   condaVersionMatches,
 } from "./conda-match.js";
 import {
   asRecord,
-  channelHasSensitiveData,
   declaredPlatforms,
   dependencyBuild,
   dependencyChannel,
@@ -54,6 +54,18 @@ const PYPI_TABLE_KEYS = ["pypi-dependencies"];
 const CONFIRM_ACTION = "run `biopixi verify` to observe the container and reach L4";
 /** Pixi refuses to solve a conda source dependency without this preview feature enabled. */
 const PIXI_BUILD_PREVIEW = "pixi-build";
+
+/**
+ * Why a project with credential-bearing channels cannot pass the hosted-build boundary.
+ *
+ * Named because callers act on it. `Grade.reasons` is prose meant for a person, so a downstream
+ * command that needs to know *which* cap it hit — to say something more useful than the generic
+ * refusal — would otherwise have to pattern-match a sentence, and would silently start saying the
+ * wrong thing the first time that sentence was reworded. Comparing against this constant fails
+ * loudly instead.
+ */
+export const CREDENTIAL_CHANNEL_REASON =
+  "manifest channels contain embedded credentials or URL parameters that hosted builds must not expose";
 
 /**
  * Whether there is a solve biopixi can stand behind. Separate from readiness: a level is only
@@ -191,6 +203,17 @@ function realpathOrResolve(path: string): string {
   } catch {
     return absolute;
   }
+}
+
+/**
+ * The project directory a caller meant, from either a directory or the `pixi.toml` inside it.
+ *
+ * Shared by every entry point so that one biopixi command cannot accept an argument another
+ * rejects. Tab completion offers the manifest, so someone will pass it.
+ */
+export function resolveProjectDirectory(input: string): string {
+  const absolute = resolve(input);
+  return realpathOrResolve(basename(absolute) === "pixi.toml" ? dirname(absolute) : absolute);
 }
 
 function resolveSourceRoot(projectRoot: string, requestedRoot: string | undefined): string {
@@ -520,8 +543,87 @@ function publicArtifact(url: string): boolean {
   }
 }
 
+/**
+ * One reconciled direct root: what the manifest asked for, resolved to what the lock recorded.
+ *
+ * This is the single description of "the packages this project is built from". Grading turns it
+ * into a target string and a container identity; a build adapter turns it into an exact package
+ * argument. Both must mean the same thing by "direct root", including how a target table overrides
+ * a top-level entry and how an explicit channel qualifier survives, which is why neither derives
+ * it independently — see {@link resolveDirectRoots}.
+ */
+export interface CondaRoot {
+  /** The dependency name, as the manifest and the lock both spell it. */
+  name: string;
+  /** The locked version, absent only when the lock records none. */
+  version?: string;
+  /** The locked build string, absent only when the lock records none. */
+  build?: string;
+  /** The manifest's explicit channel qualifier, when it spells one. */
+  channel?: string;
+  /** The resolved artifact URL, retained as evidence. */
+  source?: string;
+}
+
+/**
+ * The direct roots of one platform's solve, sorted by name.
+ *
+ * Sorted so that two manifests differing only in declaration order produce the same result
+ * everywhere this feeds: a target string, a mulled hash, and a build request.
+ */
+export function resolveDirectRoots(
+  dependencies: Manifest,
+  lockedPackagesByName: ReadonlyMap<string, LockedPackage>,
+): CondaRoot[] {
+  return Object.keys(dependencies)
+    .sort()
+    .map((name) => {
+      const lockedPackage = lockedPackagesByName.get(name);
+      const root: CondaRoot = { name };
+      if (lockedPackage?.version !== undefined) {
+        root.version = lockedPackage.version;
+      }
+      if (lockedPackage?.build !== undefined) {
+        root.build = lockedPackage.build;
+      }
+      const qualifier = dependencyChannel(dependencies[name]);
+      if (qualifier !== undefined) {
+        root.channel = qualifier;
+      }
+      if (lockedPackage?.source !== undefined) {
+        root.source = lockedPackage.source;
+      }
+      return root;
+    });
+}
+
+/**
+ * Drop a `channel::` qualifier from one target specification.
+ *
+ * A qualifier is a statement about where a package was fetched from, and two manifests that
+ * differ only in whether they spell it resolve to the same artifact. Anything comparing target
+ * sets for identity has to see through it.
+ */
+function unqualifiedTarget(target: string): string {
+  return target.split("::").at(-1)?.trim() ?? target.trim();
+}
+
+/** Prefix a package name with its channel qualifier, when the manifest spells one. */
+function qualifiedName(name: string, qualifier: string | undefined): string {
+  return qualifier === undefined ? name : `${qualifier}::${name}`;
+}
+
+/**
+ * The identity of a target set, independent of channel qualifiers and ordering.
+ *
+ * Normalization happens here, on every caller at once, rather than at each site that builds a key.
+ * The registry side and the project side have to agree, and the only way to guarantee that is to
+ * give them no opportunity to disagree: `hash.tsv` writes a qualifier on 4 of its 951 lines, and a
+ * manifest may write one on any dependency, so keying on the raw spelling means a cosmetic edit to
+ * either side silently loses a match.
+ */
 function combinationKey(targets: Iterable<string>): string {
-  return [...new Set(targets)].sort().join("\n");
+  return [...new Set([...targets].map(unqualifiedTarget))].sort().join("\n");
 }
 
 export function loadCombinations(combinationsPath: string): Map<string, [string, string]> {
@@ -533,12 +635,23 @@ export function loadCombinations(combinationsPath: string): Map<string, [string,
     const columns = line.split("\t");
     const registeredTargets = columns[0];
     const imageBuild = columns[2]?.trim() || "0";
-    const targetSetKey = combinationKey(
-      registeredTargets.split(",").map((target) => target.trim()),
-    );
-    combinations.set(targetSetKey, [registeredTargets, imageBuild]);
+    combinations.set(combinationKey(registeredTargets.split(",")), [registeredTargets, imageBuild]);
   }
   return combinations;
+}
+
+/**
+ * Parse a `hash.tsv` target column into mulled targets.
+ *
+ * A registered line is the authority on the image that was actually built: BioContainers hashed
+ * exactly these strings, qualifiers included, so reproducing that name means using the registry's
+ * spelling and not the manifest's.
+ */
+function parseRegisteredTargets(registeredTargets: string): Target[] {
+  return registeredTargets.split(",").map((entry) => {
+    const [packageName, version] = entry.trim().split("=", 2);
+    return version === undefined ? { package: packageName } : { package: packageName, version };
+  });
 }
 
 function profileNextActions(reasons: string[]): string[] {
@@ -551,12 +664,14 @@ function profileNextActions(reasons: string[]): string[] {
 }
 
 /**
- * Grade one project directory using only its manifest, lock, and vendored metadata.
+ * Grade one project using only its manifest, lock, and vendored metadata.
+ *
+ * Accepts the project directory or the `pixi.toml` inside it.
  *
  * @throws {SourceRootError} if `options.sourceRoot` is missing or does not contain the project.
  */
 export function grade(directory: string, options: GradeOptions = {}): Grade {
-  const projectRoot = realpathOrResolve(directory);
+  const projectRoot = resolveProjectDirectory(directory);
   const sourceRoot = resolveSourceRoot(projectRoot, options.sourceRoot);
   return { projectRoot, sourceRoot, ...gradeProject(projectRoot, sourceRoot, options) };
 }
@@ -702,6 +817,12 @@ function gradeSolve(
       ],
     });
   }
+  // Every check below only ever *accuses*: a disagreement between the manifest and the lock costs
+  // the project its level entirely. So each one must be able to abstain. Where biopixi's offline
+  // MatchSpec support runs out — epochs, local version identifiers, clause shapes it does not
+  // implement — it says nothing rather than reporting a mismatch it cannot stand behind. Pixi
+  // itself re-checks all of this on the next solve; a missed staleness is caught there, whereas a
+  // project wrongly told to re-lock an already-correct lock has nowhere to go.
   const rootMismatches = directDependencyNames.flatMap((name) => {
     const qualifier = dependencyChannel(dependencies[name]);
     const lockedPackage = lockedPackagesByName.get(name);
@@ -720,6 +841,7 @@ function gradeSolve(
     if (
       version !== undefined &&
       lockedPackage?.version !== undefined &&
+      condaVersionDecidable(version, lockedPackage.version) &&
       !condaVersionMatches(version, lockedPackage.version)
     ) {
       problems.push(
@@ -779,9 +901,7 @@ function gradeSolve(
   });
   if (sensitiveChannels.length > 0 || sensitiveQualifiers.length > 0) {
     return definitiveGrade(1, {
-      reasons: [
-        "manifest channels contain embedded credentials or URL parameters that hosted builds must not expose",
-      ],
+      reasons: [CREDENTIAL_CHANNEL_REASON],
       lints,
       nextActions: [
         "remove credentials and URL parameters from pixi.toml; configure authentication outside the manifest",
@@ -824,20 +944,24 @@ function gradeSolve(
     });
   }
 
-  const resolvedTargets = directDependencyNames.map((name) => {
-    const qualifier = dependencyChannel(dependencies[name]);
-    return `${qualifier === undefined ? "" : `${qualifier}::`}${name}=${lockedPackagesByName.get(name)?.version}`;
-  });
+  const roots = resolveDirectRoots(dependencies, lockedPackagesByName);
+  const resolvedTargets = roots.map(
+    (root) => `${qualifiedName(root.name, root.channel)}=${root.version}`,
+  );
   const target = resolvedTargets.join(",");
-  const containerTargets: Target[] = directDependencyNames.map((name) => {
-    const lockedPackage = lockedPackagesByName.get(name);
-    const qualifier = dependencyChannel(dependencies[name]);
-    return {
-      package: `${qualifier === undefined ? "" : `${qualifier}::`}${name}`,
-      version: lockedPackage?.version,
-      build: lockedPackage?.build,
-    };
-  });
+
+  /**
+   * Mulled targets for a multi-package image, where the qualifier is part of the hashed identity.
+   *
+   * BioContainers hashes the target strings exactly as `hash.tsv` records them, so a qualifier
+   * genuinely changes which image a combination names — see PROFILE.md's channel-qualifier rule.
+   * That only holds for the multi-package form, which is the one that hashes.
+   */
+  const qualifiedContainerTargets: Target[] = roots.map((root) => ({
+    package: qualifiedName(root.name, root.channel),
+    version: root.version,
+    build: root.build,
+  }));
 
   const outsideCommunityPackages = lock.packages.filter(
     (lockedPackage) =>
@@ -862,6 +986,20 @@ function gradeSolve(
 
   if (directDependencyNames.length === 1) {
     const lockedPackage = lockedPackagesByName.get(directDependencyNames[0]);
+    /**
+     * A single-package image is named, not hashed: the repository component is the package name
+     * itself. A `channel::` qualifier there would not merely name a different image, it would make
+     * the reference unparseable — `quay.io/biocontainers/bioconda::samtools:1.17` is not a
+     * container reference at all. The qualifier stays in `target`, where it is a claim about
+     * provenance, and is dropped here, where the string has to be pullable.
+     */
+    const singleContainerTarget: Target[] = [
+      {
+        package: directDependencyNames[0],
+        version: lockedPackage?.version,
+        build: lockedPackage?.build,
+      },
+    ];
     if (
       lockedPackage !== undefined &&
       lockedPackage.channel !== null &&
@@ -875,7 +1013,7 @@ function gradeSolve(
           "L4 needs that image observed at a registry, which offline grading cannot do",
         ],
         publication: {
-          uri: pullUri(containerTargets),
+          uri: pullUri(singleContainerTarget),
           state: "INFERRED",
           basis: `a single ${lockedPackage.channel} package, and BioContainers builds one image per recipe build`,
         },
@@ -889,7 +1027,7 @@ function gradeSolve(
         `${lockedPackage?.name} is ecosystem-ready on ${lockedPackage?.channel}, which does not auto-build containers`,
       ],
       publication: {
-        uri: pullUri(containerTargets),
+        uri: pullUri(singleContainerTarget),
         state: "UNREGISTERED",
         basis: `${lockedPackage?.channel} does not auto-build containers, so this is only the name an image would have`,
       },
@@ -899,10 +1037,6 @@ function gradeSolve(
     });
   }
 
-  const versionedContainerTargets = containerTargets.map(({ package: packageName, version }) => ({
-    package: packageName,
-    version,
-  }));
   const combinations = loadCombinations(options.combinationsPath ?? DEFAULT_COMBINATIONS_PATH);
   // A caller-supplied table is not the copy the vendored snapshot describes, so claim no provenance.
   const snapshot = options.combinationsPath === undefined ? loadSnapshot() : undefined;
@@ -918,7 +1052,11 @@ function gradeSolve(
         "L4 needs that image observed at a registry, which offline grading cannot do",
       ],
       publication: {
-        uri: pullUri(versionedContainerTargets, imageBuild),
+        // Named from the registry's own spelling, not the manifest's. The image already exists;
+        // reproducing its name means hashing what BioContainers hashed, and a manifest that
+        // qualifies a dependency the registered line leaves bare would otherwise compute a
+        // different — and unbuilt — name for the very container just found.
+        uri: pullUri(parseRegisteredTargets(registeredTargetSpec), imageBuild),
         state: "REGISTERED",
         basis: `listed in the combinations/hash.tsv snapshot fetched ${snapshot?.fetched ?? "at an unrecorded time"}`,
       },
@@ -926,6 +1064,12 @@ function gradeSolve(
     });
   }
 
+  // Nothing is registered, so there is no registry spelling to defer to and `target` is exactly
+  // the line the next action asks for. Name the image from the same string.
+  const proposedTargets = qualifiedContainerTargets.map(({ package: packageName, version }) => ({
+    package: packageName,
+    version,
+  }));
   return definitiveGrade(3, {
     target,
     lints,
@@ -935,7 +1079,7 @@ function gradeSolve(
       "L4 is one pull request away — add the target string above to combinations/hash.tsv",
     ],
     publication: {
-      uri: pullUri(versionedContainerTargets, "0"),
+      uri: pullUri(proposedTargets, "0"),
       state: "UNREGISTERED",
       basis: "this is only the name an image would have once built",
     },

@@ -37,6 +37,59 @@ describe("grade", () => {
     expect(registered.target).toBe("bamtools=2.5.2,samtools=1.16.1");
   });
 
+  /**
+   * Copy an example, rewriting its manifest but keeping its lock, so the solve is untouched.
+   *
+   * The edits below change only how a dependency is *spelled*. The lock still records the same
+   * artifact from the same channel, which is the point: nothing about the environment changed.
+   */
+  function respellExample(example: string, from: string, to: string): string {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-qualifier-"));
+    const manifest = readFileSync(join(examples, example, "pixi.toml"), "utf8");
+    expect(manifest).toContain(from);
+    writeFileSync(join(directory, "pixi.toml"), manifest.replace(from, to));
+    copyFileSync(join(examples, example, "pixi.lock"), join(directory, "pixi.lock"));
+    return directory;
+  }
+
+  it("names the same single-package container whether or not the channel is qualified", () => {
+    const qualified = grade(
+      respellExample(
+        "l4-single",
+        'samtools = "==1.17"',
+        'samtools = { version = "==1.17", channel = "bioconda" }',
+      ),
+    );
+    const plain = grade(join(examples, "l4-single"));
+
+    // A single-package image is named, not hashed, so the qualifier cannot enter the repository
+    // component: `quay.io/biocontainers/bioconda::samtools:1.17` is not a container reference.
+    expect(qualified.publication?.uri).toBe(plain.publication?.uri);
+    expect(qualified.publication?.uri).not.toContain("::");
+    expect(qualified.publication?.state).toBe(plain.publication?.state);
+    // The qualifier is still a claim about provenance, so it survives where that is what is meant.
+    expect(qualified.target).toBe("bioconda::samtools=1.17");
+  });
+
+  it("still finds a registered combination when the manifest qualifies a channel", () => {
+    const qualified = grade(
+      respellExample(
+        "l4-combination",
+        'bamtools = "==2.5.2"',
+        'bamtools = { version = "==2.5.2", channel = "bioconda" }',
+      ),
+    );
+    const plain = grade(join(examples, "l4-combination"));
+
+    // hash.tsv writes a qualifier on 4 of its 951 lines. Matching on the raw spelling would make
+    // a published container disappear behind a cosmetic manifest edit, and would name an image
+    // that was never built.
+    expect(plain.publication?.state).toBe("REGISTERED");
+    expect(qualified.publication?.state).toBe("REGISTERED");
+    expect(qualified.publication?.uri).toBe(plain.publication?.uri);
+    expect(qualified.target).toBe("bioconda::bamtools=2.5.2,samtools=1.16.1");
+  });
+
   it("can lower the environment grade when a package is added", () => {
     const single = grade(join(examples, "l4-single"));
     const combination = grade(join(examples, "l3-ecosystem-ready"));

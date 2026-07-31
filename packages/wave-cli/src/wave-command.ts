@@ -1,4 +1,4 @@
-import type { CondaBuildPlan, CondaBuildTarget } from "@biopixi/core";
+import { redactSensitiveUrls, type CondaBuildPlan, type CondaBuildTarget } from "@biopixi/core";
 
 export type WaveOutput = "json" | "yaml";
 
@@ -16,22 +16,6 @@ export interface WaveCommandOptions {
 export interface WaveCommand {
   executable: string;
   args: string[];
-}
-
-/** Remove URL userinfo and parameters before a value is shown to a person. */
-export function redactSensitiveUrls(value: string): string {
-  return value.replace(/https?:\/\/[^\s,'");]+/g, (raw) => {
-    try {
-      const url = new URL(raw);
-      url.username = "";
-      url.password = "";
-      url.search = "";
-      url.hash = "";
-      return url.toString();
-    } catch {
-      return "[redacted URL]";
-    }
-  });
 }
 
 /** Render one exact Conda root in Wave's accepted MatchSpec spelling. */

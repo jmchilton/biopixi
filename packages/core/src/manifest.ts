@@ -85,21 +85,6 @@ export function manifestChannels(manifest: Manifest): string[] {
   return [...new Set(channels.filter((channel): channel is string => typeof channel === "string"))];
 }
 
-/** Whether a channel URL carries information that must never appear in diagnostics. */
-export function channelHasSensitiveData(channel: string): boolean {
-  try {
-    const url = new URL(channel);
-    return (
-      url.username.length > 0 ||
-      url.password.length > 0 ||
-      url.search.length > 0 ||
-      url.hash.length > 0
-    );
-  } catch {
-    return false;
-  }
-}
-
 /** Parse a Pixi TOML manifest from disk. */
 export function parseManifest(path: string): Manifest {
   return asRecord(parseToml(readFileSync(path, "utf8")));

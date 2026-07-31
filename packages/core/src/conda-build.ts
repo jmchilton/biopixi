@@ -1,32 +1,41 @@
-import { existsSync, realpathSync } from "node:fs";
-import { basename, dirname, join, resolve } from "node:path";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 
-import { grade, loadLock, type EvidenceState, type Grade } from "./grade.js";
 import {
-  dependencyChannel,
-  effectiveCondaDependencies,
-  manifestChannels,
-  parseManifest,
-  type Manifest,
-} from "./manifest.js";
+  grade,
+  loadLock,
+  resolveDirectRoots,
+  resolveProjectDirectory,
+  type CondaRoot,
+  type EvidenceState,
+  type Grade,
+} from "./grade.js";
+import { effectiveCondaDependencies, manifestChannels, parseManifest } from "./manifest.js";
 
 const BUILD_PLATFORM = "linux-64" as const;
 
-/** One exact direct root in a portable Conda build request. */
-export interface CondaBuildTarget {
-  name: string;
+/**
+ * One exact direct root in a portable Conda build request.
+ *
+ * A {@link CondaRoot} whose version and build are known to be present — the distinction a builder
+ * cares about, since it has nothing to ask for without them.
+ */
+export interface CondaBuildTarget extends CondaRoot {
   version: string;
   build: string;
-  /** Present only when the manifest explicitly qualifies this dependency. */
-  channel?: string;
-  /** Resolved artifact URL retained as evidence, not for display in wrapper diagnostics. */
-  source?: string;
 }
 
 /** Deterministic, builder-independent projection of a Biopixi project's Linux solve. */
 export interface CondaBuildPlan {
   projectRoot: string;
   platform: typeof BUILD_PLATFORM;
+  /**
+   * Workspace channels in manifest order, duplicates removed.
+   *
+   * Safe to forward to a builder because grading has already refused any project whose lock
+   * records a different channel list or order than the manifest declares; by the time a plan
+   * exists, the two spellings are known to describe the same solve.
+   */
   channels: string[];
   targets: CondaBuildTarget[];
 }
@@ -50,16 +59,8 @@ export class CondaBuildPlanError extends Error {
 export interface CondaBuildPlanOptions {
   /** Reject definitive evidence below this portability level. */
   minimumLevel?: number;
-}
-
-function projectDirectory(input: string): string {
-  const absolute = resolve(input);
-  const directory = basename(absolute) === "pixi.toml" ? dirname(absolute) : absolute;
-  try {
-    return realpathSync(directory);
-  } catch {
-    return directory;
-  }
+  /** Widen the path-dependency bound to an ancestor of the project root, as `grade` does. */
+  sourceRoot?: string;
 }
 
 function evidenceKind(state: EvidenceState | null): CondaBuildPlanErrorKind {
@@ -77,10 +78,15 @@ function evidenceKind(state: EvidenceState | null): CondaBuildPlanErrorKind {
  * Project one Biopixi-compatible Pixi workspace into exact, sorted direct Conda roots.
  *
  * The grader supplies the conformance, lock reconciliation, channel, path-package, and public
- * evidence rules. This function only turns that reconciled evidence into a builder-neutral plan.
+ * evidence rules, and {@link resolveDirectRoots} decides what a direct root is. This function only
+ * asserts that the evidence is good enough to build from and that every root is exactly pinned.
+ * Nothing here re-derives a rule the grader already applied: if the two ever disagreed about a
+ * project, the container built would not be the one that was graded.
+ *
+ * Accepts the project directory or the `pixi.toml` inside it.
  */
 export function planCondaBuild(input: string, options: CondaBuildPlanOptions = {}): CondaBuildPlan {
-  const projectRoot = projectDirectory(input);
+  const projectRoot = resolveProjectDirectory(input);
   const manifestPath = join(projectRoot, "pixi.toml");
   if (!existsSync(manifestPath)) {
     throw new CondaBuildPlanError("invalid-project", `no pixi.toml in ${projectRoot}`);
@@ -88,7 +94,7 @@ export function planCondaBuild(input: string, options: CondaBuildPlanOptions = {
 
   let result: Grade;
   try {
-    result = grade(projectRoot);
+    result = grade(projectRoot, { sourceRoot: options.sourceRoot });
   } catch (error) {
     throw new CondaBuildPlanError(
       "invalid-project",
@@ -119,11 +125,16 @@ export function planCondaBuild(input: string, options: CondaBuildPlanOptions = {
     );
   }
 
-  let manifest: Manifest;
-  let locked: ReturnType<typeof loadLock>;
+  let roots: CondaRoot[];
+  let channels: string[];
   try {
-    manifest = parseManifest(manifestPath);
-    locked = loadLock(join(projectRoot, "pixi.lock"), BUILD_PLATFORM);
+    const manifest = parseManifest(manifestPath);
+    const locked = loadLock(join(projectRoot, "pixi.lock"), BUILD_PLATFORM);
+    roots = resolveDirectRoots(
+      effectiveCondaDependencies(manifest, BUILD_PLATFORM),
+      new Map(locked.packages.map((lockedPackage) => [lockedPackage.name, lockedPackage])),
+    );
+    channels = manifestChannels(manifest);
   } catch (error) {
     throw new CondaBuildPlanError(
       "invalid-project",
@@ -132,35 +143,19 @@ export function planCondaBuild(input: string, options: CondaBuildPlanOptions = {
       { cause: error },
     );
   }
-  const dependencies = effectiveCondaDependencies(manifest, BUILD_PLATFORM);
-  const byName = new Map(locked.packages.map((pkg) => [pkg.name, pkg]));
 
-  const targets = Object.keys(dependencies)
-    .sort((left, right) => (left < right ? -1 : left > right ? 1 : 0))
-    .map((name): CondaBuildTarget => {
-      const pkg = byName.get(name);
-      if (pkg?.version === undefined || pkg.build === undefined) {
-        throw new CondaBuildPlanError(
-          "unsupported-lock",
-          `pixi.lock does not record an exact version and build for direct dependency ${name}`,
-          result,
-        );
-      }
-      const target: CondaBuildTarget = { name, version: pkg.version, build: pkg.build };
-      const channel = dependencyChannel(dependencies[name]);
-      if (channel !== undefined) {
-        target.channel = channel;
-      }
-      if (pkg.source !== undefined) {
-        target.source = pkg.source;
-      }
-      return target;
-    });
+  const targets = roots.map((root): CondaBuildTarget => {
+    if (root.version === undefined || root.build === undefined) {
+      // Reachable only below L2, where a root can be built from source and have neither. A caller
+      // that set no minimum level gets a clear refusal rather than an underspecified request.
+      throw new CondaBuildPlanError(
+        "unsupported-lock",
+        `pixi.lock does not record an exact version and build for direct dependency ${root.name}`,
+        result,
+      );
+    }
+    return { ...root, version: root.version, build: root.build };
+  });
 
-  return {
-    projectRoot,
-    platform: BUILD_PLATFORM,
-    channels: manifestChannels(manifest),
-    targets,
-  };
+  return { projectRoot, platform: BUILD_PLATFORM, channels, targets };
 }

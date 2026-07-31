@@ -69,7 +69,7 @@ describe("runWaveBiopixi", () => {
     const missing = Object.assign(new Error("spawn missing ENOENT"), { code: "ENOENT" });
     const missingRunner: WaveRunner = () => ({ status: null, signal: null, error: missing });
     expect(runWaveBiopixi(l3, {}, { io: missingIo, runner: missingRunner })).toBe(
-      EXIT_CODES.waveUnavailable,
+      EXIT_CODES.unavailable,
     );
     expect(missingIo.stderrMessages.join("")).toContain("Wave executable not found");
 
@@ -91,10 +91,10 @@ describe("runWaveBiopixi", () => {
   it("rejects L1 before invoking Wave and recommends the local builder", () => {
     const io = capturingIo();
     const runner = vi.fn<WaveRunner>();
-    expect(runWaveBiopixi(l1, {}, { io, runner })).toBe(EXIT_CODES.project);
+    expect(runWaveBiopixi(l1, {}, { io, runner })).toBe(EXIT_CODES.dataError);
     expect(runner).not.toHaveBeenCalled();
     expect(io.stdoutMessages).toEqual([]);
-    expect(io.stderrMessages.join("")).toContain("mulled-biopixi");
+    expect(io.stderrMessages.join("")).toContain("needs a local builder");
   });
 
   it("classifies malformed and unresolved evidence as a project failure", () => {
@@ -117,7 +117,7 @@ zlib = "*"
 
     for (const directory of [malformedToml, malformedYaml, unresolved]) {
       const io = capturingIo();
-      expect(runWaveBiopixi(directory, {}, { io })).toBe(EXIT_CODES.project);
+      expect(runWaveBiopixi(directory, {}, { io })).toBe(EXIT_CODES.dataError);
       expect(io.stdoutMessages).toEqual([]);
       expect(io.stderrMessages.join("")).not.toContain("internal");
     }
@@ -145,7 +145,7 @@ environments:
     const runner = vi.fn<WaveRunner>();
 
     expect(runWaveBiopixi(directory, { printCommand: true }, { io, runner })).toBe(
-      EXIT_CODES.project,
+      EXIT_CODES.dataError,
     );
     expect(runner).not.toHaveBeenCalled();
     expect(io.stdoutMessages).toEqual([]);

@@ -1,34 +1,13 @@
-/** Offline matching helpers for the subset of Conda MatchSpec used by Pixi dependencies. */
+/**
+ * Offline matching for the subset of Conda MatchSpec that Pixi dependencies use.
+ *
+ * This is a deliberate partial implementation, and the partiality is the point. biopixi uses these
+ * comparisons only to *accuse* a lock of being stale, so a wrong answer costs a project its grade
+ * entirely. Anything this module cannot decide with confidence is reported as undecidable rather
+ * than guessed at — see {@link condaVersionDecidable}.
+ */
 
-/** Normalize a channel URL for identity comparison, excluding credentials and URL parameters. */
-export function canonicalChannelUrl(value: string): string | undefined {
-  try {
-    const url = new URL(value);
-    url.username = "";
-    url.password = "";
-    url.search = "";
-    url.hash = "";
-    url.pathname = url.pathname.replace(/\/+$/, "");
-    return url.toString().replace(/\/$/, "");
-  } catch {
-    return undefined;
-  }
-}
-
-/** Derive a channel URL by removing an artifact's platform and filename path segments. */
-export function artifactChannelUrl(value: string): string | undefined {
-  const canonical = canonicalChannelUrl(value);
-  if (canonical === undefined) {
-    return undefined;
-  }
-  const url = new URL(canonical);
-  const parts = url.pathname.split("/").filter(Boolean);
-  if (parts.length < 2) {
-    return undefined;
-  }
-  url.pathname = `/${parts.slice(0, -2).join("/")}`;
-  return url.toString().replace(/\/$/, "");
-}
+import { canonicalChannelUrl } from "./channel-url.js";
 
 /** Stable identity for comparing a manifest channel with its lock representation. */
 export function channelIdentity(channel: string): string {
@@ -65,6 +44,14 @@ export function condaGlobMatches(pattern: string, value: string): boolean {
   return new RegExp(`^${expression}$`, "i").test(value);
 }
 
+/**
+ * Split a version into comparable runs of digits and letters.
+ *
+ * Every other character is dropped, which is why an epoch (`1!2.0`) and a local version
+ * (`1.0+cuda`) are not comparable here: `1!2.0` and `1.2.0` tokenize identically, and an epoch
+ * dominates every ordinary segment in Conda's ordering rather than sitting in front of it.
+ * {@link condaVersionDecidable} refuses those inputs so the ambiguity never reaches a verdict.
+ */
 function versionParts(value: string): Array<number | string> {
   return (value.toLowerCase().match(/[0-9]+|[a-z]+/g) ?? []).map((part) =>
     /^\d+$/.test(part) ? Number.parseInt(part, 10) : part,
@@ -172,7 +159,38 @@ function versionClauseMatches(clause: string, locked: string): boolean {
   return false;
 }
 
-/** Match Conda's `|` alternatives, comma intersections, comparisons, compatibility, and globs. */
+/** Version syntax this module tokenizes away, and so cannot order correctly. */
+const UNORDERABLE_VERSION_SYNTAX = /[!+]/;
+/** The clause shapes {@link versionClauseMatches} implements. */
+const SUPPORTED_CLAUSE = /^(<=|>=|==|!=|~=|<|>|=)?[^\s]+$/;
+
+/**
+ * Whether a mismatch between this specification and this locked version would be a finding rather
+ * than a guess.
+ *
+ * Callers that use a mismatch to accuse a lock of being stale MUST consult this first. An epoch or
+ * a local version identifier is ordered by rules {@link compareVersions} does not implement, and a
+ * clause shape that is merely unrecognized would otherwise fall through to `false` and read as a
+ * confident disagreement. Silence about a real mismatch is recoverable; a project told to re-lock
+ * a lock that is already correct has no way forward.
+ */
+export function condaVersionDecidable(specification: string, locked: string): boolean {
+  if (UNORDERABLE_VERSION_SYNTAX.test(specification) || UNORDERABLE_VERSION_SYNTAX.test(locked)) {
+    return false;
+  }
+  return specification
+    .split("|")
+    .flatMap((alternative) => alternative.split(","))
+    .map((clause) => clause.trim())
+    .filter(Boolean)
+    .every((clause) => SUPPORTED_CLAUSE.test(clause));
+}
+
+/**
+ * Match Conda's `|` alternatives, comma intersections, comparisons, compatibility, and globs.
+ *
+ * Only meaningful when {@link condaVersionDecidable} accepts the same pair.
+ */
 export function condaVersionMatches(specification: string, locked: string): boolean {
   return specification.split("|").some((alternative) =>
     alternative

@@ -1,25 +1,15 @@
-import { grade, SourceRootError, type Grade } from "@biopixi/core";
+import {
+  EXIT_CODES,
+  grade,
+  redactSensitiveUrls,
+  SourceRootError,
+  type CommandIo,
+  type Grade,
+} from "@biopixi/core";
 
 import { buildReport, type GradeReportEntry } from "./report.js";
 
-/**
- * What `--min-level` failed on, in the order PROFILE.md asks the questions: whether the manifest
- * is in profile, then whether a solve backs it, then how far it travels. Collapsing these onto one
- * code makes "this project is not gradeable" indistinguishable from "this project scored low",
- * which are different problems with different fixes.
- *
- * Invocation faults use EX_USAGE, well clear of the verdicts, so a bad source root can never be
- * read as a statement about the project.
- */
-export const EXIT_CODES = {
-  ok: 0,
-  belowThreshold: 1,
-  indefinite: 2,
-  outOfProfile: 3,
-  /** `verify --require-verified` only: a container claim nobody could observe. */
-  unconfirmed: 4,
-  usage: 64,
-} as const;
+export { EXIT_CODES };
 
 export interface GradeCommandOptions {
   minLevel?: number;
@@ -28,12 +18,10 @@ export interface GradeCommandOptions {
   json?: boolean;
 }
 
-export interface GradeCommandIo {
-  stdout: (message: string) => void;
-  stderr: (message: string) => void;
-}
+/** @deprecated Use {@link CommandIo}: every biopixi command writes the same way. */
+export type GradeCommandIo = CommandIo;
 
-const consoleIo: GradeCommandIo = {
+const consoleIo: CommandIo = {
   stdout: (message) => console.log(message),
   stderr: (message) => console.error(message),
 };
@@ -82,7 +70,10 @@ export function renderGrade(directory: string, gradeResult: Grade): string {
   for (const lint of gradeResult.lints) {
     lines.push(`      lint: ${lint}`);
   }
-  return lines.join("\n");
+  // Redact once, at the boundary, rather than at each site that assembles a line. Reasons, next
+  // actions, and cap artifacts all embed URLs that came from a lock this renderer never inspected,
+  // and a credential that reaches a terminal or a CI log has already leaked.
+  return redactSensitiveUrls(lines.join("\n"));
 }
 
 function formatNamedEntries(

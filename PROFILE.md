@@ -153,8 +153,20 @@ bioformats2raw = { version = "0.9.4", channel = "ome" }
 ```
 
 The qualifier MUST agree with the resolved channel in the lockfile. biopixi MUST preserve an
-explicit `channel::package` prefix when computing a mulled target because channel prefixes are
-part of the container identity.
+explicit `channel::package` prefix when computing a mulled **target string**, because
+BioContainers hashes those strings as `combinations/hash.tsv` records them and a prefix therefore
+changes which image a multi-package combination names.
+
+A prefix MUST NOT reach an image reference where it is not part of the identity being computed:
+
+- a **single-package** image is named rather than hashed — its repository component is the package
+  name — so the qualifier is dropped. `quay.io/biocontainers/ome::bioformats2raw:0.9.4` is not a
+  container reference at all;
+- a **registered** combination is named from the target string `hash.tsv` records, not from the
+  manifest's spelling, because that image already exists and its name is already decided; and
+- **matching** a target set against `hash.tsv` MUST ignore qualifiers on both sides. Two manifests
+  differing only in whether they spell a qualifier resolve to the same artifacts, and must not
+  differ in whether biopixi finds their published container.
 
 Channel qualification does not promote a package:
 

@@ -18,5 +18,5 @@ Credentials remain environment-based through `TOWER_ACCESS_TOKEN`, `TOWER_WORKSP
 `WAVE_ENDPOINT`. Credential-bearing channel URLs cannot cross the hosted-build boundary and are
 redacted from rendered commands and diagnostics.
 
-For path packages and local channels, use `mulled-biopixi`; the hosted Wave service cannot reach
-those inputs.
+The hosted Wave service cannot reach path packages or local channels, so an L1 project is
+refused. Building those locally needs mulled-build directly until biopixi's local adapter lands.
