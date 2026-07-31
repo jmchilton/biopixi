@@ -1,14 +1,12 @@
 <img class="cover-mark" src="assets/biopixi-mark-transparent.png" alt="The biopixi DNA firefly mark" />
 
-<p class="cover-eyebrow">Portability readiness for bioinformatics</p>
+<p class="cover-eyebrow">Portable bioinformatics for humans and agents</p>
 
-# Know how far your environment can travel.
+# Build freely. Share durably.
 
-> Grade a Pixi environment from its original checkout to a durable BioContainer, then get the
-> next concrete step forward.
+> Usher a Pixi environment from active development to a durable BioContainer—with practical
+> guardrails and one concrete step forward at a time.
 
-<p class="cover-path"><span>pixi.toml</span><i></i><span>L0–L4</span><i></i><span>BioContainers</span></p>
-
-[Get started](getting-started.md)
-[Read the profile](architecture/profile.md)
-[View on GitHub](https://github.com/jmchilton/biopixi)
+[The story](guides/from-pixi-to-biocontainers.md)
+[Tooling](guides/working-with-pixi-environments.md)
+[Agents](guides/agentic-workflows.md)
