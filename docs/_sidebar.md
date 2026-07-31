@@ -4,6 +4,7 @@
   - [From Pixi to BioContainers](guides/from-pixi-to-biocontainers.md)
   - [Working with Pixi environments](guides/working-with-pixi-environments.md)
   - [Agentic workflows](guides/agentic-workflows.md)
+  - [FAIR environments with biopixi](guides/fair-environments-with-biopixi.md)
 - **Architecture**
   - [Profile overview](architecture/profile.md)
   - [Container identity internals](architecture/containers.md)
