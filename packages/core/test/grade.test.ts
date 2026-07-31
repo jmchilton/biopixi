@@ -37,6 +37,59 @@ describe("grade", () => {
     expect(registered.target).toBe("bamtools=2.5.2,samtools=1.16.1");
   });
 
+  /**
+   * Copy an example, rewriting its manifest but keeping its lock, so the solve is untouched.
+   *
+   * The edits below change only how a dependency is *spelled*. The lock still records the same
+   * artifact from the same channel, which is the point: nothing about the environment changed.
+   */
+  function respellExample(example: string, from: string, to: string): string {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-qualifier-"));
+    const manifest = readFileSync(join(examples, example, "pixi.toml"), "utf8");
+    expect(manifest).toContain(from);
+    writeFileSync(join(directory, "pixi.toml"), manifest.replace(from, to));
+    copyFileSync(join(examples, example, "pixi.lock"), join(directory, "pixi.lock"));
+    return directory;
+  }
+
+  it("names the same single-package container whether or not the channel is qualified", () => {
+    const qualified = grade(
+      respellExample(
+        "l4-single",
+        'samtools = "==1.17"',
+        'samtools = { version = "==1.17", channel = "bioconda" }',
+      ),
+    );
+    const plain = grade(join(examples, "l4-single"));
+
+    // A single-package image is named, not hashed, so the qualifier cannot enter the repository
+    // component: `quay.io/biocontainers/bioconda::samtools:1.17` is not a container reference.
+    expect(qualified.publication?.uri).toBe(plain.publication?.uri);
+    expect(qualified.publication?.uri).not.toContain("::");
+    expect(qualified.publication?.state).toBe(plain.publication?.state);
+    // The qualifier is still a claim about provenance, so it survives where that is what is meant.
+    expect(qualified.target).toBe("bioconda::samtools=1.17");
+  });
+
+  it("still finds a registered combination when the manifest qualifies a channel", () => {
+    const qualified = grade(
+      respellExample(
+        "l4-combination",
+        'bamtools = "==2.5.2"',
+        'bamtools = { version = "==2.5.2", channel = "bioconda" }',
+      ),
+    );
+    const plain = grade(join(examples, "l4-combination"));
+
+    // hash.tsv writes a qualifier on 4 of its 951 lines. Matching on the raw spelling would make
+    // a published container disappear behind a cosmetic manifest edit, and would name an image
+    // that was never built.
+    expect(plain.publication?.state).toBe("REGISTERED");
+    expect(qualified.publication?.state).toBe("REGISTERED");
+    expect(qualified.publication?.uri).toBe(plain.publication?.uri);
+    expect(qualified.target).toBe("bioconda::bamtools=2.5.2,samtools=1.16.1");
+  });
+
   it("can lower the environment grade when a package is added", () => {
     const single = grade(join(examples, "l4-single"));
     const combination = grade(join(examples, "l3-ecosystem-ready"));
@@ -110,7 +163,7 @@ bioformats2raw = { version = "==0.7.0", channel = "ome" }
 
     const result = grade(directory);
     expect(result.label).toBe("L2");
-    expect(result.target).toBe("bioformats2raw=0.7.0,openjdk=17.0.3");
+    expect(result.target).toBe("ome::bioformats2raw=0.7.0,openjdk=17.0.3");
     expect(result.reasons.some((reason) => reason.includes("non-community channels: ome"))).toBe(
       true,
     );
@@ -122,6 +175,204 @@ bioformats2raw = { version = "==0.7.0", channel = "ome" }
       artifact: "https://conda.anaconda.org/ome/linux-64/bioformats2raw-0.7.0-0.tar.bz2",
     });
     expect(result.publication).toBeUndefined();
+  });
+
+  it("rejects an explicit channel that disagrees with the lock", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-channel-stale-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["ome", "conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+bioformats2raw = { version = "==0.7.0", channel = "ome" }
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/bioformats2raw-0.7.0-0.tar.bz2
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("STALE");
+    expect(result.reasons).toEqual([
+      "bioformats2raw requires an explicit channel that does not match its locked artifact",
+    ]);
+  });
+
+  it("does not confuse explicit channel URLs that share a final path segment", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-channel-origin-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["https://one.example/ome"]
+platforms = ["linux-64"]
+
+[dependencies]
+bioformats2raw = { version = "==0.7.0", channel = "https://one.example/ome" }
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `version: 7
+environments:
+  default:
+    channels:
+      - url: https://one.example/ome/
+    packages:
+      linux-64:
+        - conda: https://two.example/ome/linux-64/bioformats2raw-0.7.0-0.tar.bz2
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("STALE");
+    expect(result.reasons).toEqual([
+      "bioformats2raw requires an explicit channel that does not match its locked artifact",
+    ]);
+  });
+
+  it("rejects a lock whose channel list no longer matches the manifest", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-channel-list-stale-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+zlib = "==1.3.1"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `version: 7
+environments:
+  default:
+    channels:
+      - url: https://conda.anaconda.org/bioconda/
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("STALE");
+    expect(result.reasons).toEqual([
+      "lock channels do not match the manifest channel list and order",
+    ]);
+  });
+
+  it("rejects exact and wildcard version constraints that disagree with the lock", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-version-stale-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+alpha = "==2.0"
+beta = "3.1.*"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/alpha-1.0-0.conda
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/beta-3.2.0-0.conda
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("STALE");
+    expect(result.reasons).toEqual([
+      "alpha requires version ==2.0, but the lock resolves 1.0",
+      "beta requires version 3.1.*, but the lock resolves 3.2.0",
+    ]);
+  });
+
+  it("checks relational, alternative, compatible, and build constraints", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-match-spec-stale-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+alpha = ">=2,<3"
+beta = ">=1,<2"
+delta = "1.0|2.*"
+epsilon = "~=1.4.5"
+gamma = { version = "==1.0", build = "py*" }
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `version: 7
+environments:
+  default:
+    channels:
+      - url: https://conda.anaconda.org/conda-forge/
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/alpha-2.5-0.conda
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/beta-2.5-0.conda
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/delta-2.3-0.conda
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/epsilon-1.5.0-0.conda
+        - conda: https://conda.anaconda.org/conda-forge/linux-64/gamma-1.0-h123_0.conda
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("STALE");
+    expect(result.reasons).toEqual([
+      "beta requires version >=1,<2, but the lock resolves 2.5",
+      "epsilon requires version ~=1.4.5, but the lock resolves 1.5.0",
+      "gamma requires build py*, but the lock resolves h123_0",
+    ]);
+  });
+
+  it("keeps credential-bearing channel evidence out of definitive public levels", () => {
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-channel-credential-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["https://user:secret@conda.anaconda.org/ome?token=value#private"]
+platforms = ["linux-64"]
+
+[dependencies]
+custom-tool = "==1.0"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `version: 7
+environments:
+  default:
+    channels:
+      - url: https://conda.anaconda.org/ome/
+    packages:
+      linux-64:
+        - conda: https://conda.anaconda.org/ome/linux-64/custom-tool-1.0-0.conda
+`,
+    );
+
+    const result = grade(directory);
+    expect(result.label).toBe("L1");
+    expect(JSON.stringify(result)).not.toContain("secret");
+    expect(JSON.stringify(result)).not.toContain("token=value");
   });
 
   it("names the source package that caps a local-recipe project at L1", () => {

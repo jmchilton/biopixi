@@ -219,23 +219,25 @@ than the richer build environment, which is why the same pattern is part of
   </section>
 </div>
 
-Once every target is available from publicly reachable channels, pass the target reported by
-biopixi to Wave:
+Once every target is available from publicly reachable channels, let `wave-biopixi` derive the
+build-pinned roots and channel order from the manifest and lock:
 
 ```bash
-wave \
-  --conda-package bamtools=2.5.2 \
-  --conda-package samtools=1.17
+wave-biopixi .
 ```
 
 Wave returns an image URI that a standard container runtime can use. It is especially convenient
-when you do not have a local Docker or Conda installation. Add `--conda-channels` when the targets
-come from another public channel. Wave documents these inputs in its
+when you do not have a local Docker or Conda installation. The wrapper preserves exact versions,
+build strings, explicit channel qualifiers, and manifest channel order, then asks Wave to resolve
+the transitive closure for `linux/amd64`. Inspect the request without contacting Wave with
+`wave-biopixi --print-command`; note that Wave's own `--dry-run` still contacts the service.
+Wave documents the underlying inputs in its
 [Conda build examples](https://docs.seqera.io/wave/cli/use-cases#build-a-container-from-conda-packages).
 
-Wave does not read `pixi.toml` in this flow. biopixi exposes the package target; Wave turns that
-public package input into a container. A local path dependency must become a local mulled build or
-a publicly reachable package before Wave can use it.
+Wave does not read the project's `pixi.lock`; `wave-biopixi` uses it to pin the request, and Wave
+creates its own solve record. A local path dependency must become a local mulled build or a
+publicly reachable package before Wave can use it. The wrapper rejects L1 evidence and says so;
+building those inputs locally needs mulled-build directly until biopixi's local adapter lands.
 
 ## Run a published BioContainer
 

@@ -19,6 +19,71 @@ describe("runGrade", () => {
     expect(buildProgram().version()).toBe(packageMetadata.version);
   });
 
+  it("never renders a credential from a lock it was handed", () => {
+    // The renderer assembles lines from reasons, next actions, and a cap artifact, all of which
+    // carry URLs it never inspected. Redaction is the boundary's job, not each caller's.
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-render-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[dependencies]
+custom-tool = "==1.0"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://user:hunter2@packages.example/private/linux-64/custom-tool-1.0-0.conda
+`,
+    );
+
+    const stdout: string[] = [];
+    runGrade([directory], {}, { stdout: (message) => stdout.push(message), stderr: ignoreStderr });
+    const rendered = stdout.join("\n");
+
+    expect(rendered).toContain("L1");
+    expect(rendered).not.toContain("hunter2");
+    expect(rendered).not.toContain("user:");
+  });
+
+  it("still names the channel that capped an ordinary private project", () => {
+    // The other half of the previous test: redaction must not swallow the URL a project needs to
+    // see. Nothing here is secret, so nothing here is withheld.
+    const directory = mkdtempSync(join(tmpdir(), "biopixi-render-"));
+    writeFileSync(
+      join(directory, "pixi.toml"),
+      `[workspace]
+channels = ["https://packages.example/private"]
+platforms = ["linux-64"]
+
+[dependencies]
+custom-tool = "==1.0"
+`,
+    );
+    writeFileSync(
+      join(directory, "pixi.lock"),
+      `environments:
+  default:
+    packages:
+      linux-64:
+        - conda: https://packages.example/private/linux-64/custom-tool-1.0-0.conda
+`,
+    );
+
+    const stdout: string[] = [];
+    runGrade([directory], {}, { stdout: (message) => stdout.push(message), stderr: ignoreStderr });
+    const rendered = stdout.join("\n");
+
+    expect(rendered).toContain("L1");
+    expect(rendered).toContain("https://packages.example/private/linux-64/custom-tool-1.0-0.conda");
+  });
+
   it("renders a grade", () => {
     const stdout: string[] = [];
     const stderr: string[] = [];

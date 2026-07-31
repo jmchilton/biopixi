@@ -90,6 +90,7 @@ from a project offline.
 The relevant public functions and types are:
 
 - `Target`, `v2ImageName`, and `pullUri` for canonical mulled identity;
+- `planCondaBuild` for exact direct-root, channel, and platform projection;
 - `grade` and its publication state for offline package and registration evidence; and
 - `observe` and `verifyGrade` for registry observation and L4 promotion.
 

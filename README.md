@@ -52,11 +52,14 @@ manifest against it. Nothing here replaces pixi, conda, rattler-build, mulled, o
 is metadata and policy that **calls out to those tools**. It never installs anything itself. It
 is not a package manager and will never become one.
 
-Two verbs. **`grade`** is non-executing: it reads the manifest and lockfile and checks public
-metadata, but invokes no package, recipe, solver, or container tool. It is safe to run in CI or a
-pre-commit hook. **`build`** does the heavy lifting and shells out — pixi for environments,
-rattler-build for recipes, mulled-build or Wave for containers. Keeping grading toolchain-free
-means a contributor can learn where they stand without first assembling a build system.
+Two halves. **Grading** is non-executing: `biopixi grade` reads the manifest and lockfile and
+checks public metadata, but invokes no package, recipe, solver, or container tool. It is safe to
+run in CI or a pre-commit hook. **Building** does the heavy lifting and shells out, through one
+small adapter per builder — `wave-biopixi` for hosted Wave containers today, with the local
+mulled-build path to follow. Every adapter derives its request from the same graded evidence and
+then gets out of the way, so the options and the output belong to the builder rather than to
+biopixi. Keeping grading toolchain-free means a contributor can learn where they stand without
+first assembling a build system.
 
 The through-line is a bridge. pixi covers development and local environments — fast solves, a
 real lockfile, task running. mulled and Wave publish and distribute runtime artifacts, but say
@@ -174,7 +177,7 @@ still carries the packaging and migration burden.
 local toolchain at all:
 
 ```bash
-wave --conda-package r-designit=0.5.0 --freeze --await
+wave-biopixi --freeze --await
 ```
 
 For Bioconda packages, the channel build publishes a corresponding BioContainer automatically.
@@ -246,16 +249,18 @@ install` works with biopixi nowhere in sight. From L2 up, anyone with access to 
 biopixi is a Node.js 22+ pnpm workspace modeled after the package and documentation structure in
 `galaxy-tool-util`.
 
-| Package                           | Responsibility                                         |
-| --------------------------------- | ------------------------------------------------------ |
-| [`@biopixi/core`](packages/core/) | offline grading, lock inspection, and mulled-v2 naming |
-| [`@biopixi/cli`](packages/cli/)   | the `biopixi grade` command and terminal rendering     |
+| Package                                   | Responsibility                                              |
+| ----------------------------------------- | ----------------------------------------------------------- |
+| [`@biopixi/core`](packages/core/)         | offline grading, Conda build planning, and mulled-v2 naming |
+| [`@biopixi/cli`](packages/cli/)           | the `biopixi grade` command and terminal rendering          |
+| [`@biopixi/wave-cli`](packages/wave-cli/) | the `wave-biopixi` adapter for hosted public-package builds |
 
 ```bash
 pnpm install
 pnpm check
 pnpm build
 node packages/cli/dist/bin/biopixi.js grade examples/l4-single
+node packages/wave-cli/dist/bin/wave-biopixi.js examples/l3-ecosystem-ready --print-command
 ```
 
 The documentation site is under [`docs/`](docs/) and combines Docsify prose with a generated
