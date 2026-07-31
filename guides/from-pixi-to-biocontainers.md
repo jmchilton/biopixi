@@ -238,6 +238,8 @@ change would let the work travel farther into the wider scientific community.
 
 For the exact mechanical rules behind each level, read the
 [profile overview](../architecture/profile.md) or the
-[normative specification](../profile.md). For implementation details about container construction
-and naming, read [Container builders](../architecture/containers.md). To keep an analysis moving
+[normative specification](../profile.md). For implementation details behind container identity,
+read [Container identity internals](../architecture/containers.md). For commands that apply these
+tools to a real manifest, read
+[Working with Pixi environments](working-with-pixi-environments.md). To keep an analysis moving
 while a dependency follows this path, read [Agentic workflows](agentic-workflows.md).

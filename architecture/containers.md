@@ -1,109 +1,99 @@
-# Container builders
+# Container identity internals
 
-biopixi never builds a container. It derives the name of the container an environment should
-have, and points at whichever tool can build it at that environment's readiness level. Two tools
-do that job — [Wave](https://seqera.io/wave/) and the
-[mulled](https://github.com/BioContainers/multi-package-containers) family — and biopixi keeps
-both because they fail in opposite places.
+This page documents the container identity decisions implemented by `@biopixi/core`. It is for
+developers changing the grader, publication states, or registry verification. For practical
+instructions about choosing Wave or mulled and running the resulting image, read
+[Working with Pixi environments](../guides/working-with-pixi-environments.md).
 
-## Which one, when
+biopixi does not build containers. It combines the direct root Conda dependencies declared in
+`pixi.toml` with their resolved versions and builds from `pixi.lock`, then produces a canonical
+BioContainers target and, when the profile permits, an image URI. This separation keeps grading
+independent of Docker, Conda, Wave, and mulled executables.
 
-|                          | Wave                                                               | mulled-\*                                       |
-| ------------------------ | ------------------------------------------------------------------ | ----------------------------------------------- |
-| local prerequisites      | one static binary + network                                        | conda **+** Docker **+** involucro              |
-| built for                | a developer who wants a container                                  | BioContainers/Galaxy CI and channel maintenance |
-| L1 (local channel)       | **blind** — remote service, cannot read `file://`                  | **works**                                       |
-| L2 (public channel)      | works when the service can reach the explicitly configured channel | **works**, with the channel supplied            |
-| L3 (ecosystem-ready)     | one call, hosted, frozen                                           | standard community inputs                       |
-| L4 (ecosystem-published) | redundant                                                          | already built and distributed                   |
-| name identifies          | the build request                                                  | the package set, sorted and canonicalized       |
-| name derivable offline   | yes, but it pins a deployment snapshot rather than a contract      | **yes**, `mulled-hash --hash v1\|v2`            |
+## The offline and network boundary
 
-Wave is the better ergonomic default once every channel is publicly reachable. mulled is the only
-thing that works at L1 and supplies the naming and build machinery used by BioContainers.
-**Wave for convenient provisioning, mulled for local builds and the BioContainers path.**
+`grade` is pure and offline. It reads `pixi.toml`, `pixi.lock`, local package recipes, and the
+vendored BioContainers combinations snapshot. It can establish L1–L3, construct a target string,
+and calculate the image URI that would correspond to an eligible environment.
 
-## How mulled builds
+`verify` is the only network operation. It asks Quay whether that candidate is anonymously
+pullable and records the manifest digest and observation time. Only an eligible, observed image
+can promote an L3 result to L4. A registry response never changes the package evidence behind
+L1–L3.
 
-`mulled-build` drives involucro, which uses a local Docker daemon to install the requested Conda
-targets into a minimal image. Channels are supplied on the command line and can include a
-`file://` path, so a package that exists only as local build output is buildable:
+Keeping those operations separate makes offline grading deterministic and registry evidence
+explicit.
 
-```bash
-rattler-build build --recipe recipes/r-designit/recipe.yaml   # -> output/
-rattler-index fs ./output
-mulled-build build -c file://$PWD/output,conda-forge,bioconda 'r-designit=0.5.0'
-```
+## Selecting the container target
 
-Everything happens on the machine running the command, which is both the cost — conda, Docker,
-and involucro must all be installed — and the reason it is the only builder available at L1.
+After the Linux solve passes the profile, the grader takes the direct root Conda dependencies and
+renders each as `<name>=<resolved-version>`. The sorted values form the comma-separated `target`
+reported by the CLI.
 
-## How mulled names
+The resolved closure decides L2 or L3, but the root target set decides container identity:
+
+- a package anywhere outside conda-forge and Bioconda caps the environment at L2;
+- a single Bioconda root package receives the image name for that recipe build;
+- a single conda-forge root package has a calculable name but no automatic BioContainers build;
+- multiple root packages use the BioContainers `combinations/hash.tsv` registration and image
+  build number when present; and
+- an unregistered combination receives a candidate name with image build `0`, but remains L3.
+
+The distinction appears in the publication state: `INFERRED`, `REGISTERED`, `UNREGISTERED`, or,
+after a successful registry observation, `CONFIRMED`.
+
+## Mulled naming
 
 A mulled name is a function of the target set and nothing else. Targets are sorted by package
 name, then:
 
-- **one target** becomes `<package>:<version>--<build>` directly, with no hash;
-- **several targets** become repository `mulled-v2-<sha1>`, hashing the sorted package names
-  joined by newlines, tagged with the same hash over their corresponding versions.
+- one target becomes `<package>:<version>--<build>` directly, with no hash; and
+- several targets become repository `mulled-v2-<sha1>`, hashing the sorted package names joined by
+  newlines, tagged with the same hash over their corresponding versions.
 
 An explicit channel prefix is part of the package string, so `conda-forge::r-designit=0.5.0` and
-`r-designit=0.5.0` are different names. This is why the profile requires the prefix to be
-preserved verbatim when a target string is built.
+`r-designit=0.5.0` are different names. The profile therefore requires the prefix to be preserved
+verbatim when constructing a target string.
 
-Three properties follow, and biopixi depends on all three:
+Three properties matter to the grader:
 
 - **Order-invariant.** Sorting happens before hashing, so a target set has exactly one name.
 - **Offline.** `mulled-hash --hash v1|v2` computes it, as does `v2ImageName` in
-  [`@biopixi/core`](../packages/core.md) — no service, no network, no build.
-- **Provenance-free.** The name says nothing about where the packages came from, so a local L1
-  build is name-identical to the official image. That is what makes promotion pin-transparent,
-  and also why L1 images must never be pushed to a public registry.
+  [`@biopixi/core`](../packages/core.md), without a service, network, or build.
+- **Provenance-free.** The name does not record which channel supplied the package. A local L1
+  build can therefore have the same name as a later official image; local images must not be
+  pushed into the public BioContainers namespace.
 
-## How Wave builds
+`pullUri` places the derived repository and tag under `quay.io/biocontainers/`.
 
-Wave is a hosted build service. The client sends a request — the Conda package list, a platform,
-a target repository — and the service renders a Dockerfile from a template it ships, builds it,
-pushes the result, and with `--freeze` returns a permanent name:
+## Why Wave identity is different
 
-```bash
-wave --conda-package r-designit=0.5.0 --freeze --await
-```
+Wave hashes a **build request**, not a canonical package set. Its container ID includes the
+rendered build file, Conda input, platform, target repository, and optional build context and
+container configuration.
 
-No local conda, Docker, or involucro; one static binary and a network connection. The trade is
-that the build runs on the service, so it can only use channels the service itself can reach. A
-`file://` channel is invisible to it, which is what makes Wave blind at L1.
+Two consequences prevent that ID from serving as the grade's container identity.
 
-The Dockerfile template is versioned and selectable — `conda/micromamba:v2` is the current
-default, alongside `conda/micromamba:v1`, `conda/pixi:v1`, and `cran/installr:v1`.
+**Spelling affects the request.** The Conda input preserves order, so `samtools=1.17
+bamtools=2.5.2` and `bamtools=2.5.2 samtools=1.17` can describe one environment while producing
+different Wave requests. Channel order and explicit channel prefixes also affect the request.
 
-## How Wave names
+**Some hashed inputs belong to the service.** The rendered build template and target repository
+depend on the Wave deployment. The algorithm can be deterministic while still identifying a
+snapshot of one deployment rather than a stable ecosystem contract.
 
-Wave hashes the **build request**, not the package set. `makeContainerId` assembles an ordered
-map of the rendered Dockerfile, the Conda file, the platform, the target repository, and
-optionally a build context and container config, then digests it with SipHash-2-4 over the
-UTF-16LE entries.
+A Wave URI is a useful build result to record. It is not the canonical name biopixi should derive
+from a project offline.
 
-Two consequences matter for grading.
+## Core implementation surface
 
-**The name identifies a request, not an environment.** The Conda file is the package list in the
-order it was given, unsorted, so `samtools=1.17 bamtools=2.5.2` and `bamtools=2.5.2
-samtools=1.17` are one environment with two Wave names. Reordering channels or writing a channel
-prefix changes the name the same way. mulled canonicalizes first and produces one name for all of
-these spellings.
+The relevant public functions and types are:
 
-**Two hashed fields belong to the service, not to the project.** The Dockerfile comes from a
-template inside the Wave deployment, and the repository path comes from that deployment's
-configuration and the selected `--name-strategy`. The algorithm is deterministic and can be
-reimplemented offline, but what such a reimplementation pins is a snapshot of a particular Wave
-deployment rather than a published contract — a template version bump moves every name derived
-from it.
+- `Target`, `v2ImageName`, and `pullUri` for canonical mulled identity;
+- `grade` and its publication state for offline package and registration evidence; and
+- `observe` and `verifyGrade` for registry observation and L4 promotion.
 
-This is the reason biopixi derives container identity from mulled: a name that is a function of
-the package set alone is the one that can appear in a grade, be recomputed years later, and mean
-the same thing. A Wave name is a build result worth recording, not a value to compute.
-
-## Related
-
-- [Profile and readiness](profile.md) — what each level requires
-- [Normative specification](../profile.md#channels-and-readiness) — the L4 root target set rules
+See the [`@biopixi/core` reference](../packages/core.md) and
+[generated TypeDoc](../api/typedoc/index.html) for their signatures. The
+[normative specification](../profile.md#channels-and-readiness) owns the behavior; this page
+explains why the implementation is divided this way.
