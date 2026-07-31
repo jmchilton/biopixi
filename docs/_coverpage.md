@@ -1,9 +1,14 @@
-# biopixi
+<img class="cover-mark" src="assets/biopixi-mark-transparent.png" alt="The biopixi DNA firefly mark" />
 
-> Know whether a Pixi environment can survive outside its project—and what to do next.
+<p class="cover-eyebrow">Portability readiness for bioinformatics</p>
 
-`core` · `cli` · `L0–L4` · `BioContainers`
+# Know how far your environment can travel.
 
-[Get Started](getting-started.md)
-[Profile](architecture/profile.md)
-[GitHub](https://github.com/jmchilton/biopixi)
+> Grade a Pixi environment from its original checkout to a durable BioContainer, then get the
+> next concrete step forward.
+
+<p class="cover-path"><span>pixi.toml</span><i></i><span>L0–L4</span><i></i><span>BioContainers</span></p>
+
+[Get started](getting-started.md)
+[Read the profile](architecture/profile.md)
+[View on GitHub](https://github.com/jmchilton/biopixi)

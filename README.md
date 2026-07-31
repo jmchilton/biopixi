@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/biopixi-logo-horizontal.png" width="560" alt="biopixi — a DNA helix with insect wings" />
+</p>
+
 # biopixi
 
 **Know whether your pixi environment can survive outside its repository — and what to do next.**
