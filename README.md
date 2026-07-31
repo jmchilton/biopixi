@@ -19,10 +19,11 @@ level and identifies the next packaging or publication step.
 
 ## Packages
 
-| Package                             | Purpose                                                               |
-| ----------------------------------- | --------------------------------------------------------------------- |
-| [`@biopixi/core`](packages/core.md) | Offline manifest, lock, channel, and BioContainers grading primitives |
-| [`@biopixi/cli`](packages/cli.md)   | The `biopixi grade` command                                           |
+| Package                                     | Purpose                                                               |
+| ------------------------------------------- | --------------------------------------------------------------------- |
+| [`@biopixi/core`](packages/core.md)         | Offline manifest, lock, channel, and BioContainers grading primitives |
+| [`@biopixi/cli`](packages/cli.md)           | The `biopixi grade` and `biopixi verify` commands                     |
+| [`@biopixi/wave-cli`](packages/wave-cli.md) | The `wave-biopixi` hosted container build adapter                     |
 
 ## Design boundary
 
