@@ -7,6 +7,16 @@ A lockfile can be reproducible while still depending on local recipes, private c
 unpublished container target. biopixi names those boundaries as a cumulative L0–L4 readiness
 level and identifies the next packaging or publication step.
 
+<figure class="journey-ladder">
+  <a href="assets/biopixi-ladder-infographic.svg" target="_blank" rel="noopener">
+    <img
+      src="assets/biopixi-ladder-infographic.svg"
+      alt="Five-rung ladder from a useful Pixi environment through local and public Conda packaging to community-maintained packages and a published BioContainer"
+    />
+  </a>
+  <figcaption>Open the full-size pathway diagram.</figcaption>
+</figure>
+
 ## Packages
 
 | Package                             | Purpose                                                               |
