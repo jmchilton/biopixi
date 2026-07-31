@@ -20,7 +20,8 @@ both because they fail in opposite places.
 | name derivable offline   | yes, but it pins a deployment snapshot rather than a contract      | **yes**, `mulled-hash --hash v1\|v2`            |
 
 Wave is the better ergonomic default once every channel is publicly reachable. mulled is the only
-thing that works at L1. **Wave for reach, mulled for durability.**
+thing that works at L1 and supplies the naming and build machinery used by BioContainers.
+**Wave for convenient provisioning, mulled for local builds and the BioContainers path.**
 
 ## How mulled builds
 

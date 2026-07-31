@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1800" viewBox="0 0 1400 1800" role="img" aria-labelledby="title desc">
+  <title id="title">From Pixi to BioContainers</title>
+  <desc id="desc">A five-rung ladder climbing from a useful Pixi environment at L0 to a published and observed BioContainer at L4.</desc>
+
+  <defs>
+    <linearGradient id="rail" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0" stop-color="#11365f"/>
+      <stop offset="0.52" stop-color="#2a9bad"/>
+      <stop offset="1" stop-color="#9b89d5"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#11365f" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrow-up" viewBox="0 0 12 12" refX="8.5" refY="6" markerWidth="14" markerHeight="14" orient="auto">
+      <path d="M3 1 8.5 6 3 11" fill="none" stroke="#2a9bad" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="1800" fill="#f7f9fb"/>
+  <circle cx="1250" cy="124" r="170" fill="#2a9bad" opacity="0.06"/>
+  <circle cx="1190" cy="176" r="95" fill="#9b89d5" opacity="0.08"/>
+
+  <g font-family="Avenir Next, Inter, Helvetica Neue, Arial, sans-serif">
+    <text x="86" y="104" fill="#2a9bad" font-size="22" font-weight="600" letter-spacing="4">BIOPIXI PATHWAY</text>
+    <text x="82" y="174" fill="#11365f" font-size="62" font-weight="600">From Pixi to BioContainers</text>
+    <text x="86" y="222" fill="#11365f" opacity="0.66" font-size="25">Climb from a useful local environment to a community-published container.</text>
+
+    <!-- Summit wings -->
+    <path d="M370 306 C288 266 229 278 180 340 C252 378 314 374 380 337 Z" fill="#2a9bad" opacity="0.92"/>
+    <path d="M696 306 C778 266 837 278 886 340 C814 378 752 374 686 337 Z" fill="#2a9bad" opacity="0.92"/>
+    <path d="M378 337 C311 347 275 381 258 435 C315 442 356 421 397 371 Z" fill="#2a9bad" opacity="0.78"/>
+    <path d="M688 337 C755 347 791 381 808 435 C751 442 710 421 669 371 Z" fill="#2a9bad" opacity="0.78"/>
+
+    <!-- Ladder rails -->
+    <path d="M438 1540 C429 1260 455 1010 442 780 C432 594 439 459 466 352" fill="none" stroke="url(#rail)" stroke-width="28" stroke-linecap="round"/>
+    <path d="M646 1540 C656 1260 630 1010 644 780 C654 594 646 459 620 352" fill="none" stroke="url(#rail)" stroke-width="28" stroke-linecap="round"/>
+
+    <!-- Direction arrow -->
+    <line x1="332" y1="1496" x2="332" y2="472" stroke="#2a9bad" stroke-width="6" stroke-linecap="round" marker-end="url(#arrow-up)" opacity="0.55"/>
+    <text x="317" y="970" fill="#2a9bad" font-size="18" font-weight="600" letter-spacing="3" text-anchor="middle" transform="rotate(-90 317 970)">MOVE INTO SHARED INFRASTRUCTURE</text>
+
+    <!-- Rungs -->
+    <g stroke-linecap="round">
+      <line x1="440" y1="1482" x2="644" y2="1482" stroke="#11365f" stroke-width="24"/>
+      <line x1="438" y1="1215" x2="647" y2="1215" stroke="#176887" stroke-width="24"/>
+      <line x1="439" y1="948" x2="646" y2="948" stroke="#2a9bad" stroke-width="24"/>
+      <line x1="442" y1="681" x2="643" y2="681" stroke="#677fb1" stroke-width="24"/>
+      <line x1="458" y1="414" x2="628" y2="414" stroke="#9b89d5" stroke-width="24"/>
+    </g>
+
+    <!-- Transition labels -->
+    <g font-size="20" fill="#11365f">
+      <g transform="translate(54 1308)">
+        <rect width="244" height="82" rx="41" fill="#e8f4f6"/>
+        <circle cx="42" cy="41" r="22" fill="#2a9bad"/>
+        <path d="M42 51V31M34 39l8-8 8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="77" y="34" font-weight="600">Write local</text>
+        <text x="77" y="59">Conda recipes</text>
+      </g>
+      <g transform="translate(54 1041)">
+        <rect width="244" height="82" rx="41" fill="#eef0f8"/>
+        <circle cx="42" cy="41" r="22" fill="#9b89d5"/>
+        <path d="M42 51V31M34 39l8-8 8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="77" y="34" font-weight="600">Publish</text>
+        <text x="77" y="59">the package</text>
+      </g>
+      <g transform="translate(54 767)" font-size="17">
+        <rect width="244" height="96" rx="48" fill="#e8f4f6"/>
+        <circle cx="42" cy="48" r="22" fill="#2a9bad"/>
+        <path d="M42 58V38M34 46l8-8 8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="77" y="27" font-weight="600">Contribute to</text>
+        <text x="77" y="51">conda-forge or</text>
+        <text x="77" y="75">Bioconda</text>
+      </g>
+      <g transform="translate(54 500)" font-size="17">
+        <rect width="244" height="96" rx="48" fill="#eef0f8"/>
+        <circle cx="42" cy="48" r="22" fill="#9b89d5"/>
+        <path d="M42 58V38M34 46l8-8 8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="77" y="27" font-weight="600">Follow the</text>
+        <text x="77" y="51">BioContainers</text>
+        <text x="77" y="75">publication path</text>
+      </g>
+    </g>
+
+    <!-- Level cards -->
+    <g filter="url(#soft-shadow)">
+      <g transform="translate(704 1404)">
+        <rect width="614" height="154" rx="26" fill="#ffffff"/>
+        <rect x="24" y="24" width="82" height="42" rx="21" fill="#11365f"/>
+        <text x="65" y="53" fill="#fff" font-size="21" font-weight="600" text-anchor="middle">L0</text>
+        <text x="130" y="58" fill="#11365f" font-size="30" font-weight="600">A useful Pixi environment</text>
+        <text x="130" y="101" fill="#11365f" opacity="0.70" font-size="21">Flexible inputs assembled around the work.</text>
+        <text x="130" y="132" fill="#2a9bad" font-size="18" font-weight="600">START WHERE THE ANALYSIS NEEDS YOU</text>
+      </g>
+
+      <g transform="translate(704 1137)">
+        <rect width="614" height="154" rx="26" fill="#ffffff"/>
+        <rect x="24" y="24" width="82" height="42" rx="21" fill="#2a9bad"/>
+        <text x="65" y="53" fill="#fff" font-size="21" font-weight="600" text-anchor="middle">L1</text>
+        <text x="130" y="58" fill="#11365f" font-size="30" font-weight="600">Locally packaged</text>
+        <text x="130" y="101" fill="#11365f" opacity="0.70" font-size="21">Every local dependency has a Conda recipe.</text>
+        <text x="130" y="132" fill="#2a9bad" font-size="18" font-weight="600">MULLED CAN BUILD + TEST LOCALLY</text>
+      </g>
+
+      <g transform="translate(704 862)">
+        <rect width="614" height="170" rx="26" fill="#ffffff"/>
+        <rect x="24" y="24" width="82" height="42" rx="21" fill="#9b89d5"/>
+        <text x="65" y="53" fill="#fff" font-size="21" font-weight="600" text-anchor="middle">L2</text>
+        <text x="130" y="58" fill="#11365f" font-size="30" font-weight="600">Available from a public channel</text>
+        <text x="130" y="94" fill="#11365f" opacity="0.70" font-size="20">Versioned packages are reachable without</text>
+        <text x="130" y="120" fill="#11365f" opacity="0.70" font-size="20">the original checkout.</text>
+        <text x="130" y="150" fill="#9b89d5" font-size="18" font-weight="600">WAVE OR MULLED CAN BUILD</text>
+      </g>
+
+      <g transform="translate(704 603)">
+        <rect width="614" height="154" rx="26" fill="#ffffff"/>
+        <rect x="24" y="24" width="82" height="42" rx="21" fill="#176887"/>
+        <text x="65" y="53" fill="#fff" font-size="21" font-weight="600" text-anchor="middle">L3</text>
+        <text x="130" y="58" fill="#11365f" font-size="30" font-weight="600">Community maintained</text>
+        <text x="130" y="101" fill="#11365f" opacity="0.70" font-size="21">Packages live in conda-forge or Bioconda.</text>
+        <text x="130" y="132" fill="#2a9bad" font-size="18" font-weight="600">SHARED REVIEW + BUILDS + MIGRATIONS</text>
+      </g>
+
+      <g transform="translate(704 336)">
+        <rect width="614" height="154" rx="26" fill="#11365f"/>
+        <rect x="24" y="24" width="82" height="42" rx="21" fill="#9b89d5"/>
+        <text x="65" y="53" fill="#fff" font-size="21" font-weight="600" text-anchor="middle">L4</text>
+        <text x="130" y="58" fill="#fff" font-size="30" font-weight="600">Published as a BioContainer</text>
+        <text x="130" y="101" fill="#fff" opacity="0.76" font-size="21">The exact target is observed in a public registry.</text>
+        <text x="130" y="132" fill="#77c6d0" font-size="18" font-weight="600">DISCOVERABLE + READY TO PULL</text>
+      </g>
+    </g>
+
+    <!-- Footer -->
+    <line x1="86" y1="1654" x2="1318" y2="1654" stroke="#11365f" opacity="0.12" stroke-width="2"/>
+    <text x="86" y="1710" fill="#11365f" font-size="24" font-weight="600">Enter at any level. Stop where the work needs you to stop.</text>
+    <text x="86" y="1748" fill="#11365f" opacity="0.62" font-size="20">The levels describe how dependencies move into shared infrastructure—not the quality of the science.</text>
+    <text x="1318" y="1734" fill="#11365f" font-size="28" font-weight="600" text-anchor="end">biopixi</text>
+  </g>
+</svg>
