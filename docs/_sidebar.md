@@ -2,10 +2,11 @@
 - [Getting Started](getting-started.md)
 - **Guides**
   - [From Pixi to BioContainers](guides/from-pixi-to-biocontainers.md)
+  - [Working with Pixi environments](guides/working-with-pixi-environments.md)
   - [Agentic workflows](guides/agentic-workflows.md)
 - **Architecture**
   - [Profile overview](architecture/profile.md)
-  - [Container builders](architecture/containers.md)
+  - [Container identity internals](architecture/containers.md)
   - [Normative specification](profile.md)
 - **Packages**
   - [Core](packages/core.md)

@@ -30,4 +30,4 @@ end of the [normative specification](../profile.md#prototype-gaps) are closed.
 
 L4 names a container the environment should have. How that container gets built and named, and
 why biopixi derives its identity from mulled rather than Wave, is covered in
-[Container builders](containers.md).
+[Container identity internals](containers.md).

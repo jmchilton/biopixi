@@ -190,8 +190,9 @@ biopixi can derive it offline. Wave hashes a build request, including fields ren
 service, so the same environment spelled two ways gets two names. Container identity in a grade
 therefore comes from mulled.
 
-[Container builders](docs/architecture/containers.md) has the full comparison and both naming
-algorithms.
+[Working with Pixi environments](docs/guides/working-with-pixi-environments.md) has the practical
+comparison and commands. [Container identity internals](docs/architecture/containers.md) explains
+the naming and registry logic behind a grade.
 
 ## The R lane
 
