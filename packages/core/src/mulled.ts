@@ -18,12 +18,12 @@ function simpleImageName(target: Target, imageBuild?: string): string {
     return target.package;
   }
 
-  let build = target.build;
-  if (build === undefined && imageBuild !== undefined && imageBuild !== "0") {
-    build = imageBuild;
+  let resolvedBuild = target.build;
+  if (resolvedBuild === undefined && imageBuild !== undefined && imageBuild !== "0") {
+    resolvedBuild = imageBuild;
   }
 
-  return `${target.package}:${target.version}${build === undefined ? "" : `--${build}`}`;
+  return `${target.package}:${target.version}${resolvedBuild === undefined ? "" : `--${resolvedBuild}`}`;
 }
 
 /**
@@ -40,23 +40,24 @@ export function v2ImageName(targets: Target[], imageBuild?: string): string {
     return simpleImageName(targets[0], imageBuild);
   }
 
-  const ordered = [...targets].sort((left, right) => left.package.localeCompare(right.package));
-  const packageHash = sha1(ordered.map((target) => target.package));
-  const hasVersion = ordered.some((target) => target.version !== undefined);
-  const versionHash = hasVersion ? sha1(ordered.map((target) => target.version ?? "null")) : "";
+  const orderedTargets = [...targets].sort((left, right) =>
+    left.package.localeCompare(right.package),
+  );
+  const packageHash = sha1(orderedTargets.map((target) => target.package));
+  const includesVersion = orderedTargets.some((target) => target.version !== undefined);
+  const versionHash = includesVersion
+    ? sha1(orderedTargets.map((target) => target.version ?? "null"))
+    : "";
 
   let buildSuffix = "";
   if (imageBuild !== undefined && imageBuild !== "") {
     buildSuffix = versionHash === "" ? imageBuild : `-${imageBuild}`;
   }
 
-  const suffix = versionHash !== "" || buildSuffix !== "" ? `:${versionHash}${buildSuffix}` : "";
-  return `mulled-v2-${packageHash}${suffix}`;
+  const tagSuffix = versionHash !== "" || buildSuffix !== "" ? `:${versionHash}${buildSuffix}` : "";
+  return `mulled-v2-${packageHash}${tagSuffix}`;
 }
 
-/**
- * Return the canonical quay.io pull URI for a target set.
- */
 export function pullUri(targets: Target[], imageBuild?: string): string {
   return `quay.io/biocontainers/${v2ImageName(targets, imageBuild)}`;
 }

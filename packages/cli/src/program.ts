@@ -4,9 +4,6 @@ import packageMetadata from "../package.json" with { type: "json" };
 import { runGrade } from "./grade-command.js";
 import { runVerify } from "./verify-command.js";
 
-/**
- * Construct the biopixi command tree without parsing process arguments.
- */
 export function buildProgram(): Command {
   const program = new Command()
     .name("biopixi")

@@ -27,14 +27,13 @@ const MACOS_SAMTOOLS =
 const MACOS_PRIVATE_SAMTOOLS =
   "https://packages.example.org/private/osx-arm64/samtools-1.17-h9b5f4b8_1.conda";
 
-function project(manifest: string, lock: string): string {
+function createProject(manifest: string, lock: string): string {
   const directory = mkdtempSync(join(tmpdir(), "biopixi-platform-"));
   writeFileSync(join(directory, "pixi.toml"), manifest);
   writeFileSync(join(directory, "pixi.lock"), lock);
   return directory;
 }
 
-/** A lock in Pixi's shape: `environments.default.packages` keyed by platform. */
 function lockOf(byPlatform: Record<string, string[]>): string {
   const sections = Object.entries(byPlatform)
     .map(([platform, artifacts]) => {
@@ -55,7 +54,7 @@ describe("platform scoping", () => {
     // the macOS artifact and emits its build string inside a linux-64 BioContainers URI — a tag
     // that cannot exist, which `verify` would then report as absent.
     const result = grade(
-      project(
+      createProject(
         BOTH_PLATFORMS,
         lockOf({ "linux-64": [LINUX_SAMTOOLS], "osx-arm64": [MACOS_SAMTOOLS] }),
       ),
@@ -68,7 +67,7 @@ describe("platform scoping", () => {
     // The ladder is a statement about linux-64. A package macOS can only get privately says
     // nothing about whether the Linux environment travels.
     const result = grade(
-      project(
+      createProject(
         BOTH_PLATFORMS,
         lockOf({ "linux-64": [LINUX_SAMTOOLS], "osx-arm64": [MACOS_PRIVATE_SAMTOOLS] }),
       ),
@@ -79,7 +78,7 @@ describe("platform scoping", () => {
   });
 
   it("is STALE when the lock does not cover the graded platform", () => {
-    const result = grade(project(BOTH_PLATFORMS, lockOf({ "osx-arm64": [MACOS_SAMTOOLS] })));
+    const result = grade(createProject(BOTH_PLATFORMS, lockOf({ "osx-arm64": [MACOS_SAMTOOLS] })));
 
     expect(result.evidenceState).toBe("STALE");
     expect(result.level).toBeNull();
@@ -88,7 +87,7 @@ describe("platform scoping", () => {
 
   it("still grades a single-platform project from that platform", () => {
     const result = grade(
-      project(
+      createProject(
         BOTH_PLATFORMS.replace(', "osx-arm64"', ""),
         lockOf({ "linux-64": [LINUX_SAMTOOLS] }),
       ),

@@ -18,8 +18,11 @@ const consoleIo: GradeCommandIo = {
   stderr: (message) => console.error(message),
 };
 
-function named(entries: GradeReportEntry[], detail: (entry: GradeReportEntry) => string): string {
-  return entries.map((entry) => `${entry.directory} (${detail(entry)})`).join(", ");
+function formatNamedEntries(
+  entries: GradeReportEntry[],
+  describeEntry: (entry: GradeReportEntry) => string,
+): string {
+  return entries.map((entry) => `${entry.directory} (${describeEntry(entry)})`).join(", ");
 }
 
 /**
@@ -39,11 +42,11 @@ export async function runVerify(
     ...options.verify,
   };
 
-  const results: GradeReportEntry[] = [];
+  const reportEntries: GradeReportEntry[] = [];
   for (const directory of directories) {
-    let graded;
+    let offlineGrade;
     try {
-      graded = grade(directory, { sourceRoot: options.sourceRoot });
+      offlineGrade = grade(directory, { sourceRoot: options.sourceRoot });
     } catch (error) {
       if (!(error instanceof SourceRootError)) {
         throw error;
@@ -52,36 +55,41 @@ export async function runVerify(
       return EXIT_CODES.usage;
     }
 
-    const verified = await verifyGrade(graded, verifyOptions);
-    results.push({ directory, ...verified });
+    const verifiedGrade = await verifyGrade(offlineGrade, verifyOptions);
+    reportEntries.push({ directory, ...verifiedGrade });
     if (!options.json) {
-      io.stdout(renderGrade(directory, verified));
-      if (verified.observation?.outcome === "indeterminate") {
+      io.stdout(renderGrade(directory, verifiedGrade));
+      if (verifiedGrade.observation?.outcome === "indeterminate") {
         // Distinguished from a negative in the exit code too: nothing was established here.
-        io.stderr(`biopixi: could not check ${directory}: ${verified.observation.detail}`);
+        io.stderr(`biopixi: could not check ${directory}: ${verifiedGrade.observation.detail}`);
       }
     }
   }
 
   if (options.json) {
-    io.stdout(JSON.stringify(buildReport(results), null, 2));
+    io.stdout(JSON.stringify(buildReport(reportEntries), null, 2));
   }
 
-  const outside = results.filter((entry) => !entry.conformant);
-  if (outside.length > 0 && options.minLevel !== undefined) {
-    const detail = named(outside, (entry) => entry.reasons[0] ?? "out of profile v0");
-    io.stderr(`\nfailed: outside profile v0: ${detail} — required L${options.minLevel}`);
+  const outsideProfile = reportEntries.filter((entry) => !entry.conformant);
+  if (outsideProfile.length > 0 && options.minLevel !== undefined) {
+    const entrySummary = formatNamedEntries(
+      outsideProfile,
+      (entry) => entry.reasons[0] ?? "out of profile v0",
+    );
+    io.stderr(`\nfailed: outside profile v0: ${entrySummary} — required L${options.minLevel}`);
     return EXIT_CODES.outOfProfile;
   }
 
   if (options.requireVerified) {
-    const unconfirmed = results.filter((entry) => entry.publication?.state !== "CONFIRMED");
-    if (unconfirmed.length > 0) {
-      const detail = named(
-        unconfirmed,
+    const unconfirmedEntries = reportEntries.filter(
+      (entry) => entry.publication?.state !== "CONFIRMED",
+    );
+    if (unconfirmedEntries.length > 0) {
+      const entrySummary = formatNamedEntries(
+        unconfirmedEntries,
         (entry) => entry.publication?.state ?? "no container claim",
       );
-      io.stderr(`\nfailed: no observed container for ${detail}`);
+      io.stderr(`\nfailed: no observed container for ${entrySummary}`);
       return EXIT_CODES.unconfirmed;
     }
   }
@@ -90,18 +98,24 @@ export async function runVerify(
     return EXIT_CODES.ok;
   }
 
-  const undeterminable = results.filter((entry) => entry.level === null);
-  if (undeterminable.length > 0) {
-    const detail = named(undeterminable, (entry) => entry.evidenceState ?? "no evidence");
+  const ungradedEntries = reportEntries.filter((entry) => entry.level === null);
+  if (ungradedEntries.length > 0) {
+    const entrySummary = formatNamedEntries(
+      ungradedEntries,
+      (entry) => entry.evidenceState ?? "no evidence",
+    );
     io.stderr(
-      `\nfailed: no level could be determined for ${detail} — required L${options.minLevel}`,
+      `\nfailed: no level could be determined for ${entrySummary} — required L${options.minLevel}`,
     );
     return EXIT_CODES.indefinite;
   }
 
-  const worst = results.reduce((lowest, entry) => Math.min(lowest, entry.level ?? 0), 4);
-  if (worst < options.minLevel) {
-    io.stderr(`\nfailed: worst level L${worst} < required L${options.minLevel}`);
+  const lowestLevel = reportEntries.reduce(
+    (lowest, entry) => Math.min(lowest, entry.level ?? 0),
+    4,
+  );
+  if (lowestLevel < options.minLevel) {
+    io.stderr(`\nfailed: worst level L${lowestLevel} < required L${options.minLevel}`);
     return EXIT_CODES.belowThreshold;
   }
   return EXIT_CODES.ok;

@@ -8,8 +8,8 @@ import { describe, expect, it } from "vitest";
 import { runGrade, type GradeReport } from "../src/index.js";
 import { REPORT_SCHEMA_URL } from "../src/report.js";
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
-const stderr = () => undefined;
+const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const ignoreStderr = () => undefined;
 
 const IN_PROFILE = `[workspace]
 channels = ["conda-forge"]
@@ -19,14 +19,18 @@ platforms = ["linux-64"]
 zlib = "1.3.*"
 `;
 
-function report(directories: string[], options = {}): GradeReport {
+function generateReport(directories: string[], options = {}): GradeReport {
   const stdout: string[] = [];
-  runGrade(directories, { ...options, json: true }, { stdout: (m) => stdout.push(m), stderr });
+  runGrade(
+    directories,
+    { ...options, json: true },
+    { stdout: (message) => stdout.push(message), stderr: ignoreStderr },
+  );
   expect(stdout).toHaveLength(1);
   return JSON.parse(stdout[0]) as GradeReport;
 }
 
-function lockless(): string {
+function createLocklessProject(): string {
   const directory = mkdtempSync(join(tmpdir(), "biopixi-report-"));
   writeFileSync(join(directory, "pixi.toml"), IN_PROFILE);
   return directory;
@@ -34,7 +38,7 @@ function lockless(): string {
 
 describe("grade --json", () => {
   it("wraps results in an envelope naming its schema and profile", () => {
-    const payload = report([join(root, "examples/l4-single")]);
+    const payload = generateReport([join(repositoryRoot, "examples/l4-single")]);
     expect(Object.keys(payload)).toEqual(["$schema", "biopixi", "profile", "results"]);
     expect(payload.$schema).toBe(REPORT_SCHEMA_URL);
     expect(payload.profile).toBe("v0");
@@ -44,17 +48,17 @@ describe("grade --json", () => {
   it("writes nothing but the payload to stdout", () => {
     const stdout: string[] = [];
     runGrade(
-      [join(root, "examples/l4-single")],
+      [join(repositoryRoot, "examples/l4-single")],
       { json: true },
-      { stdout: (m) => stdout.push(m), stderr },
+      { stdout: (message) => stdout.push(message), stderr: ignoreStderr },
     );
     expect(() => JSON.parse(stdout.join("\n"))).not.toThrow();
     expect(stdout.join("\n")).not.toContain("capped by:");
   });
 
   it("carries a definitive result in full", () => {
-    const directory = join(root, "examples/l4-single");
-    const [entry] = report([directory]).results;
+    const directory = join(repositoryRoot, "examples/l4-single");
+    const [entry] = generateReport([directory]).results;
     expect(entry).toMatchObject({
       directory,
       projectRoot: realpathSync(directory),
@@ -71,20 +75,22 @@ describe("grade --json", () => {
   });
 
   it("distinguishes an unproven result from a low one", () => {
-    const [unproven] = report([lockless()]).results;
+    const [unproven] = generateReport([createLocklessProject()]).results;
     expect(unproven.conformant).toBe(true);
     expect(unproven.evidenceState).toBe("UNRESOLVED");
     expect(unproven.level).toBeNull();
 
-    const [outside] = report([join(root, "examples/l0-out-of-profile")]).results;
+    const [outside] = generateReport([join(repositoryRoot, "examples/l0-out-of-profile")]).results;
     expect(outside.conformant).toBe(false);
     expect(outside.evidenceState).toBeNull();
     expect(outside.level).toBeNull();
   });
 
   it("echoes each directory as it was given, alongside the resolved roots", () => {
-    const payload = report([join(root, "examples/l4-single")], { sourceRoot: root });
-    expect(payload.results[0].sourceRoot).toBe(realpathSync(root));
+    const payload = generateReport([join(repositoryRoot, "examples/l4-single")], {
+      sourceRoot: repositoryRoot,
+    });
+    expect(payload.results[0].sourceRoot).toBe(realpathSync(repositoryRoot));
     expect(payload.results[0].projectRoot).not.toBe(payload.results[0].sourceRoot);
   });
 
@@ -92,7 +98,7 @@ describe("grade --json", () => {
     const stdout: string[] = [];
     const messages: string[] = [];
     const code = runGrade(
-      [join(root, "examples/l1-local-recipe")],
+      [join(repositoryRoot, "examples/l1-local-recipe")],
       { json: true, minLevel: 3 },
       { stdout: (m) => stdout.push(m), stderr: (m) => messages.push(m) },
     );

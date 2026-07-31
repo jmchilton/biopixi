@@ -20,7 +20,7 @@ samtools = "==1.17"
 const SAMTOOLS_ARTIFACT =
   "https://conda.anaconda.org/bioconda/linux-64/samtools-1.17-hd87286a_2.conda";
 
-function project(manifest: string, lock?: string): string {
+function createProject(manifest: string, lock?: string): string {
   const directory = mkdtempSync(join(tmpdir(), "biopixi-evidence-"));
   writeFileSync(join(directory, "pixi.toml"), manifest);
   if (lock !== undefined) {
@@ -41,7 +41,7 @@ ${entries}
 
 describe("evidence state", () => {
   it("is UNRESOLVED with no numeric level when there is no lock", () => {
-    const result = grade(project(IN_PROFILE));
+    const result = grade(createProject(IN_PROFILE));
     expect(result.conformant).toBe(true);
     expect(result.evidenceState).toBe("UNRESOLVED");
     expect(result.level).toBeNull();
@@ -53,7 +53,7 @@ describe("evidence state", () => {
     const lock = lockOf(
       "conda: https://conda.anaconda.org/conda-forge/linux-64/zlib-1.3-h0b41bf4_0.conda",
     );
-    const result = grade(project(IN_PROFILE, lock));
+    const result = grade(createProject(IN_PROFILE, lock));
     expect(result.evidenceState).toBe("STALE");
     expect(result.level).toBeNull();
     expect(result.label).toBe("STALE");
@@ -65,7 +65,7 @@ describe("evidence state", () => {
       `conda: ${SAMTOOLS_ARTIFACT}`,
       "pypi: https://files.pythonhosted.org/packages/example/example-1.0.0-py3-none-any.whl",
     );
-    const result = grade(project(IN_PROFILE, lock));
+    const result = grade(createProject(IN_PROFILE, lock));
     expect(result.evidenceState).toBe("UNSUPPORTED_LOCK");
     expect(result.level).toBeNull();
     expect(result.label).toBe("UNSUPPORTED_LOCK");

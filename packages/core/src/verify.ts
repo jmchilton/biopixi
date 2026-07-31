@@ -29,11 +29,11 @@ export interface VerifyOptions {
 
 /** A `quay.io/biocontainers/<repository>:<tag>` claim split into what the API needs. */
 export function parsePullUri(uri: string): { repository: string; tag: string } | undefined {
-  const match = /^quay\.io\/([^:]+?)\/([^/:]+)(?::(.+))?$/.exec(uri);
-  if (match === null) {
+  const uriMatch = /^quay\.io\/([^:]+?)\/([^/:]+)(?::(.+))?$/.exec(uri);
+  if (uriMatch === null) {
     return undefined;
   }
-  const [, namespace, name, tag] = match;
+  const [, namespace, name, tag] = uriMatch;
   // An untagged claim means `latest` to a registry, which is never what a grade is about.
   return tag === undefined ? undefined : { repository: `${namespace}/${name}`, tag };
 }
@@ -46,15 +46,15 @@ export function parsePullUri(uri: string): { repository: string; tag: string } |
  * transport failure leaves the question genuinely open.
  */
 export async function observe(uri: string, options: VerifyOptions = {}): Promise<Observation> {
-  const target = parsePullUri(uri);
-  if (target === undefined) {
+  const pullTarget = parsePullUri(uri);
+  if (pullTarget === undefined) {
     return { outcome: "indeterminate", detail: `not a recognized registry URI: ${uri}` };
   }
 
   const fetcher = options.fetcher ?? ((url, init) => fetch(url, init));
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-  const url = `${QUAY_API}/${target.repository}/tag/?specificTag=${encodeURIComponent(target.tag)}&onlyActiveTags=true`;
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const url = `${QUAY_API}/${pullTarget.repository}/tag/?specificTag=${encodeURIComponent(pullTarget.tag)}&onlyActiveTags=true`;
 
   let response: Response;
   try {
@@ -63,7 +63,7 @@ export async function observe(uri: string, options: VerifyOptions = {}): Promise
     const detail = error instanceof Error ? error.message : String(error);
     return { outcome: "indeterminate", detail: `could not reach ${QUAY_API}: ${detail}` };
   } finally {
-    clearTimeout(timer);
+    clearTimeout(timeout);
   }
 
   if (response.status === 401 || response.status === 403) {
@@ -91,20 +91,19 @@ export async function observe(uri: string, options: VerifyOptions = {}): Promise
   }
 
   const tags = (payload as { tags?: unknown }).tags;
-  const first = Array.isArray(tags)
+  const matchingTag = Array.isArray(tags)
     ? (tags[0] as { manifest_digest?: unknown } | undefined)
     : [][0];
-  if (first === undefined) {
-    return { outcome: "absent", detail: `the repository has no tag ${target.tag}` };
+  if (matchingTag === undefined) {
+    return { outcome: "absent", detail: `the repository has no tag ${pullTarget.tag}` };
   }
-  if (typeof first.manifest_digest !== "string") {
+  if (typeof matchingTag.manifest_digest !== "string") {
     // Presence without a digest is not evidence we can record: CONFIRMED must be auditable.
     return { outcome: "indeterminate", detail: "registry reported the tag without a digest" };
   }
-  return { outcome: "present", digest: first.manifest_digest };
+  return { outcome: "present", digest: matchingTag.manifest_digest };
 }
 
-/** A grade with its container claim observed, and whatever the observation established. */
 export interface VerifiedGrade extends Grade {
   /** Absent when the result carried no publication to observe. */
   observation?: Observation;
@@ -118,51 +117,56 @@ export interface VerifiedGrade extends Grade {
  * below L4 is a statement about the lock, which the registry has nothing to say about.
  */
 export async function verifyGrade(
-  result: Grade,
+  grade: Grade,
   options: VerifyOptions = {},
 ): Promise<VerifiedGrade> {
-  const { publication } = result;
+  const { publication } = grade;
   if (publication === undefined) {
-    return result;
+    return grade;
   }
 
   const observation = await observe(publication.uri, options);
   const observedAt = options.observedAt ?? new Date().toISOString();
-  const eligible = publication.state === "INFERRED" || publication.state === "REGISTERED";
+  const eligibleForPromotion =
+    publication.state === "INFERRED" || publication.state === "REGISTERED";
 
   if (observation.outcome === "indeterminate") {
     // Nothing was established, so nothing is recorded but the attempt.
-    return { ...result, observation, publication: { ...publication, observedAt } };
+    return { ...grade, observation, publication: { ...publication, observedAt } };
   }
 
   if (observation.outcome === "absent") {
-    const confirmed: Publication = {
+    const observedPublication: Publication = {
       ...publication,
       observedAt,
       basis: `${publication.basis}; ${observation.detail}`,
     };
-    return { ...result, observation, publication: confirmed };
+    return { ...grade, observation, publication: observedPublication };
   }
 
-  const confirmed: Publication = {
+  const confirmedPublication: Publication = {
     ...publication,
     state: "CONFIRMED",
     digest: observation.digest,
     observedAt,
     basis: `observed at quay.io on ${observedAt}`,
   };
-  if (!eligible) {
+  if (!eligibleForPromotion) {
     // The image exists but the target set is not registered, so this is not the container the
     // ecosystem would build for it. Worth recording; not worth promoting on.
-    return { ...result, observation, publication: { ...confirmed, state: publication.state } };
+    return {
+      ...grade,
+      observation,
+      publication: { ...confirmedPublication, state: publication.state },
+    };
   }
 
   return {
-    ...result,
+    ...grade,
     observation,
     level: 4,
     label: "L4",
-    publication: confirmed,
+    publication: confirmedPublication,
     reasons: [`container observed at ${publication.uri}`, `digest ${observation.digest}`],
     nextActions: [],
   };

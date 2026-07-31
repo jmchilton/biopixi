@@ -5,11 +5,11 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 import {
-  containedIn,
+  asRecord,
   dependencyTables,
   hasOwn,
+  isContainedIn,
   parseManifest,
-  record,
   CONDA_DEPENDENCY_TABLES,
   type Manifest,
 } from "./manifest.js";
@@ -31,7 +31,8 @@ const DEFAULT_COMBINATIONS_PATH = fileURLToPath(
   new URL("../data/biocontainers-hash.tsv", import.meta.url),
 );
 const SNAPSHOT_PATH = fileURLToPath(new URL("../data/snapshot.json", import.meta.url));
-const INSTALL_ISH = /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
+const INSTALL_COMMAND_PATTERN =
+  /\b(make install|\.\/configure|pip install|R CMD INSTALL|cmake|curl|wget)\b/;
 /** The one PyPI table, walked by the same machinery so target spellings stay consistent. */
 const PYPI_TABLE_KEYS = ["pypi-dependencies"];
 /** The only route from an L4-eligible candidate to L4, since no file in a project records it. */
@@ -175,22 +176,24 @@ function realpathOrResolve(path: string): string {
   }
 }
 
-function resolveSourceRoot(project: string, requested: string | undefined): string {
-  if (requested === undefined) {
-    return project;
+function resolveSourceRoot(projectRoot: string, requestedRoot: string | undefined): string {
+  if (requestedRoot === undefined) {
+    return projectRoot;
   }
 
-  let root: string;
+  let sourceRoot: string;
   try {
-    root = realpathSync(resolve(requested));
+    sourceRoot = realpathSync(resolve(requestedRoot));
   } catch {
-    throw new SourceRootError(`source root does not exist: ${requested}`);
+    throw new SourceRootError(`source root does not exist: ${requestedRoot}`);
   }
 
-  if (!containedIn(project, root)) {
-    throw new SourceRootError(`source root ${root} is not an ancestor of project root ${project}`);
+  if (!isContainedIn(projectRoot, sourceRoot)) {
+    throw new SourceRootError(
+      `source root ${sourceRoot} is not an ancestor of project root ${projectRoot}`,
+    );
   }
-  return root;
+  return sourceRoot;
 }
 
 /**
@@ -198,7 +201,7 @@ function resolveSourceRoot(project: string, requested: string | undefined): stri
  * spelling alone rather than for everything the profile cannot see inside it.
  */
 function workspaceTable(manifest: Manifest): Manifest {
-  return record(manifest.workspace ?? manifest.project);
+  return asRecord(manifest.workspace ?? manifest.project);
 }
 
 function declaredPlatforms(manifest: Manifest): string[] {
@@ -211,22 +214,22 @@ function declaredPlatforms(manifest: Manifest): string[] {
 /** Everything decided by reading the project; the invocation's roots are stamped on around it. */
 type ProjectGrade = Omit<Grade, "projectRoot" | "sourceRoot">;
 
-type Conformance = Omit<ProjectGrade, "conformant" | "evidenceState" | "level" | "label">;
+type GradeDetails = Omit<ProjectGrade, "conformant" | "evidenceState" | "level" | "label">;
 
 /** Outside the profile: no solve was considered, so there is no evidence state to report. */
-function outOfProfile(options: Conformance): ProjectGrade {
+function outOfProfileGrade(options: GradeDetails): ProjectGrade {
   return { conformant: false, evidenceState: null, level: null, label: "L0", ...options };
 }
 
 /** In profile, but the solve cannot carry a number. */
-function indefinite(
+function indefiniteGrade(
   state: Exclude<EvidenceState, "DEFINITIVE">,
-  options: Conformance,
+  options: GradeDetails,
 ): ProjectGrade {
   return { conformant: true, evidenceState: state, level: null, label: state, ...options };
 }
 
-function definitive(level: number, options: Conformance): ProjectGrade {
+function definitiveGrade(level: number, options: GradeDetails): ProjectGrade {
   return {
     conformant: true,
     evidenceState: "DEFINITIVE",
@@ -236,19 +239,25 @@ function definitive(level: number, options: Conformance): ProjectGrade {
   };
 }
 
-function capOf(pkg: LockedPackage): Cap {
-  const cap: Cap = { package: pkg.name, channel: pkg.channel, artifact: pkg.source ?? "?" };
-  if (pkg.version !== undefined) {
-    cap.version = pkg.version;
+function packageCap(lockedPackage: LockedPackage): Cap {
+  const levelCap: Cap = {
+    package: lockedPackage.name,
+    channel: lockedPackage.channel,
+    artifact: lockedPackage.source ?? "?",
+  };
+  if (lockedPackage.version !== undefined) {
+    levelCap.version = lockedPackage.version;
   }
-  return cap;
+  return levelCap;
 }
 
 function loadSnapshot(): MetadataSnapshot | undefined {
   try {
-    const data = record(JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8")));
-    const entry = record(data["biocontainers-hash"]);
-    return Object.keys(entry).length > 0 ? (entry as unknown as MetadataSnapshot) : undefined;
+    const snapshotData = asRecord(JSON.parse(readFileSync(SNAPSHOT_PATH, "utf8")));
+    const snapshotEntry = asRecord(snapshotData["biocontainers-hash"]);
+    return Object.keys(snapshotEntry).length > 0
+      ? (snapshotEntry as unknown as MetadataSnapshot)
+      : undefined;
   } catch {
     return undefined;
   }
@@ -256,14 +265,11 @@ function loadSnapshot(): MetadataSnapshot | undefined {
 
 function effectiveCondaDependencies(manifest: Manifest, platform: string): Manifest {
   return {
-    ...record(manifest.dependencies),
-    ...record(record(record(manifest.target)[platform]).dependencies),
+    ...asRecord(manifest.dependencies),
+    ...asRecord(asRecord(asRecord(manifest.target)[platform]).dependencies),
   };
 }
 
-/**
- * Check whether a parsed Pixi manifest is inside the deliberately small profile-v0 boundary.
- */
 export function checkProfile(manifest: Manifest): {
   reasons: string[];
   lints: string[];
@@ -309,7 +315,7 @@ export function checkProfile(manifest: Manifest): {
   for (const platform of effectivePlatforms) {
     const dependencies =
       platform === ""
-        ? record(manifest.dependencies)
+        ? asRecord(manifest.dependencies)
         : effectiveCondaDependencies(manifest, platform);
     if (Object.keys(dependencies).length === 0) {
       const suffix = platform === "" ? "" : ` for ${platform}`;
@@ -317,7 +323,7 @@ export function checkProfile(manifest: Manifest): {
     }
   }
 
-  const featureNames = Object.keys(record(manifest.feature)).sort();
+  const featureNames = Object.keys(asRecord(manifest.feature)).sort();
   if (featureNames.length > 0) {
     reasons.push(
       `named feature tables (${featureNames.join(", ")}) — profile v0 supports only the default feature`,
@@ -325,7 +331,7 @@ export function checkProfile(manifest: Manifest): {
   }
 
   if (manifest.environments !== undefined) {
-    const environments = record(manifest.environments);
+    const environments = asRecord(manifest.environments);
     if (Object.keys(environments).length === 0) {
       reasons.push("[environments] must define only default = [] when present");
     }
@@ -346,7 +352,7 @@ export function checkProfile(manifest: Manifest): {
     }
 
     for (const [name, definitionValue] of Object.entries(environments)) {
-      const definition = record(definitionValue);
+      const definition = asRecord(definitionValue);
       if (hasOwn(definition, "no-default-feature")) {
         reasons.push(
           `environment '${name}' sets no-default-feature — profile v0 always includes the default feature`,
@@ -368,15 +374,15 @@ export function checkProfile(manifest: Manifest): {
     }
   }
 
-  let declaresPath = false;
+  let declaresPathDependency = false;
   for (const [label, table] of dependencyTables(
     manifest,
     CONDA_DEPENDENCY_TABLES,
     effectivePlatforms,
   )) {
     for (const [name, value] of Object.entries(table)) {
-      const specification = record(value);
-      declaresPath ||= specification.path !== undefined;
+      const specification = asRecord(value);
+      declaresPathDependency ||= specification.path !== undefined;
       for (const sourceKind of ["git", "url"]) {
         if (specification[sourceKind] !== undefined) {
           reasons.push(
@@ -389,17 +395,20 @@ export function checkProfile(manifest: Manifest): {
 
   // Without the preview feature Pixi refuses to solve a conda source dependency at all, so this
   // manifest can never produce the lock a level would be argued from.
-  const preview = workspace.preview;
-  if (declaresPath && !(Array.isArray(preview) && preview.includes(PIXI_BUILD_PREVIEW))) {
+  const previewFeatures = workspace.preview;
+  if (
+    declaresPathDependency &&
+    !(Array.isArray(previewFeatures) && previewFeatures.includes(PIXI_BUILD_PREVIEW))
+  ) {
     reasons.push(
       `path dependency without preview = ["${PIXI_BUILD_PREVIEW}"] — Pixi will not solve a conda source dependency without it`,
     );
   }
 
-  for (const [taskName, taskValue] of Object.entries(record(manifest.tasks))) {
-    const task = record(taskValue);
+  for (const [taskName, taskValue] of Object.entries(asRecord(manifest.tasks))) {
+    const task = asRecord(taskValue);
     const command = typeof taskValue === "string" ? taskValue : String(task.cmd ?? "");
-    if (INSTALL_ISH.test(command)) {
+    if (INSTALL_COMMAND_PATTERN.test(command)) {
       lints.push(`task '${taskName}' looks like an install instruction — that belongs in a recipe`);
     }
   }
@@ -407,24 +416,24 @@ export function checkProfile(manifest: Manifest): {
   return { reasons, lints };
 }
 
-function lockedPackageFromUrl(url: string): LockedPackage {
-  const parts = url.split("/");
-  const filename = parts.at(-1) ?? url;
-  let channel = parts.length >= 3 ? (parts.at(-3) ?? "?") : "?";
+function parseLockedPackageUrl(url: string): LockedPackage {
+  const urlSegments = url.split("/");
+  const filename = urlSegments.at(-1) ?? url;
+  let channel = urlSegments.length >= 3 ? (urlSegments.at(-3) ?? "?") : "?";
   if (!url.startsWith("http")) {
     channel = `local:${channel}`;
   }
 
   const stem = filename.replace(/\.(conda|tar\.bz2)$/, "");
-  const pieces = stem.split("-");
-  if (pieces.length < 3) {
+  const filenameSegments = stem.split("-");
+  if (filenameSegments.length < 3) {
     return { name: stem, channel, source: url };
   }
 
-  const build = pieces.pop();
-  const version = pieces.pop();
+  const build = filenameSegments.pop();
+  const version = filenameSegments.pop();
   return {
-    name: pieces.join("-"),
+    name: filenameSegments.join("-"),
     version,
     build,
     channel,
@@ -444,47 +453,49 @@ function lockedPackageFromUrl(url: string): LockedPackage {
  * failure from a section that is merely out of date.
  */
 export function loadLock(
-  path: string,
+  lockPath: string,
   platform: string,
 ): {
   packages: LockedPackage[];
   problems: string[];
   covered: boolean;
 } {
-  const data = record(parseYaml(readFileSync(path, "utf8")));
-  const environments = record(data.environments);
-  const defaultEnvironment = record(environments.default);
-  const environment =
+  const lockData = asRecord(parseYaml(readFileSync(lockPath, "utf8")));
+  const environments = asRecord(lockData.environments);
+  const defaultEnvironment = asRecord(environments.default);
+  const selectedEnvironment =
     Object.keys(defaultEnvironment).length > 0
       ? defaultEnvironment
-      : record(Object.values(environments)[0]);
+      : asRecord(Object.values(environments)[0]);
   const packages: LockedPackage[] = [];
   const problems: string[] = [];
 
-  const byPlatform = record(environment.packages);
-  const covered = hasOwn(byPlatform, platform);
-  const entries = Array.isArray(byPlatform[platform]) ? (byPlatform[platform] as unknown[]) : [];
+  const packagesByPlatform = asRecord(selectedEnvironment.packages);
+  const covered = hasOwn(packagesByPlatform, platform);
+  const packageEntries = Array.isArray(packagesByPlatform[platform])
+    ? (packagesByPlatform[platform] as unknown[])
+    : [];
 
-  for (const entryValue of entries) {
-    const entry = record(entryValue);
-    if (typeof entry.conda === "string") {
-      packages.push(lockedPackageFromUrl(entry.conda));
-    } else if (typeof entry.conda_source === "string") {
-      const raw = entry.conda_source;
-      const name = raw.split("[", 1)[0].split(" ", 1)[0].trim();
+  for (const entryValue of packageEntries) {
+    const packageEntry = asRecord(entryValue);
+    if (typeof packageEntry.conda === "string") {
+      packages.push(parseLockedPackageUrl(packageEntry.conda));
+    } else if (typeof packageEntry.conda_source === "string") {
+      const sourceRecord = packageEntry.conda_source;
+      const name = sourceRecord.split("[", 1)[0].split(" ", 1)[0].trim();
       // Split on the separator, not on the character: a path may itself contain an `@`.
-      const separator = raw.indexOf(" @ ");
-      const source = separator === -1 ? "?" : raw.slice(separator + 3).trim();
+      const pathSeparator = sourceRecord.indexOf(" @ ");
+      const source = pathSeparator === -1 ? "?" : sourceRecord.slice(pathSeparator + 3).trim();
       packages.push({ name, channel: null, source });
-    } else if (typeof entry.pypi === "string") {
-      problems.push(`lock contains a PyPI wheel: ${entry.pypi.split("/").at(-1)}`);
+    } else if (typeof packageEntry.pypi === "string") {
+      problems.push(`lock contains a PyPI wheel: ${packageEntry.pypi.split("/").at(-1)}`);
     }
   }
 
   return { packages, problems, covered };
 }
 
-function host(url: string): string {
+function artifactHost(url: string): string {
   try {
     return new URL(url).host;
   } catch {
@@ -496,24 +507,23 @@ function combinationKey(targets: Iterable<string>): string {
   return [...new Set(targets)].sort().join("\n");
 }
 
-/**
- * Load BioContainers combination registrations keyed by their target set.
- */
-export function loadCombinations(path: string): Map<string, [string, string]> {
-  const table = new Map<string, [string, string]>();
-  for (const line of readFileSync(path, "utf8").split(/\r?\n/)) {
+export function loadCombinations(combinationsPath: string): Map<string, [string, string]> {
+  const combinations = new Map<string, [string, string]>();
+  for (const line of readFileSync(combinationsPath, "utf8").split(/\r?\n/)) {
     if (line.trim() === "" || line.startsWith("#")) {
       continue;
     }
     const columns = line.split("\t");
-    const targets = columns[0];
+    const registeredTargets = columns[0];
     const imageBuild = columns[2]?.trim() || "0";
-    const key = combinationKey(
-      targets.split(",").map((target) => target.split("::").at(-1)?.trim() ?? target.trim()),
+    const targetSetKey = combinationKey(
+      registeredTargets
+        .split(",")
+        .map((target) => target.split("::").at(-1)?.trim() ?? target.trim()),
     );
-    table.set(key, [targets, imageBuild]);
+    combinations.set(targetSetKey, [registeredTargets, imageBuild]);
   }
-  return table;
+  return combinations;
 }
 
 function profileNextActions(reasons: string[]): string[] {
@@ -543,7 +553,7 @@ function gradeProject(
 ): ProjectGrade {
   const manifestPath = join(projectRoot, "pixi.toml");
   if (!existsSync(manifestPath)) {
-    return outOfProfile({
+    return outOfProfileGrade({
       reasons: ["no pixi.toml"],
       lints: [],
       nextActions: ["run `pixi init` to create a workspace manifest"],
@@ -551,22 +561,25 @@ function gradeProject(
   }
 
   const manifest = parseManifest(manifestPath);
-  const profile = checkProfile(manifest);
-  if (profile.reasons.length > 0) {
-    return outOfProfile({ ...profile, nextActions: profileNextActions(profile.reasons) });
+  const profileCheck = checkProfile(manifest);
+  if (profileCheck.reasons.length > 0) {
+    return outOfProfileGrade({
+      ...profileCheck,
+      nextActions: profileNextActions(profileCheck.reasons),
+    });
   }
 
   // Conformance is still being decided here: a path dependency the profile cannot read is an L0
   // manifest, settled before any question about a solve.
-  const paths = checkPathDependencies(manifest, {
+  const pathDependencyCheck = checkPathDependencies(manifest, {
     projectRoot,
     sourceRoot,
     platforms: declaredPlatforms(manifest),
   });
-  const lints = [...profile.lints, ...paths.lints];
-  if (paths.reasons.length > 0) {
-    return outOfProfile({
-      reasons: paths.reasons,
+  const lints = [...profileCheck.lints, ...pathDependencyCheck.lints];
+  if (pathDependencyCheck.reasons.length > 0) {
+    return outOfProfileGrade({
+      reasons: pathDependencyCheck.reasons,
       lints,
       nextActions: [
         "make each path dependency a readable single-output source package — see PROFILE.md",
@@ -574,10 +587,15 @@ function gradeProject(
     });
   }
 
-  const result = gradeSolve(projectRoot, manifest, { lints, paths: paths.dependencies }, options);
-  return paths.dependencies.length > 0
-    ? { ...result, pathDependencies: paths.dependencies }
-    : result;
+  const projectGrade = gradeSolve(
+    projectRoot,
+    manifest,
+    { lints, pathDependencies: pathDependencyCheck.dependencies },
+    options,
+  );
+  return pathDependencyCheck.dependencies.length > 0
+    ? { ...projectGrade, pathDependencies: pathDependencyCheck.dependencies }
+    : projectGrade;
 }
 
 /**
@@ -587,29 +605,29 @@ function gradeProject(
  * directory, and a URL — what the lock holds for an ordinary registry package — resolves to
  * something no relative path can equal.
  */
-function sourcePath(projectRoot: string, path: string): string {
+function resolveProjectPath(projectRoot: string, path: string): string {
   return resolve(projectRoot, path);
 }
 
 function gradeSolve(
   projectRoot: string,
   manifest: Manifest,
-  context: { lints: string[]; paths: PathDependency[] },
+  conformance: { lints: string[]; pathDependencies: PathDependency[] },
   options: GradeOptions,
 ): ProjectGrade {
-  const { lints } = context;
+  const { lints } = conformance;
   const lockPath = join(projectRoot, "pixi.lock");
   if (!existsSync(lockPath)) {
-    return indefinite("UNRESOLVED", {
+    return indefiniteGrade("UNRESOLVED", {
       reasons: ["no pixi.lock — publication is a claim about a solve, and there is no solve"],
       lints,
       nextActions: ["run `pixi lock` and commit pixi.lock"],
     });
   }
 
-  const locked = loadLock(lockPath, GRADING_PLATFORM);
-  if (!locked.covered) {
-    return indefinite("STALE", {
+  const lock = loadLock(lockPath, GRADING_PLATFORM);
+  if (!lock.covered) {
+    return indefiniteGrade("STALE", {
       reasons: [
         `lock has no ${GRADING_PLATFORM} solve, which is the platform every level describes`,
       ],
@@ -617,169 +635,188 @@ function gradeSolve(
       nextActions: [`run \`pixi lock\` — the lock does not cover ${GRADING_PLATFORM}`],
     });
   }
-  if (locked.problems.length > 0) {
-    return indefinite("UNSUPPORTED_LOCK", {
-      reasons: locked.problems,
+  if (lock.problems.length > 0) {
+    return indefiniteGrade("UNSUPPORTED_LOCK", {
+      reasons: lock.problems,
       lints,
       nextActions: ["give every dependency a conda identity, then re-lock"],
     });
   }
-  const byName = new Map(locked.packages.map((pkg) => [pkg.name, pkg]));
+  const lockedPackagesByName = new Map(
+    lock.packages.map((lockedPackage) => [lockedPackage.name, lockedPackage]),
+  );
 
   // The grading platform's target table participates: a target-only dependency is a root.
-  const direct = Object.keys(effectiveCondaDependencies(manifest, GRADING_PLATFORM)).sort();
+  const directDependencyNames = Object.keys(
+    effectiveCondaDependencies(manifest, GRADING_PLATFORM),
+  ).sort();
 
   // Evidence before readiness: an incomplete solve cannot be argued down to a level, so staleness
   // is settled before any package is allowed to cap one.
-  const missing = direct.filter((name) => !byName.has(name));
-  if (missing.length > 0) {
-    return indefinite("STALE", {
-      reasons: [`lock is stale — ${missing.join(", ")} not resolved`],
+  const missingDependencies = directDependencyNames.filter(
+    (name) => !lockedPackagesByName.has(name),
+  );
+  if (missingDependencies.length > 0) {
+    return indefiniteGrade("STALE", {
+      reasons: [`lock is stale — ${missingDependencies.join(", ")} not resolved`],
       lints,
-      nextActions: [`run \`pixi lock\` — the lock does not cover ${missing.join(", ")}`],
+      nextActions: [
+        `run \`pixi lock\` — the lock does not cover ${missingDependencies.join(", ")}`,
+      ],
     });
   }
 
   // A source record naming somewhere else is evidence about a manifest that no longer exists. The
   // manifest is in profile and the recipe is readable; what is wrong is the solve, so this is
   // stale rather than L0.
-  const moved = context.paths.flatMap((dependency) => {
+  const movedPathDependencies = conformance.pathDependencies.flatMap((dependency) => {
     // Workspace scope only. A recursively reached dependency's path is relative to its parent
     // recipe, and Pixi never writes it to the lock, so a same-named locked package is a different
     // package rather than a disagreement.
     if (dependency.scope !== "workspace") {
       return [];
     }
-    const source = byName.get(dependency.name)?.source;
+    const source = lockedPackagesByName.get(dependency.name)?.source;
     return source === undefined ||
-      sourcePath(projectRoot, source) === sourcePath(projectRoot, dependency.declared)
+      resolveProjectPath(projectRoot, source) ===
+        resolveProjectPath(projectRoot, dependency.declared)
       ? []
       : [
           `${dependency.name} is locked from ${source}, but the manifest declares ${dependency.declared}`,
         ];
   });
-  if (moved.length > 0) {
-    return indefinite("STALE", {
-      reasons: moved,
+  if (movedPathDependencies.length > 0) {
+    return indefiniteGrade("STALE", {
+      reasons: movedPathDependencies,
       lints,
       nextActions: ["run `pixi lock` — the lock does not describe the current path dependencies"],
     });
   }
 
-  const heldBack: Array<{ reason: string; pkg: LockedPackage }> = [];
-  for (const pkg of locked.packages) {
-    if (pkg.channel === null) {
-      heldBack.push({ reason: `${pkg.name} built from source at ${pkg.source}`, pkg });
+  const portabilityCaps: Array<{ reason: string; package: LockedPackage }> = [];
+  for (const lockedPackage of lock.packages) {
+    if (lockedPackage.channel === null) {
+      portabilityCaps.push({
+        reason: `${lockedPackage.name} built from source at ${lockedPackage.source}`,
+        package: lockedPackage,
+      });
     } else if (
-      pkg.channel.startsWith("local:") ||
-      !PUBLIC_CHANNEL_HOSTS.has(host(pkg.source ?? ""))
+      lockedPackage.channel.startsWith("local:") ||
+      !PUBLIC_CHANNEL_HOSTS.has(artifactHost(lockedPackage.source ?? ""))
     ) {
-      heldBack.push({
-        reason: `${pkg.name} resolved from a non-public channel (${pkg.source})`,
-        pkg,
+      portabilityCaps.push({
+        reason: `${lockedPackage.name} resolved from a non-public channel (${lockedPackage.source})`,
+        package: lockedPackage,
       });
     }
   }
-  if (heldBack.length > 0) {
-    const capping = heldBack[0].pkg;
-    return definitive(1, {
-      reasons: heldBack.map(({ reason }) => reason),
+  if (portabilityCaps.length > 0) {
+    const cappingPackage = portabilityCaps[0].package;
+    return definitiveGrade(1, {
+      reasons: portabilityCaps.map(({ reason }) => reason),
       lints,
-      cap: capOf(capping),
+      cap: packageCap(cappingPackage),
       nextActions: [
-        capping.channel === null
-          ? `publish ${capping.name} to conda-forge or bioconda — it is built from source at ${capping.source}`
-          : `republish ${capping.name} from a public channel — it resolves from ${capping.source}`,
+        cappingPackage.channel === null
+          ? `publish ${cappingPackage.name} to conda-forge or bioconda — it is built from source at ${cappingPackage.source}`
+          : `republish ${cappingPackage.name} from a public channel — it resolves from ${cappingPackage.source}`,
       ],
     });
   }
 
-  const targets = direct.map((name) => `${name}=${byName.get(name)?.version}`);
-  const target = targets.join(",");
-  const mulled: Target[] = direct.map((name) => {
-    const pkg = byName.get(name);
+  const resolvedTargets = directDependencyNames.map(
+    (name) => `${name}=${lockedPackagesByName.get(name)?.version}`,
+  );
+  const target = resolvedTargets.join(",");
+  const containerTargets: Target[] = directDependencyNames.map((name) => {
+    const lockedPackage = lockedPackagesByName.get(name);
     return {
       package: name,
-      version: pkg?.version,
-      build: pkg?.build,
+      version: lockedPackage?.version,
+      build: lockedPackage?.build,
     };
   });
 
-  const outsideCommunityPackages = locked.packages.filter(
-    (pkg) => pkg.channel !== null && !COMMUNITY_CHANNELS.has(pkg.channel),
+  const outsideCommunityPackages = lock.packages.filter(
+    (lockedPackage) =>
+      lockedPackage.channel !== null && !COMMUNITY_CHANNELS.has(lockedPackage.channel),
   );
   if (outsideCommunityPackages.length > 0) {
-    const outsideCommunity = [
-      ...new Set(outsideCommunityPackages.map((pkg) => pkg.channel as string)),
+    const outsideCommunityChannels = [
+      ...new Set(outsideCommunityPackages.map((lockedPackage) => lockedPackage.channel as string)),
     ].sort();
-    const capping = outsideCommunityPackages[0];
-    return definitive(2, {
+    const cappingPackage = outsideCommunityPackages[0];
+    return definitiveGrade(2, {
       target,
       lints,
-      cap: capOf(capping),
+      cap: packageCap(cappingPackage),
       reasons: [
-        `every package is public, but ${capping.name} resolves from ${capping.channel} — the closure uses non-community channels: ${outsideCommunity.join(", ")}`,
+        `every package is public, but ${cappingPackage.name} resolves from ${cappingPackage.channel} — the closure uses non-community channels: ${outsideCommunityChannels.join(", ")}`,
         "L3 requires every package to resolve from conda-forge or bioconda",
       ],
-      nextActions: [`get ${capping.name} into conda-forge or bioconda`],
+      nextActions: [`get ${cappingPackage.name} into conda-forge or bioconda`],
     });
   }
 
-  if (direct.length === 1) {
-    const pkg = byName.get(direct[0]);
-    if (pkg !== undefined && pkg.channel !== null && AUTO_CONTAINER_CHANNELS.has(pkg.channel)) {
-      return definitive(3, {
+  if (directDependencyNames.length === 1) {
+    const lockedPackage = lockedPackagesByName.get(directDependencyNames[0]);
+    if (
+      lockedPackage !== undefined &&
+      lockedPackage.channel !== null &&
+      AUTO_CONTAINER_CHANNELS.has(lockedPackage.channel)
+    ) {
+      return definitiveGrade(3, {
         target,
         lints,
         reasons: [
-          `single ${pkg.channel} package — BioContainers builds one image per recipe build`,
+          `single ${lockedPackage.channel} package — BioContainers builds one image per recipe build`,
           "L4 needs that image observed at a registry, which offline grading cannot do",
         ],
         publication: {
-          uri: pullUri(mulled),
+          uri: pullUri(containerTargets),
           state: "INFERRED",
-          basis: `a single ${pkg.channel} package, and BioContainers builds one image per recipe build`,
+          basis: `a single ${lockedPackage.channel} package, and BioContainers builds one image per recipe build`,
         },
         nextActions: [CONFIRM_ACTION],
       });
     }
-    return definitive(3, {
+    return definitiveGrade(3, {
       target,
       lints,
       reasons: [
-        `${pkg?.name} is ecosystem-ready on ${pkg?.channel}, which does not auto-build containers`,
+        `${lockedPackage?.name} is ecosystem-ready on ${lockedPackage?.channel}, which does not auto-build containers`,
       ],
       publication: {
-        uri: pullUri(mulled),
+        uri: pullUri(containerTargets),
         state: "UNREGISTERED",
-        basis: `${pkg?.channel} does not auto-build containers, so this is only the name an image would have`,
+        basis: `${lockedPackage?.channel} does not auto-build containers, so this is only the name an image would have`,
       },
       nextActions: [
-        `publish a container for ${target} — ${pkg?.channel} packages are not built automatically`,
+        `publish a container for ${target} — ${lockedPackage?.channel} packages are not built automatically`,
       ],
     });
   }
 
-  const versionsOnly = mulled.map(({ package: packageName, version }) => ({
+  const versionedContainerTargets = containerTargets.map(({ package: packageName, version }) => ({
     package: packageName,
     version,
   }));
   const combinations = loadCombinations(options.combinationsPath ?? DEFAULT_COMBINATIONS_PATH);
   // A caller-supplied table is not the copy the vendored snapshot describes, so claim no provenance.
   const snapshot = options.combinationsPath === undefined ? loadSnapshot() : undefined;
-  const registration = combinations.get(combinationKey(targets));
+  const registration = combinations.get(combinationKey(resolvedTargets));
   if (registration !== undefined) {
-    const [raw, imageBuild] = registration;
-    return definitive(3, {
+    const [registeredTargetSpec, imageBuild] = registration;
+    return definitiveGrade(3, {
       target,
       lints,
       snapshot,
       reasons: [
-        `registered in BioContainers combinations/hash.tsv as: ${raw}`,
+        `registered in BioContainers combinations/hash.tsv as: ${registeredTargetSpec}`,
         "L4 needs that image observed at a registry, which offline grading cannot do",
       ],
       publication: {
-        uri: pullUri(versionsOnly, imageBuild),
+        uri: pullUri(versionedContainerTargets, imageBuild),
         state: "REGISTERED",
         basis: `listed in the combinations/hash.tsv snapshot fetched ${snapshot?.fetched ?? "at an unrecorded time"}`,
       },
@@ -787,7 +824,7 @@ function gradeSolve(
     });
   }
 
-  return definitive(3, {
+  return definitiveGrade(3, {
     target,
     lints,
     snapshot,
@@ -796,7 +833,7 @@ function gradeSolve(
       "L4 is one pull request away — add the target string above to combinations/hash.tsv",
     ],
     publication: {
-      uri: pullUri(versionsOnly, "0"),
+      uri: pullUri(versionedContainerTargets, "0"),
       state: "UNREGISTERED",
       basis: "this is only the name an image would have once built",
     },

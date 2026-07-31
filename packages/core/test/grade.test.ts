@@ -7,8 +7,8 @@ import { describe, expect, it } from "vitest";
 
 import { grade } from "../src/index.js";
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
-const examples = join(root, "examples");
+const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const examples = join(repositoryRoot, "examples");
 
 describe("grade", () => {
   for (const [name, expected] of [

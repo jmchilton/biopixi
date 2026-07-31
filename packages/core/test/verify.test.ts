@@ -7,8 +7,7 @@ const DIGEST = "sha256:6f88956b747a67b2a39a3ff72c4de30e665239ee11db610624dd4298e
 const URI = "quay.io/biocontainers/samtools:1.17--h00cdaf9_0";
 const OBSERVED_AT = "2026-07-30T00:00:00.000Z";
 
-/** A fetcher that answers every call the same way, and records what it was asked. */
-function answering(body: unknown, status = 200): Fetcher & { calls: string[] } {
+function recordingFetcher(body: unknown, status = 200): Fetcher & { calls: string[] } {
   const calls: string[] = [];
   const fetcher = (url: string) => {
     calls.push(url);
@@ -57,7 +56,7 @@ describe("parsePullUri", () => {
 
 describe("observe", () => {
   it("reports a digest when the tag is there", async () => {
-    const fetcher = answering(tagged(DIGEST));
+    const fetcher = recordingFetcher(tagged(DIGEST));
 
     await expect(observe(URI, { fetcher })).resolves.toEqual({
       outcome: "present",
@@ -67,21 +66,21 @@ describe("observe", () => {
   });
 
   it("reports absent when the repository has no such tag", async () => {
-    const result = await observe(URI, { fetcher: answering({ tags: [] }) });
+    const result = await observe(URI, { fetcher: recordingFetcher({ tags: [] }) });
 
     expect(result.outcome).toBe("absent");
   });
 
   it("treats an anonymous authorization failure as absent, not as unknown", async () => {
     // Anonymity is the property under test, so 401 answers the question this claim asks.
-    const result = await observe(URI, { fetcher: answering({}, 401) });
+    const result = await observe(URI, { fetcher: recordingFetcher({}, 401) });
 
     expect(result.outcome).toBe("absent");
     expect(result).toHaveProperty("detail", expect.stringContaining("not publicly pullable"));
   });
 
   it("treats a server fault as indeterminate, because it says nothing about the image", async () => {
-    const result = await observe(URI, { fetcher: answering({}, 503) });
+    const result = await observe(URI, { fetcher: recordingFetcher({}, 503) });
 
     expect(result.outcome).toBe("indeterminate");
   });
@@ -97,13 +96,13 @@ describe("observe", () => {
 
   it("refuses to confirm a tag reported without a digest", async () => {
     // CONFIRMED has to be auditable, and there is nothing to record here.
-    const result = await observe(URI, { fetcher: answering(tagged(undefined)) });
+    const result = await observe(URI, { fetcher: recordingFetcher(tagged(undefined)) });
 
     expect(result.outcome).toBe("indeterminate");
   });
 
   it("treats an unparseable body as indeterminate", async () => {
-    const result = await observe(URI, { fetcher: answering("<html>nope</html>") });
+    const result = await observe(URI, { fetcher: recordingFetcher("<html>nope</html>") });
 
     expect(result.outcome).toBe("indeterminate");
   });
@@ -111,7 +110,7 @@ describe("observe", () => {
 
 describe("verifyGrade", () => {
   const options = (body: unknown, status = 200) => ({
-    fetcher: answering(body, status),
+    fetcher: recordingFetcher(body, status),
     observedAt: OBSERVED_AT,
   });
 

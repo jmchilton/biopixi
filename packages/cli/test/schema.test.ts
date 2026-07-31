@@ -9,20 +9,20 @@ import { describe, expect, it } from "vitest";
 import { runGrade } from "../src/index.js";
 import { REPORT_SCHEMA_URL } from "../src/report.js";
 
-const root = fileURLToPath(new URL("../../../", import.meta.url));
-const schemaPath = join(root, "docs/schema/grade-report-v0.schema.json");
+const repositoryRoot = fileURLToPath(new URL("../../../", import.meta.url));
+const schemaPath = join(repositoryRoot, "docs/schema/grade-report-v0.schema.json");
 const schema = JSON.parse(readFileSync(schemaPath, "utf8")) as Record<string, unknown>;
 
 const validate = new Ajv({ strict: false }).compile(schema);
 
-function payload(directories: string[]): unknown {
+function generatePayload(directories: string[]): unknown {
   const stdout: string[] = [];
   runGrade(directories, { json: true }, { stdout: (m) => stdout.push(m), stderr: () => undefined });
   return JSON.parse(stdout[0]);
 }
 
 /** An in-profile project with no lock, so UNRESOLVED is exercised alongside the committed examples. */
-function lockless(): string {
+function createLocklessProject(): string {
   const directory = mkdtempSync(join(tmpdir(), "biopixi-schema-"));
   writeFileSync(
     join(directory, "pixi.toml"),
@@ -49,16 +49,16 @@ describe("grade report schema", () => {
       "examples/l3-ecosystem-ready",
       "examples/l4-single",
       "examples/l4-combination",
-    ].map((example) => join(root, example));
+    ].map((example) => join(repositoryRoot, example));
 
     // One payload holds them together, so a field that only ever appears at one level is covered.
-    expect(validate(payload([...directories, lockless()]))).toBe(true);
+    expect(validate(generatePayload([...directories, createLocklessProject()]))).toBe(true);
     expect(validate.errors).toBeNull();
   });
 
   it("rejects a payload carrying a field the schema does not describe", () => {
     // Guards the direction the generator cannot: output growing past its committed contract.
-    const report = payload([join(root, "examples/l4-single")]) as {
+    const report = generatePayload([join(repositoryRoot, "examples/l4-single")]) as {
       results: Record<string, unknown>[];
     };
     report.results[0].surprise = true;
@@ -67,7 +67,7 @@ describe("grade report schema", () => {
 
   it("rejects a level that is neither a number nor null", () => {
     // The schema cannot express "null unless DEFINITIVE" — that invariant is tested in core.
-    const report = payload([lockless()]) as {
+    const report = generatePayload([createLocklessProject()]) as {
       results: Record<string, unknown>[];
     };
     expect(report.results[0].level).toBeNull();

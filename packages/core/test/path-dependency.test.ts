@@ -12,8 +12,7 @@ const examples = join(fileURLToPath(new URL("../../../", import.meta.url)), "exa
 
 const ancestor = join(fixtures, "accepted", "path-dependency-ancestor");
 
-/** A throwaway project tree. Used where the shape under test is a relationship between files. */
-function tree(files: Record<string, string>): string {
+function createTemporaryTree(files: Record<string, string>): string {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "biopixi-path-")));
   for (const [relativePath, contents] of Object.entries(files)) {
     const path = join(root, relativePath);
@@ -32,7 +31,6 @@ platforms = ["linux-64"]
 tool-a = { path = "./recipes/tool-a" }
 `;
 
-/** A package manifest, optionally depending on another local package by path. */
 function packageManifest(name: string, dependsOn?: string): string {
   const runDependencies =
     dependsOn === undefined
@@ -118,7 +116,7 @@ describe("path dependency conformance", () => {
   it("follows a path dependency declared by another local package", () => {
     // pixi resolves these at build time and never writes them to the lock, so reading the package
     // manifest is the only way the second recipe is seen at all.
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a", "tool-b"),
       "recipes/tool-a/recipe.yaml": recipe("tool-a"),
@@ -136,7 +134,7 @@ describe("path dependency conformance", () => {
   });
 
   it("rejects a defect in a recursively reached package", () => {
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a", "tool-b"),
       "recipes/tool-a/recipe.yaml": recipe("tool-a"),
@@ -152,7 +150,7 @@ describe("path dependency conformance", () => {
   });
 
   it("terminates on a cycle between two local packages", () => {
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a", "tool-b"),
       "recipes/tool-a/recipe.yaml": recipe("tool-a"),
@@ -187,14 +185,16 @@ environments:
     };
 
     it("accepts a source record naming the declared path", () => {
-      const result = grade(tree({ ...files, "pixi.lock": lock("./recipes/tool-a") }));
+      const result = grade(
+        createTemporaryTree({ ...files, "pixi.lock": lock("./recipes/tool-a") }),
+      );
 
       expect(result.evidenceState).toBe("DEFINITIVE");
       expect(result.level).toBe(1);
     });
 
     it("is stale, not out of profile, when the recipe has moved since the solve", () => {
-      const result = grade(tree({ ...files, "pixi.lock": lock("./vendor/tool-a") }));
+      const result = grade(createTemporaryTree({ ...files, "pixi.lock": lock("./vendor/tool-a") }));
 
       expect(result.conformant).toBe(true);
       expect(result.evidenceState).toBe("STALE");
@@ -213,9 +213,9 @@ package:
 `;
 
     it("accepts the ordinary rattler-build form", () => {
-      // Defining name and version once in context: and referring to them by Jinja is how nearly
+      // Defining name and version once in context and referring to them by Jinja is how nearly
       // every real recipe is written. Reading that lookup is not evaluating the template language.
-      const root = tree({
+      const root = createTemporaryTree({
         "pixi.toml": WORKSPACE,
         "recipes/tool-a/pixi.toml": packageManifest("tool-a"),
         "recipes/tool-a/recipe.yaml": templated('  name: tool-a\n  version: "1.0.0"'),
@@ -225,7 +225,7 @@ package:
     });
 
     it("rejects a reference to something context does not define", () => {
-      const root = tree({
+      const root = createTemporaryTree({
         "pixi.toml": WORKSPACE,
         "recipes/tool-a/pixi.toml": packageManifest("tool-a"),
         "recipes/tool-a/recipe.yaml": templated('  version: "1.0.0"'),
@@ -240,7 +240,7 @@ package:
 
   it("reports a shared defective recipe once, not once per route to it", () => {
     // A diamond: both local packages depend on the same broken one.
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": `${WORKSPACE}tool-b = { path = "./recipes/tool-b" }\n`,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a", "shared"),
       "recipes/tool-a/recipe.yaml": recipe("tool-a"),
@@ -256,7 +256,7 @@ package:
 
   it("rejects a git= requirement inside a reached package", () => {
     // The profile boundary has to hold at depth, not only in the graded manifest.
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": `${packageManifest("tool-a")}
 [package.run-dependencies]
@@ -274,7 +274,7 @@ elsewhere = { git = "https://example.org/elsewhere.git" }
   it("does not confuse a local package with a locked one that shares its name", () => {
     // zlib resolves from conda-forge for the workspace and is separately built from source for
     // tool-a. The lock describes the first; it says nothing about the second.
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": `${WORKSPACE}zlib = "1.3.*"\n`,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a", "zlib"),
       "recipes/tool-a/recipe.yaml": recipe("tool-a"),
@@ -301,7 +301,7 @@ environments:
   it("ignores a path dependency under a platform the workspace does not declare", () => {
     // The same principle as unused-target-pypi: an inert table takes part in nothing, including
     // the preview requirement it would otherwise trigger.
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": `[workspace]
 channels = ["conda-forge"]
 platforms = ["linux-64"]
@@ -322,7 +322,7 @@ tool-a = { path = "./recipes/nowhere" }
 
   it("accepts an epoch but rejects a fuzzy operator in the package version", () => {
     const withVersion = (version: string) =>
-      tree({
+      createTemporaryTree({
         "pixi.toml": WORKSPACE,
         "recipes/tool-a/pixi.toml": packageManifest("tool-a").replace("1.0.0", version),
         "recipes/tool-a/recipe.yaml": `package:\n  name: tool-a\n  version: "${version}"\n`,
@@ -333,7 +333,7 @@ tool-a = { path = "./recipes/nowhere" }
   });
 
   it("asks for a quoted recipe version rather than reporting a mismatch against a number", () => {
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a").replace("1.0.0", "1.0"),
       "recipes/tool-a/recipe.yaml": "package:\n  name: tool-a\n  version: 1.0\n",
@@ -343,7 +343,7 @@ tool-a = { path = "./recipes/nowhere" }
   });
 
   it("keeps a parser diagnostic to one line", () => {
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": "[package\nname = ",
     });
@@ -355,13 +355,16 @@ tool-a = { path = "./recipes/nowhere" }
   });
 
   it("says a file is a file rather than blaming its missing manifest", () => {
-    const root = tree({ "pixi.toml": WORKSPACE, "recipes/tool-a": "not a directory\n" });
+    const root = createTemporaryTree({
+      "pixi.toml": WORKSPACE,
+      "recipes/tool-a": "not a directory\n",
+    });
 
     expect(grade(root).reasons[0]).toContain("which is a file rather than a directory");
   });
 
   it("reads the recipe.yml and variants.yml spellings", () => {
-    const root = tree({
+    const root = createTemporaryTree({
       "pixi.toml": WORKSPACE,
       "recipes/tool-a/pixi.toml": packageManifest("tool-a"),
       "recipes/tool-a/recipe.yml": recipe("tool-a"),

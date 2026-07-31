@@ -37,11 +37,11 @@ export interface GradeReport {
   results: GradeReportEntry[];
 }
 
-export function buildReport(results: GradeReportEntry[]): GradeReport {
+export function buildReport(entries: GradeReportEntry[]): GradeReport {
   return {
     $schema: REPORT_SCHEMA_URL,
     biopixi: packageMetadata.version,
     profile: "v0",
-    results,
+    results: entries,
   };
 }

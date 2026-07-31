@@ -17,8 +17,7 @@ platforms = ["linux-64"]
 samtools = "==1.17"
 `;
 
-/** A collection root holding one project, mirroring content/environments/<name> in a knowledge base. */
-function collection(): { root: string; project: string } {
+function createCollectionWithProject(): { root: string; project: string } {
   const root = realpathSync(mkdtempSync(join(tmpdir(), "biopixi-root-")));
   const project = join(root, "content", "environments", "example");
   mkdirSync(project, { recursive: true });
@@ -28,7 +27,7 @@ function collection(): { root: string; project: string } {
 
 describe("source root", () => {
   it("defaults to the project root and is recorded", () => {
-    const { project } = collection();
+    const { project } = createCollectionWithProject();
     expect(grade(project).sourceRoot).toBe(project);
   });
 
@@ -47,19 +46,19 @@ describe("source root", () => {
   });
 
   it("accepts an explicit ancestor of the project root", () => {
-    const { root, project } = collection();
+    const { root, project } = createCollectionWithProject();
     expect(grade(project, { sourceRoot: root }).sourceRoot).toBe(root);
   });
 
   it("resolves symlinks before comparing, so a linked project stays inside its root", () => {
-    const { root, project } = collection();
+    const { root, project } = createCollectionWithProject();
     const link = join(dirname(project), "linked");
     symlinkSync(project, link);
     expect(grade(link, { sourceRoot: root }).sourceRoot).toBe(root);
   });
 
   it("rejects a source root that is not an ancestor of the project root", () => {
-    const { project } = collection();
+    const { project } = createCollectionWithProject();
     const elsewhere = realpathSync(mkdtempSync(join(tmpdir(), "biopixi-other-")));
     expect(() => grade(project, { sourceRoot: elsewhere })).toThrow(SourceRootError);
     expect(() => grade(project, { sourceRoot: elsewhere })).toThrow(/is not an ancestor/);
@@ -67,14 +66,14 @@ describe("source root", () => {
 
   it("rejects a sibling that is only a string prefix of the project root", () => {
     // `…/environments/example` starts with `…/environments/exam`, which contains none of it.
-    const { project } = collection();
+    const { project } = createCollectionWithProject();
     const sibling = join(dirname(project), "exam");
     mkdirSync(sibling, { recursive: true });
     expect(() => grade(project, { sourceRoot: sibling })).toThrow(SourceRootError);
   });
 
   it("rejects a source root that does not exist", () => {
-    const { project } = collection();
+    const { project } = createCollectionWithProject();
     expect(() => grade(project, { sourceRoot: join(project, "..", "missing") })).toThrow(
       SourceRootError,
     );
