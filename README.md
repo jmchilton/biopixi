@@ -182,8 +182,8 @@ Singularity from `depot.galaxyproject.org`.
 
 They fail in opposite places. Wave is a hosted service, so it cannot see a `file://` channel and
 is blind at L1, but it needs nothing locally beyond one binary. mulled needs conda, Docker, and
-involucro on the machine, and builds from any channel including a local one. **Wave for reach,
-mulled for durability.**
+involucro on the machine, and builds from any channel including a local one. **Wave for convenient
+provisioning, mulled for local builds and the BioContainers path.**
 
 The names differ too. mulled hashes a sorted package set, so one environment has one name and
 biopixi can derive it offline. Wave hashes a build request, including fields rendered by the
