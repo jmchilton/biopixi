@@ -2,6 +2,7 @@
 - [Getting Started](getting-started.md)
 - **Guides**
   - [From Pixi to BioContainers](guides/from-pixi-to-biocontainers.md)
+  - [Agentic workflows](guides/agentic-workflows.md)
 - **Architecture**
   - [Profile overview](architecture/profile.md)
   - [Container builders](architecture/containers.md)
