@@ -2,6 +2,7 @@
 - [Getting Started](getting-started.md)
 - **Architecture**
   - [Profile overview](architecture/profile.md)
+  - [Container builders](architecture/containers.md)
   - [Normative specification](profile.md)
 - **Packages**
   - [Core](packages/core.md)

@@ -174,35 +174,20 @@ For conda-forge-only or multi-package target sets, add the exact target string t
 **L4** — nothing to build. `docker pull quay.io/biocontainers/mulled-v2-<hash>:<tag>`, or
 Singularity from `depot.galaxyproject.org`.
 
-## Wave and mulled are both kept, deliberately
+### Wave and mulled are both kept, deliberately
 
-They fail in opposite places.
+They fail in opposite places. Wave is a hosted service, so it cannot see a `file://` channel and
+is blind at L1, but it needs nothing locally beyond one binary. mulled needs conda, Docker, and
+involucro on the machine, and builds from any channel including a local one. **Wave for reach,
+mulled for durability.**
 
-|                          | Wave                                                               | mulled-*                                        |
-| ------------------------ | ------------------------------------------------------------------ | ----------------------------------------------- |
-| local prerequisites      | one static binary + network                                        | conda **+** Docker **+** involucro              |
-| built for                | a developer who wants a container                                  | BioContainers/Galaxy CI and channel maintenance |
-| L1 (local channel)       | **blind** — remote service, cannot read `file://`                  | **works**                                       |
-| L2 (public channel)      | works when the service can reach the explicitly configured channel | **works**, with the channel supplied            |
-| L3 (ecosystem-ready)     | one call, hosted, frozen                                           | standard community inputs                       |
-| L4 (ecosystem-published) | redundant                                                          | already built and distributed                   |
-| name identifies          | the build request                                                  | the package set, sorted and canonicalized       |
-| name reproducible later  | not contractually — unversioned service defaults are hash inputs   | **yes**, `mulled-hash --hash v1\|v2`            |
+The names differ too. mulled hashes a sorted package set, so one environment has one name and
+biopixi can derive it offline. Wave hashes a build request, including fields rendered by the
+service, so the same environment spelled two ways gets two names. Container identity in a grade
+therefore comes from mulled.
 
-Wave is the better ergonomic default once every channel is publicly reachable. mulled is the
-only thing that works at L1. **Wave for reach, mulled for durability.**
-
-The last two rows are the ones that matter for grading, and they are subtler than "one needs the
-network." Wave's frozen name _is_ computable offline — the algorithm is SipHash-2-4 over a handful of
-fields, and reimplementing it from the AGPL source reproduces observed names exactly. But two of
-those fields are a server-rendered Dockerfile and a deployment-config repository path, so what an
-offline reimplementation pins is a snapshot of Seqera's deployment, not a published contract. The
-default build template has already moved once.
-
-The consequence is about identity, not connectivity. `samtools=1.17 bamtools=2.5.2` and
-`bamtools=2.5.2 samtools=1.17` are one environment and two Wave names; mulled sorts before hashing
-and gives one name for both. Wave names a build request, which is the right thing for a build cache
-and the wrong thing for a durable pin.
+[Container builders](docs/architecture/containers.md) has the full comparison and both naming
+algorithms.
 
 ## The R lane
 
